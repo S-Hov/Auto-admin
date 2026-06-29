@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auto_admin_test
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -17,6 +17,20 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    depends_on:
+      - mysql
+
+  client:
+    build: ./client
+    container_name: auto_admin_client
+    restart: unless-stopped
+    ports:
+      - "5177:5173" # Пробрасываем порт React наружу в Windows
+    volumes:
+      - ./client:/app # Монтируем код, чтобы изменения в файлах сразу отражались в браузере (Hot Reload)
+      - /app/node_modules # Изолируем node_modules внутри контейнера, чтобы не было конфликтов с Windows/WSL
+    environment:
+      - WATCHPACK_POLLING=true # Помогает Hot Reload стабильно работать внутри WSL/Docker
     depends_on:
       - mysql
 
