@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
     errorElement: PageLoader(<NotFoundPage />),
     children: [
       {
-        path: '/',
+        index: true,
         element: PageLoader(<InstallPage />),
       }
     ],

@@ -1,0 +1,41 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100svh;
+    background-color: var(--background-color-light);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+section {
+    padding: 50px 0;
+
+    &.mh-100 {
+        min-height: 100svh;
+    }
+
+    &.h-100 {
+        height: 100svh;
+    }
+}
+
+.container {
+    width: min(1440px, 98%);
+    margin: 0 auto;
+
+    &.flex {
+        display: flex;
+
+        &.flex-column {
+            flex-direction: column;
+        }
+
+        &.flex-center {
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}

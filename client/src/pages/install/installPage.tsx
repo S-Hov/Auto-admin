@@ -1,10 +1,13 @@
-const installPage = () => {
+import InstallDatabaseForm from "../../features/install-database/ui/InstallDatabaseForm";
+
+const InstallPage = () => {
   return (
-    <div>
-      <h1>Install Page</h1>
-      <p>This is the installation page of our application.</p>
-    </div>
+    <section className="section install-page mh-100">
+      <div className="container flex flex-center">
+        <InstallDatabaseForm />
+      </div>
+    </section>
   );
 };
 
-export default installPage;
+export default InstallPage;

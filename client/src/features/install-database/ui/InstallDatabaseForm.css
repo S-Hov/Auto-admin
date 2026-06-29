@@ -1,0 +1,161 @@
+.card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 40px 44px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 8px 24px -6px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.25s ease;
+}
+
+.card:hover {
+    box-shadow: 0 28px 52px -16px rgba(0, 0, 0, 0.18);
+}
+
+.card-title {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: #6b6b6b;
+    margin-bottom: 28px;
+    font-weight: 400;
+    border-bottom: 1px solid #efefef;
+    padding-bottom: 18px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.field-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c2c2c;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+}
+
+.field-group input {
+    background: #f9f9f9;
+    border: 1px solid #e4e4e4;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #1a1a1a;
+    font-weight: 400;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+}
+
+.field-group input::placeholder {
+    color: #aaaaaa;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.field-group input:focus {
+    border-color: #c9a86c;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+}
+
+.field-group input:hover {
+    background: #ffffff;
+    border-color: #d0d0d0;
+}
+
+.row-duo {
+    display: flex;
+    gap: 16px;
+}
+
+.row-duo .field-group {
+    flex: 1;
+}
+
+.check-button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 14px 0;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 40px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.check-button:hover {
+    background: #2c2c2c;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.check-button:active {
+    transform: scale(0.98);
+    background: #111111;
+}
+
+.accent-line {
+    width: 48px;
+    height: 3px;
+    background: #c9a86c;
+    border-radius: 4px;
+    margin-bottom: 14px;
+}
+
+.check-button svg {
+    width: 18px;
+    height: 18px;
+    stroke: #c9a86c;
+    stroke-width: 2;
+    fill: none;
+    transition: stroke 0.2s ease;
+}
+
+.check-button:hover svg {
+    stroke: #dbb97e;
+}
+
+@media (max-width: 500px) {
+    .card {
+        padding: 28px 20px;
+    }
+
+    .row-duo {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
