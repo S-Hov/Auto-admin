@@ -2,8 +2,15 @@
     --primary-color: #f5f5f5;
     --secondary-color: #1a1a1a;
     --background-color-light: #ececec;
+    --border-lite: 1px solid var(--background-color-light);
     --background-color-dark: #333;
     --accent-color: #008a3b;
-    --text-color-light: #333;
-    --text-color-dark: #f5f5f5;
+    --accent-color-2: #c9a86c;
+    --text-color-dark: #333;
+    --text-color-light: #f5f5f5;
+    --text-color-error: #e74c3c;
+    --text-color-success: #27ae60;
+    --text-color-muted: #aaaaaa;
+    --cart-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 8px 24px -6px rgba(0, 0, 0, 0.05);
+    --card-shadow-hover: 0 28px 52px -16px rgba(0, 0, 0, 0.4);
 }

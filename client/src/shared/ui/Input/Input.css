@@ -1,0 +1,30 @@
+.input {
+    background: var(--primary-color);
+    border: var(--border-lite);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: var(--text-color-dark);
+    font-weight: 400;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    
+    &::placeholder {
+        color: var(--text-color-muted);
+        font-weight: 300;
+        font-size: 14px;
+    }
+    
+    &:focus {
+        border-color: var(--accent-color-2);
+        background: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+    }
+    
+    &:hover {
+        background: var(--primary-color);
+        border-color: var(--accent-color-2);
+    }
+}

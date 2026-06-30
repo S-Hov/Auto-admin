@@ -1,33 +1,26 @@
-export interface InputProps {
-    name: string;
-    label: string;
-    type: 'text' | 'number' | 'password' | 'email' | 'url' | 'tel' | 'search' | 'date' | 'time' | 'datetime-local' | 'month' | 'week' | 'color';
-    placeholder?: string;
-    value?: string | number;
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
-    error?: string;
+import { forwardRef, type ComponentPropsWithRef } from 'react';
+import './Input.css';
+
+interface InputProps extends ComponentPropsWithRef<'input'> {
+    isError?: boolean;
 }
 
-const Input = (props: InputProps) => {
-    const { name, label, type, placeholder, value, onChange, onBlur } = props;
+export const Input = forwardRef<HTMLInputElement, InputProps>(({
+    isError,
+    type = 'text',
+    className = '',
+    ...props
+}, ref) => {
+    const inputClassName = `base-input ${isError ? 'input-error' : ''} ${className}`.trim();
 
     return (
-        <>
-            <label htmlFor={name}>
-                {label}
-                <input
-                    id={name}
-                    name={name}
-                    type={type}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    onBlur={onBlur}
-                />
-            </label>
-        </>
-    )
-}
+        <input
+            {...props}
+            ref={ref}
+            type={type}
+            className={`input ${inputClassName}`}
+        />
+    );
+});
 
-export default Input;
+Input.displayName = 'Input';
