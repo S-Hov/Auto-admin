@@ -1,7 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { installDatabaseSchema, type InstallDatabaseFormValues } from '../model/installDatabase.schema';
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
+import { installDatabase } from '../../../shared/api/database/install';
+import { type ApiError } from '../../../shared/api/apiClient';
 
 import './InstallDatabaseForm.css';
 
@@ -35,7 +38,21 @@ const InstallDatabaseForm = () => {
     });
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
-        console.log(data);
+        toast.promise(installDatabase.checkTheConnection(data), {
+            loading: 'Проверяем подключение к MySQL...',
+
+            success: (response) => {
+                if (response.isOk) {
+                    return `Успешно подключено! Версия: ${response.version || 'неизвестна'}`;
+                }
+                throw new Error('Сервер отклонил параметры подключения');
+            },
+
+            error: (err) => {
+                const apiError = err as ApiError;
+                return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
+            },
+        });
     };
 
     return (
@@ -44,7 +61,7 @@ const InstallDatabaseForm = () => {
 
             <div className="card-title">Подключение к БД</div>
             <div className="card-subtitle">Заполните параметры доступа</div>
-            
+
             <form id="dbForm" onSubmit={handleSubmit(onSubmit)}>
                 <div className="row-duo">
                     <ControlledInput control={control} name="host" label="Хост" placeholder="localhost" />

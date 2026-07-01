@@ -26,7 +26,7 @@ export function ControlledInput<T extends FieldValues>({
             render={({ field: { onChange, value, ...fieldProps }, fieldState: { error } }) => (
                 <div className="field-group">
                     <label htmlFor={name}>{label}</label>
-                    
+
                     <Input
                         {...fieldProps}
                         id={name}
@@ -34,13 +34,13 @@ export function ControlledInput<T extends FieldValues>({
                         placeholder={placeholder}
                         value={value ?? ''}
                         isError={!!error}
-                        
+
                         onChange={(e) => {
                             const val = e.target.value;
                             onChange(type === 'number' ? (val === '' ? '' : Number(val)) : val);
                         }}
                     />
-                    
+
                     {error && <p className="error-message">{error.message}</p>}
                 </div>
             )}
