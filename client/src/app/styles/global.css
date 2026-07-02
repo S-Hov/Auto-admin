@@ -26,6 +26,18 @@ section {
     height: 100%;
 }
 
+.mw-100 {
+    max-width: 100vw;
+}
+
+.w-100 {
+    width: 100vw;
+}
+
+.w-100__percent {
+    width: 100%;
+}
+
 .container {
     width: min(1440px, 98%);
     margin: 0 auto;

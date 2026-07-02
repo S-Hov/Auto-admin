@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { installDatabaseSchema, type InstallDatabaseFormValues } from '../model/installDatabase.schema';
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
+import { Button } from '../../../shared/ui/Button/Button';
 import { installDatabase } from '../../../shared/api/database/install';
 import { type ApiError } from '../../../shared/api/apiClient';
 
@@ -38,7 +39,10 @@ const InstallDatabaseForm = () => {
     });
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
-        toast.promise(installDatabase.checkTheConnection(data), {
+
+        const connectionPromise = installDatabase.checkTheConnection(data);
+
+        toast.promise(connectionPromise, {
             loading: 'Проверяем подключение к MySQL...',
 
             success: (response) => {
@@ -52,7 +56,14 @@ const InstallDatabaseForm = () => {
                 const apiError = err as ApiError;
                 return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
             },
+
         });
+
+        try {
+            await connectionPromise;
+        } catch (error) {
+            console.warn('Подключение завершилось с ошибкой');
+        }
     };
 
     return (
@@ -79,9 +90,10 @@ const InstallDatabaseForm = () => {
                     />
                 ))}
 
-                <button type="submit" className="check-button" disabled={isSubmitting}>
-                    {isSubmitting ? 'Проверяем...' : 'Проверить подключение'}
-                </button>
+                <Button type="submit" variant="primary" isLoading={isSubmitting} className="check-button w-100__percent" disabled={isSubmitting}>
+                    Проверить подключение
+                </Button>
+
             </form>
         </div>
     );

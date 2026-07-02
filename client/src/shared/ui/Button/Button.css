@@ -1,0 +1,86 @@
+.button {
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 10px;
+    transition: .2s ease;
+
+    &.btn-primary {
+        background: var(--secondary-color);
+        color: var(--text-color-light);
+        border: 1px solid var(--secondary-color);
+
+        &:hover {
+            background: var(--primary-color);
+            color: var(--text-color-dark);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+    }
+
+    &.btn-secondary {
+        background: var(--primary-color);
+        color: var(--text-color-dark);
+        border: 1px solid var(--secondary-color);
+
+        &:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+    }
+
+    &.btn-danger {
+        background: var(--primary-color);
+        color: var(--text-color-error);
+        border: 1px solid var(--text-color-error);
+        box-shadow: 0 4px 8px rgba(231, 76, 60, 0.04);
+    }
+
+    &.is-disabled:disabled {
+        position: relative;
+        cursor: not-allowed;
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        scale: 0.97;
+    }
+
+    & .button-loader {
+        display: block;
+        width: min(42px, 100%);
+        margin: 0 auto;
+        aspect-ratio: 4;
+        --_g: no-repeat radial-gradient(circle closest-side, var(--button-loader-color, currentColor) 90%, #ffffff00);
+        background:
+            var(--_g) 0% 50%,
+            var(--_g) 50% 50%,
+            var(--_g) 100% 50%;
+        background-size: calc(100% / 3) 100%;
+        animation: button-loader-pulse 1s infinite linear;
+    }
+}
+
+@keyframes button-loader-pulse {
+    33% {
+        background-size: calc(100% / 3) 0%, calc(100% / 3) 100%, calc(100% / 3) 100%;
+    }
+
+    50% {
+        background-size: calc(100% / 3) 100%, calc(100% / 3) 0%, calc(100% / 3) 100%;
+    }
+
+    66% {
+        background-size: calc(100% / 3) 100%, calc(100% / 3) 100%, calc(100% / 3) 0%;
+    }
+}

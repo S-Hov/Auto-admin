@@ -38,37 +38,6 @@
     flex: 1;
 }
 
-.check-button {
-    margin-top: 10px;
-    width: 100%;
-    padding: 14px 0;
-    background: var(--secondary-color);
-    border: none;
-    border-radius: 40px;
-    color: var(--text-color-light);
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: inherit;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-}
-
-.check-button:hover {
-    background: #2c2c2c;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-}
-
-.check-button:active {
-    transform: scale(0.98);
-    background: #111111;
-}
-
 .accent-line {
     width: 48px;
     height: 3px;
