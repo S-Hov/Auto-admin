@@ -34,7 +34,7 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
         headers.set('Content-Type', 'application/json')
     }
 
-    const response = await fetch(getBaseUrl() + url, {
+    const response = await fetch(getBaseUrl() + '/api' + url, {
         credentials: 'include',
         headers,
         ...options
