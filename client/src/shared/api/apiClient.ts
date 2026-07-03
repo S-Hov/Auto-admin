@@ -6,10 +6,10 @@ export interface UnifiedResponse<D> {
 }
 
 export interface ApiError {
-    status: number
-    data?: any
-    error: string
     message: string
+    status: number
+    code?: string
+    data?: any
     success: false
 }
 
@@ -69,7 +69,7 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
             } as ApiError
         }
 
-        return unwrapUnifiedResponse(data) as T
+        return data as T
     }
 
     if (!response.ok) {

@@ -6,14 +6,15 @@ export class ApiError<TData = unknown> extends Error {
     constructor(
         message: string,
         status = 500,
+        code?: string,
         data?: TData,
-        code?: string
+        success: boolean = false,
     ) {
         super(message);
 
         this.name = 'ApiError';
         this.status = status;
-        this.data = data;
         this.code = code;
+        this.data = data;
     }
 }

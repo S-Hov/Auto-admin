@@ -33,6 +33,23 @@ services:
       - WATCHPACK_POLLING=true # Помогает Hot Reload стабильно работать внутри WSL/Docker
     depends_on:
       - mysql
+  
+  server:
+    build: ./server
+    container_name: auto_admin_server
+    restart: unless-stopped
+    ports:
+      - "5180:5174" # Пробрасываем порт Node.js наружу в Windows
+    volumes:
+      - ./server:/app # Монтируем код для Hot Reload
+      - /app/node_modules # Изолируем зависимости
+    environment:
+      - WATCHPACK_POLLING=true # Помогает Hot Reload в WSL
+      - PORT=5174              # <-- Указываем серверу слушать нужный порт!
+      - HOST=0.0.0.0           # <-- Разрешаем запросы снаружи контейнера!
+    depends_on:
+      - mysql
+
 
 volumes:
   mysql_data:

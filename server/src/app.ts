@@ -16,6 +16,8 @@ const defaultAllowedOrigins = [
   'http://127.0.0.1:5174',
   'http://localhost:5175',
   'http://127.0.0.1:5175',
+  'http://localhost:5177',
+  'http://127.0.0.1:5177',
 ]
 
 app.use(cors({
@@ -34,12 +36,14 @@ app.use(express.json());
 
 app.use(logger);
 
-app.use('/api/install', installRouter);
+app.use("/api/install", installRouter);
 
 app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || 'localhost';
 
-app.listen(PORT, () => {
-  console.log(`Server started on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server started on http://${HOST}:${PORT}`);
 });
+

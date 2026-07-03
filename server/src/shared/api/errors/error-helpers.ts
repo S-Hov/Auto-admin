@@ -5,7 +5,7 @@ export const badRequest = (
     data?: unknown,
     code = 'COMMON.BAD_REQUEST'
 ) => {
-    return new ApiError(message, 400, data, code);
+    return new ApiError(message, 400, code, data);
 };
 
 export const unauthorized = (
@@ -13,7 +13,7 @@ export const unauthorized = (
     data?: unknown,
     code = 'COMMON.UNAUTHORIZED'
 ) => {
-    return new ApiError(message, 401, data, code);
+    return new ApiError(message, 401, code, data);
 };
 
 export const forbidden = (
@@ -21,7 +21,7 @@ export const forbidden = (
     data?: unknown,
     code = 'COMMON.FORBIDDEN'
 ) => {
-    return new ApiError(message, 403, data, code);
+    return new ApiError(message, 403, code, data);
 };
 
 export const notFound = (
@@ -29,7 +29,7 @@ export const notFound = (
     data?: unknown,
     code = 'COMMON.NOT_FOUND'
 ) => {
-    return new ApiError(message, 404, data, code);
+    return new ApiError(message, 404, code, data);
 };
 
 export const internal = (
@@ -37,5 +37,5 @@ export const internal = (
     data?: unknown,
     code = 'COMMON.INTERNAL_ERROR'
 ) => {
-    return new ApiError(message, 500, data, code);
+    return new ApiError(message, 500, code, data);
 };

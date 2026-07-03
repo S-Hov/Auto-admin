@@ -16,7 +16,6 @@ export const Button = ({
     ...props
 }: ButtonProps) => {
     const buttonClassName = `button base-button btn-${variant} ${disabled ? 'is-disabled' : ''} ${isLoading ? 'btn-loading' : ''} ${className}`.trim();
-    console.log(isLoading)
     return (
         <button
             {...props}

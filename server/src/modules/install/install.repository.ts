@@ -21,7 +21,8 @@ export const checkConnectionRepository = async (data: DbConnectionData): Promise
         return { version };
 
     } catch (error) {
-        throw new Error("Ошибка при проверке подключения к базе данных:" + error);
+        console.error('Error in checkConnectionRepository:', error);
+        throw error;
     } finally {
         await connection?.end();
     }

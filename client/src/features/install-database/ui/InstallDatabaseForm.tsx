@@ -46,8 +46,9 @@ const InstallDatabaseForm = () => {
             loading: 'Проверяем подключение к MySQL...',
 
             success: (response) => {
-                if (response.isOk) {
-                    return `Успешно подключено! Версия: ${response.version || 'неизвестна'}`;
+                console.log('response', response);
+                if (response.success) {
+                    return `Успешно подключено! Версия: ${response.data?.version || 'неизвестна'}`;
                 }
                 throw new Error('Сервер отклонил параметры подключения');
             },
