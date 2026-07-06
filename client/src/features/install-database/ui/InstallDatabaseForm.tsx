@@ -8,6 +8,7 @@ import { installDatabase } from '../../../shared/api/database/install';
 import { type ApiError } from '../../../shared/api/apiClient';
 
 import './InstallDatabaseForm.css';
+import FormHeader from '../../../shared/form/Header/Header';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -48,7 +49,7 @@ const InstallDatabaseForm = () => {
             success: (response) => {
                 console.log('response', response);
                 if (response.success) {
-                    return `Успешно подключено! Версия: ${response.data?.version || 'неизвестна'}`;
+                    return `${response.message}`;
                 }
                 throw new Error('Сервер отклонил параметры подключения');
             },
@@ -68,11 +69,8 @@ const InstallDatabaseForm = () => {
     };
 
     return (
-        <div className="card">
-            <div className="accent-line"></div>
-
-            <div className="card-title">Подключение к БД</div>
-            <div className="card-subtitle">Заполните параметры доступа</div>
+        <div className="card form">
+            <FormHeader title="Подключение к БД" description="Заполните данные ниже" />
 
             <form id="dbForm" onSubmit={handleSubmit(onSubmit)}>
                 <div className="row-duo">

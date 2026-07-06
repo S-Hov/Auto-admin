@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
 import InstallLayout from './layouts/InstallLayout'
+import CreateAdminPage from '../../pages/createAdmin/createAdminPage'
 
 // Ленивая загрузка страниц для оптимизации сборки
 const InstallPage = lazy(() => import('../../pages/install/installPage'))
@@ -52,6 +53,11 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: PageLoader(<InstallPage />),
+      },
+
+      {
+        path: 'register',
+        element: PageLoader(<CreateAdminPage />),
       }
     ],
   }

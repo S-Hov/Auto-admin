@@ -1,0 +1,27 @@
+.form{
+
+    & .accent-line {
+        width: 48px;
+        height: 3px;
+        background: var(--accent-color);
+        border-radius: 4px;
+        margin-bottom: 14px;
+    }
+    
+    & .card-title {
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--text-color-dark);
+        margin-bottom: 6px;
+    }
+    
+    & .card-subtitle {
+        font-size: 14px;
+        color: var(--text-color-muted);
+        margin-bottom: 28px;
+        font-weight: 400;
+        border-bottom: var(--border-lite);
+        padding-bottom: 18px;
+    }
+}
