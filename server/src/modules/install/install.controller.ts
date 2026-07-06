@@ -8,5 +8,5 @@ export const checkConnectionController = asyncHandler(async (req: Request, res: 
     const { host, port, database, user, password }: DbConnectionData = req.body;
     const data = await checkConnectionService({ host, port, database, user, password });
 
-    return ok(res, 'Соединение с базой данных успешно установлено', data);
+    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
 })
