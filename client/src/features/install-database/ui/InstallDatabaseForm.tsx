@@ -7,8 +7,7 @@ import { Button } from '../../../shared/ui/Button/Button';
 import { installDatabase } from '../../../shared/api/database/install';
 import { type ApiError } from '../../../shared/api/apiClient';
 
-import './InstallDatabaseForm.css';
-import FormHeader from '../../../shared/form/Header/Header';
+import CardForm from '../../../shared/form/CardForm/CardForm';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -69,32 +68,38 @@ const InstallDatabaseForm = () => {
     };
 
     return (
-        <div className="card form">
-            <FormHeader title="Подключение к БД" description="Заполните данные ниже" />
+        <CardForm 
+            headerTitle="Подключение к БД" 
+            headerDescription="Заполните данные ниже" 
+            formID="dbForm"
+            onSubmit={handleSubmit(onSubmit)}
+        >
+            <div className="row-duo">
+                <ControlledInput control={control} name="host" label="Хост" placeholder="localhost" />
+                <ControlledInput control={control} name="port" label="Порт" type="number" placeholder="5432" />
+            </div>
 
-            <form id="dbForm" onSubmit={handleSubmit(onSubmit)}>
-                <div className="row-duo">
-                    <ControlledInput control={control} name="host" label="Хост" placeholder="localhost" />
-                    <ControlledInput control={control} name="port" label="Порт" type="number" placeholder="5432" />
-                </div>
+            {SINGLE_FIELDS.map((field) => (
+                <ControlledInput
+                    key={field.name}
+                    control={control}
+                    name={field.name}
+                    label={field.label}
+                    type={field.type}
+                    placeholder={field.placeholder}
+                />
+            ))}
 
-                {SINGLE_FIELDS.map((field) => (
-                    <ControlledInput
-                        key={field.name}
-                        control={control}
-                        name={field.name}
-                        label={field.label}
-                        type={field.type}
-                        placeholder={field.placeholder}
-                    />
-                ))}
-
-                <Button type="submit" variant="primary" isLoading={isSubmitting} className="check-button w-100__percent" disabled={isSubmitting}>
-                    Проверить подключение
-                </Button>
-
-            </form>
-        </div>
+            <Button 
+                type="submit" 
+                variant="primary" 
+                isLoading={isSubmitting} 
+                className="check-button w-100__percent" 
+                disabled={isSubmitting}
+            >
+                Проверить подключение
+            </Button>
+        </CardForm>
     );
 };
 
