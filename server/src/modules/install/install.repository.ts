@@ -1,4 +1,4 @@
-import { DbConnectionData } from "./install.types";
+import { DbConnectionData, registerData } from "./install.types";
 import mysql from "mysql2/promise";
 
 export const checkConnectionRepository = async (data: DbConnectionData): Promise<{ version?: string }> => {
@@ -26,4 +26,8 @@ export const checkConnectionRepository = async (data: DbConnectionData): Promise
     } finally {
         await connection?.end();
     }
+}
+
+export const registerRepository = async (userName: string, passwordHash: string): Promise<void> => {
+    
 }

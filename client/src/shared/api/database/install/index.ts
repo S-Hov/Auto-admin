@@ -8,5 +8,5 @@ export const installDatabase = {
             method: 'POST',
             body: JSON.stringify(data)
         })
-    } 
+    },
 }
