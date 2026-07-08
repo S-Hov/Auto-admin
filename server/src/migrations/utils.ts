@@ -36,16 +36,16 @@ export const tableExists = async (tableName: string): Promise<boolean> => {
         SELECT EXISTS (
             SELECT 1
             FROM information_schema.tables
-            WHERE table_schema = ? AND table_name = ?
+            WHERE table_schema = DATABASE() AND table_name = ?
         ) AS exists
-    `, [process.env.DB_NAME, tableName]);
-    return rows.length > 0;
+    `, [tableName]);
+    return rows[0]?.exists === 1;
 }
 
 export const getMigrationTable = async (): Promise<MigrationRow[]> => {
     const [rows] = await getPool().query<MigrationRow[]>(`
-        SELECT * FROM ?
-    `, [MIGRATIONS_TABLE]);
+        SELECT * FROM ${MIGRATIONS_TABLE}
+    `);
 
     return rows;
 }
@@ -65,5 +65,5 @@ export const getMigrationFiles = async(reverseSorting: boolean = false): Promise
 
 export const GetLastMigrationFile = async (): Promise<string> => {
     const files = await getMigrationFiles(true);
-    return files[files.length - 1];
+    return files[0] || '';
 }
