@@ -1,10 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
-import { checkConnectionRepository, hasMigrationsRepository } from "./install.repository";
+import { checkConnectionRepository } from "./install.repository";
 import { resetPool } from "../../db";
 import { DbConnectionData, registerData } from "./install.types";
 import { badRequest } from "../../shared/api/errors/error-helpers";
+import { createMigrationTable, hasMigrationTable } from "../../migrations/utils";
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<{ version?: string }> => {
     try {
@@ -44,12 +45,18 @@ export const registerService = async (data: registerData): Promise<{ redirectedT
 
 export const getMigrationsFirstStepService = async (): Promise<{ redirectedTo?: string }> => {
     try {
-        const migrationTable = await hasMigrationsRepository();
-        if (migrationTable.length === 0) {
-            return { redirectedTo: 'http://localhost:3000/install/migrations' }
+        const migrationTable = await hasMigrationTable();
+        if (!migrationTable) {
+            try {
+                await createMigrationTable();
+                return { redirectedTo: '/install/migrations/1' }
+            } catch (error) {
+                throw badRequest('Ошибка при создании таблицы миграций');
+            }
         }
-
-        return {};
+        else {
+            return { redirectedTo: '/install/migrations/2' }
+        }
     }
     catch (error) {
         throw badRequest('Ошибка при регистрации пользователя');

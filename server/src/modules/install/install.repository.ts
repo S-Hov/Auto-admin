@@ -1,4 +1,5 @@
 import { getPool } from "../../db";
+import { MIGRATIONS_TABLE } from "../../migrations/config";
 import { DbConnectionData, registerData } from "./install.types";
 import mysql from "mysql2/promise";
 
@@ -31,9 +32,4 @@ export const checkConnectionRepository = async (data: DbConnectionData): Promise
 
 export const registerRepository = async (userName: string, passwordHash: string): Promise<void> => {
     
-}
-
-export const hasMigrationsRepository = async (): Promise<any[]> => {
-    const [result] = await getPool().query(`SHOW TABLES LIKE 'Auto_Admin__Migrations'`);
-    return result as any[];
 }
