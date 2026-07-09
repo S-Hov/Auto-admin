@@ -21,7 +21,7 @@ export const installDatabase = {
     },
 
     applyMigrationsStep(url: string) {
-        return apiClient<UnifiedResponse<ApplyMigrationsStepResponse>>(`/install/migrations/step/${url}`, {
+        return apiClient<UnifiedResponse<ApplyMigrationsStepResponse>>(`/install/migrations/steps/${url}`, {
             method: 'POST',
             body: JSON.stringify({ url })
         })

@@ -1,5 +1,6 @@
 import express from "express";
 import { 
+    ApplyMigrationsStep,
     checkConnectionController, 
     getMigrationsFirstStep, 
     getMigrationsSteps, 
@@ -13,6 +14,8 @@ installRouter.post("/check-connection", checkConnectionController);
 installRouter.get("/migrations/getFirstStep", getMigrationsFirstStep);
 
 installRouter.get("/migrations/getMigrationsSteps", getMigrationsSteps);
+
+installRouter.post("/migrations/steps/:step", ApplyMigrationsStep);
 
 installRouter.post("/register", registerController);
 

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { checkConnectionRepository } from "./install.repository";
 import { resetPool } from "../../db";
 import { DbConnectionData, RegisterData } from "./install.types";
-import { badRequest } from "../../shared/api/errors/error-helpers";
+import { badRequest, internal } from "../../shared/api/errors/error-helpers";
 import { createMigrationTable, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
 import type { DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 
@@ -67,6 +67,17 @@ export const getMigrationsFirstStepService = async (): Promise<{ redirectedTo?: 
 }
 
 export const getMigrationsStepsService = async (): Promise<MigrationsStepsResponse> => {
+    try {
+        const steps = await getMigrationsSteps();
+        const nextStep = await getFirstMigrationStep();
+        return { steps, nextStepUrl: nextStep };
+    }
+    catch (error) {
+        throw internal('Ошибка при получении шагов миграции');
+    }
+}
+
+export const ApplyMigrationsStepService = async (step: string): Promise<MigrationsStepsResponse> => {
     try {
         const steps = await getMigrationsSteps();
         const nextStep = await getFirstMigrationStep();

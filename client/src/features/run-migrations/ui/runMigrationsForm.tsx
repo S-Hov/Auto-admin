@@ -52,7 +52,7 @@ const RunMigrationsForm = () => {
                 if (response.success) {
                     console.log('response :', response);
 
-                    // runNexStep(response.data?.nextStepUrl || '', 0);
+                    runNexStep(response.data?.nextStepUrl || '', 0);
 
                     return `${response.message}`;
                 }

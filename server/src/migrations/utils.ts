@@ -2,7 +2,7 @@ import { RowDataPacket } from "mysql2";
 import fs from "fs/promises";
 import path from "path";
 import { getPool } from "../db";
-import { MIGRATIONS_FILES_DIR, MIGRATIONS_TABLE } from "./config";
+import { CREATE_MIGRATION_TABLE_KEY, MIGRATIONS_FILES_DIR, MIGRATIONS_TABLE } from "./config";
 
 interface MigrationRow extends RowDataPacket {
     name: string;
@@ -91,10 +91,40 @@ export const getMigrationsSteps = async (): Promise<string[]> => {
 
 export const getFirstMigrationStep = async (): Promise<string> => {
     if (!await hasMigrationTable()){
-        return 'createMigrationTable';
+        return CREATE_MIGRATION_TABLE_KEY;
     }
     else{
         const steps = await getMigrationsSteps();
         return steps[0] || '';
+    }
+}
+
+export const hasCompletedMigrationsStep = async (step: string): Promise<boolean> => {
+    return (await getAppliedMigrationNames()).has(step);
+}
+
+export const applyMigrationStep = async (step: string): Promise<void> => {
+    if(step === CREATE_MIGRATION_TABLE_KEY){
+        if(!await hasMigrationTable()){
+            await createMigrationTable();
+        }
+        else {
+            throw new Error('Таблица миграций уже существует');
+        }
+    }
+    else {
+        try {
+            if (!await hasCompletedMigrationsStep(step)) {
+                const migrationFile = (await getMigrationFiles()).find(file => file.startsWith(step));
+                if (!migrationFile) {
+                    throw new Error(`Шаг ${step} не найден`);
+                }
+            }
+            else {
+                throw new Error(`Шаг ${step} уже выполнен`);
+            }
+        } catch (error) {
+            throw new Error(`Ошибка при применении шага ${step}: ${error}`);
+        }
     }
 }
