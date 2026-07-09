@@ -4,9 +4,40 @@ import { toast } from "sonner";
 import { Button } from "../../../shared/ui/Button/Button";
 import { installDatabase } from "../../../shared/api/database/install";
 import type { ApiError } from "../../../shared/api/apiClient";
+import { useState } from "react";
+
+import './runMigrationsForm.css'
 
 const RunMigrationsForm = () => {
-    const {handleSubmit, formState: { isSubmitting },} = useForm();
+    const { handleSubmit, formState: { isSubmitting }, } = useForm();
+    const [steps, setSteps] = useState<string[]>([]);
+    const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
+    const [executedSteps, setExecutedSteps] = useState<string[]>([]);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+    const runNexStep = async (url: string, index: number) => {
+        try {
+            setCurrentStepIndex(index);
+            const response = await installDatabase.applyMigrationsStep(url);
+
+            if (response.success) {
+                setExecutedSteps((prev) => [...prev, steps[index]]);
+                if (response.data?.nextStepUrl) {
+                    await runNexStep(response.data.nextStepUrl, index + 1);
+                }
+                else {
+                    setIsProcessing(false);
+                    toast.success('Миграции завершены');
+                }
+            }
+            else {
+                throw new Error(response.message || 'Ошибка при выполнении миграции');
+            }
+        }
+        catch (e) {
+
+        }
+    }
 
     const onSubmit = () => {
         const stepsPromie = installDatabase.getMigrationsSteps()
@@ -15,8 +46,13 @@ const RunMigrationsForm = () => {
             loading: 'получаем миграции...',
 
             success: (response) => {
-                if (response.success){
-                console.log('response :', response);
+
+                setSteps(response.data?.steps || []);
+
+                if (response.success) {
+                    console.log('response :', response);
+
+                    // runNexStep(response.data?.nextStepUrl || '', 0);
 
                     return `${response.message}`;
                 }
@@ -38,14 +74,41 @@ const RunMigrationsForm = () => {
             onSubmit={handleSubmit(onSubmit)}
             className={`${isSubmitting ? 'isSubmitting' : ''}`}
         >
-            <Button
-                type="submit"
-                variant="primary"
-                className="w-100__percent"
-            >
-                Запустить миграции
-            </Button>
+            {steps.length === 0 && (
+                <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-100__percent"
+                >
+                    Запустить миграции
+                </Button>
+            )}
 
+            {steps.length > 0 && (
+                <div className="migrations-list">
+                    {steps.map((stepName, index) => {
+                        const isExecuted = executedSteps.includes(stepName);
+                        const isCurrent = currentStepIndex === index;
+
+                        return (
+                            <div
+                                key={stepName}
+                                className={`step-item ${isExecuted ? 'executed' : ''} ${isCurrent ? 'current' : ''}`}
+                            >
+                                <span style={{ fontWeight: isCurrent ? '600' : 'normal' }}>
+                                    {index + 1}. {stepName}
+                                </span>
+
+                                <span className="step-status">
+                                    {isExecuted && <strong>✓ Готово</strong>}
+                                    {isCurrent && isProcessing && <span className="spinner-small">Выполняется...</span>}
+                                    {!isExecuted && !isCurrent && <span className="in-the-queue">В очереди</span>}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
         </CardForm>
     );

@@ -1,6 +1,10 @@
 import { apiClient, type UnifiedResponse } from '../../apiClient';
 import { type InstallDatabaseFormValues } from '../../../../features/install-database/model/installDatabase.schema';
-import { type DbCheckResponse, type MigrationStepsResponse } from './install.types';
+import { 
+    type ApplyMigrationsStepResponse, 
+    type DbCheckResponse, 
+    type MigrationsStepsResponse 
+} from './install.types';
 
 export const installDatabase = {
     checkTheConnection(data: InstallDatabaseFormValues) {
@@ -11,8 +15,15 @@ export const installDatabase = {
     },
 
     getMigrationsSteps() {
-        return apiClient<UnifiedResponse<MigrationStepsResponse>>('/install/migrations/getMigrationsSteps', {
+        return apiClient<UnifiedResponse<MigrationsStepsResponse>>('/install/migrations/getMigrationsSteps', {
             method: 'GET'
         })
-    }
+    },
+
+    applyMigrationsStep(url: string) {
+        return apiClient<UnifiedResponse<ApplyMigrationsStepResponse>>(`/install/migrations/step/${url}`, {
+            method: 'POST',
+            body: JSON.stringify({ url })
+        })
+    },
 }

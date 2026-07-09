@@ -1,7 +1,7 @@
 .form {
     &.card {
         background-color: var(--primary-color);
-        border-radius: 20px;
+        border-radius: var(--radius-card-1);
         padding: 40px 44px;
         width: 100%;
         max-width: 480px;

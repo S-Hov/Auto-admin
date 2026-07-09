@@ -1,0 +1,39 @@
+.migrations-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    & .step-item {
+        padding: 12px;
+        border-radius: var(--radius-card-4);
+        border: 1px solid color-mix(in srgb, var(--background-color-dark) 25%, transparent);
+        background: var(--background-color-light);
+        color: var(--text-color-dark);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition);
+
+        & strong {
+            font-weight: 600;
+            color: var(--text-color-success);
+        }
+
+        & span.in-the-queue {
+            color: var(--text-color-muted);
+        }
+        
+        &:has(span.spinner-small) {
+            cursor: in-progress;
+        }
+        
+        &:has(span.in-the-queue) {
+            cursor: wait;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+        }
+    }
+}

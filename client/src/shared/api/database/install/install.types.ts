@@ -3,8 +3,12 @@ export interface DbCheckResponse {
     redirectedTo?: string;
 }
 
-export interface MigrationStepsResponse {
+export interface MigrationsStepsResponse {
     steps: string[];
+    nextStepUrl?: string;
+}
+
+export interface ApplyMigrationsStepResponse {
     nextStepUrl?: string;
 }
 

@@ -13,4 +13,9 @@
     --text-color-muted: #aaaaaa;
     --cart-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 8px 24px -6px rgba(0, 0, 0, 0.05);
     --card-shadow-hover: 0 28px 52px -16px rgba(0, 0, 0, 0.4);
+    --transition: all 0.3s ease;
+    --radius-card-1: 20px;
+    --radius-card-2: 16px;
+    --radius-card-3: 12px;
+    --radius-card-4: 8px;
 }
