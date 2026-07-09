@@ -8,14 +8,20 @@ export interface DbConnectionData {
 
 export interface DbCheckResponse {
     version?: string;
+    redirectedTo?: string;
 }
 
-export interface registerData {
+export interface RegisterData {
     userName: string;
     password: string;
     confirmPassword: string;
 }
 
-export interface registerResponse {
+export interface RegisterResponse {
     redirectedTo?: string,
+}
+
+export interface MigrationsStepsResponse {
+    steps: string[];
+    nextStepUrl?: string;
 }

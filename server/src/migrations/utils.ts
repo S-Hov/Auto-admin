@@ -9,6 +9,10 @@ interface MigrationRow extends RowDataPacket {
     applied_at?: Date;
 }
 
+interface TableExistsResult extends RowDataPacket {
+    is_present: number;
+}
+
 export const hasMigrationTable = async (): Promise<boolean> => {
     return tableExists(MIGRATIONS_TABLE);
 }
@@ -32,15 +36,16 @@ export const getAppliedMigrationNames = async (): Promise<Set<string>> => {
 }
 
 export const tableExists = async (tableName: string): Promise<boolean> => {
-    const [rows] = await getPool().query<RowDataPacket[]>(`
+    const [rows] = await getPool().query<TableExistsResult[]>(`
         SELECT EXISTS (
             SELECT 1
             FROM information_schema.tables
             WHERE table_schema = DATABASE() AND table_name = ?
-        ) AS exists
+        ) AS is_present
     `, [tableName]);
-    return rows[0]?.exists === 1;
-}
+
+    return rows[0]?.is_present === 1;
+};
 
 export const getMigrationTable = async (): Promise<MigrationRow[]> => {
     const [rows] = await getPool().query<MigrationRow[]>(`
@@ -63,7 +68,33 @@ export const getMigrationFiles = async(reverseSorting: boolean = false): Promise
     return SQLFiles
 }
 
-export const GetLastMigrationFile = async (): Promise<string> => {
+export const getLastMigrationFile = async (): Promise<string> => {
     const files = await getMigrationFiles(true);
     return files[0] || '';
+}
+
+export const getMigrationsSteps = async (): Promise<string[]> => {
+    let result = [];
+    const migrationFiles = await getMigrationFiles();
+    if (!await hasMigrationTable()){
+        result.push('Создание таблицы миграций');
+        const files = migrationFiles;
+        result.push(...files);
+    } 
+    else{
+        const appliedMigrations = await getAppliedMigrationNames();
+        result = [...migrationFiles].filter(file => !appliedMigrations.has(file));
+    }
+
+    return result;
+}
+
+export const getFirstMigrationStep = async (): Promise<string> => {
+    if (!await hasMigrationTable()){
+        return 'createMigrationTable';
+    }
+    else{
+        const steps = await getMigrationsSteps();
+        return steps[0] || '';
+    }
 }

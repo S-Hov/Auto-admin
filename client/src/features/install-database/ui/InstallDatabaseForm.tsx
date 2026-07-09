@@ -8,6 +8,7 @@ import { installDatabase } from '../../../shared/api/database/install';
 import { type ApiError } from '../../../shared/api/apiClient';
 
 import CardForm from '../../../shared/form/CardForm/CardForm';
+import { useNavigate } from 'react-router-dom';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -37,6 +38,8 @@ const InstallDatabaseForm = () => {
             password: '',
         },
     });
+    
+    const navigate = useNavigate();
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
 
@@ -46,8 +49,9 @@ const InstallDatabaseForm = () => {
             loading: 'Проверяем подключение к MySQL...',
 
             success: (response) => {
-                console.log('response', response);
+
                 if (response.success) {
+                    if(response.data?.redirectedTo) navigate(response.data.redirectedTo);
                     return `${response.message}`;
                 }
                 throw new Error('Сервер отклонил параметры подключения');

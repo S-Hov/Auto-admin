@@ -3,11 +3,14 @@ import path from "path";
 import dotenv from "dotenv";
 import { checkConnectionRepository } from "./install.repository";
 import { resetPool } from "../../db";
-import { DbConnectionData, registerData } from "./install.types";
+import { DbConnectionData, RegisterData } from "./install.types";
 import { badRequest } from "../../shared/api/errors/error-helpers";
-import { createMigrationTable, hasMigrationTable } from "../../migrations/utils";
+import { createMigrationTable, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
+import type { DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 
-export const checkConnectionService = async (data: DbConnectionData): Promise<{ version?: string }> => {
+export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
+    const redirectedTo = '/install/runMigrations';
+
     try {
         const version = await checkConnectionRepository(data);
 
@@ -27,14 +30,14 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<{ 
         
         await resetPool();
 
-        return version;
+        return {...version, redirectedTo};
 
     } catch (error) {
         throw badRequest('Ошибка при проверке подключения к базе данных');
     }
 }
 
-export const registerService = async (data: registerData): Promise<{ redirectedTo?: string }> => {
+export const registerService = async (data: RegisterData): Promise<{ redirectedTo?: string }> => {
     try {
         return { redirectedTo: 'http://localhost:3000/login' }
     }
@@ -62,3 +65,15 @@ export const getMigrationsFirstStepService = async (): Promise<{ redirectedTo?: 
         throw badRequest('Ошибка при регистрации пользователя');
     }
 }
+
+export const getMigrationsStepsService = async (): Promise<MigrationsStepsResponse> => {
+    try {
+        const steps = await getMigrationsSteps();
+        const nextStep = await getFirstMigrationStep();
+        return { steps, nextStepUrl: nextStep };
+    }
+    catch (error) {
+        throw badRequest('Ошибка при получении шагов миграции');
+    }
+}
+
