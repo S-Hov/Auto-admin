@@ -24,10 +24,6 @@
             color: var(--text-color-muted);
         }
         
-        &:has(span.spinner-small) {
-            cursor: in-progress;
-        }
-        
         &:has(span.in-the-queue) {
             cursor: wait;
         }
