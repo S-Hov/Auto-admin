@@ -41,17 +41,17 @@ section {
 .container {
     width: min(1440px, 98%);
     margin: 0 auto;
+}
 
-    &.flex {
-        display: flex;
+.flex {
+    display: flex;
 
-        &.flex-column {
-            flex-direction: column;
-        }
+    &.flex-column {
+        flex-direction: column;
+    }
 
-        &.flex-center {
-            justify-content: center;
-            align-items: center;
-        }
+    &.flex-center {
+        justify-content: center;
+        align-items: center;
     }
 }

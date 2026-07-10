@@ -37,13 +37,13 @@ export const router = createBrowserRouter([
     errorElement: PageLoader(<NotFoundPage />),
     children: [
       // {
-      //   path: 'login',=
+      //   path: 'login',
       //   element: PageLoader(<LoginPage />),
       // },
-      // {
-      //   path: 'register',=
-      //   element: PageLoader(<RegisterPage />),
-      // },
+      {
+        path: 'create-admin',
+        element: PageLoader(<CreateAdminPage />),
+      },
     ],
   },
   {

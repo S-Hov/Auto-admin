@@ -101,13 +101,13 @@ const RunMigrationsForm = () => {
             )}
 
             {isFinished && (
-                <div>
+                <div className="migrations-finished-block">
                     <span>Все миграции выполнены</span>
-                    <Link to={`/auu`}> asd</Link>
+                    <Link to={`/auth/create-admin`} className="link">Далее</Link>
                 </div>
             )}
 
-            {steps.length > 0 && (
+            {steps.length > 0 && !isFinished && (
                 <div className="migrations-list">
                     {steps.map((stepName, index) => {
                         const isExecuted = executedSteps.includes(stepName);
