@@ -1,7 +1,8 @@
-INSERT INTO Auto_Admin__roles (key, name)
+INSERT INTO Auto_Admin__roles (`key`, name, rights)
 VALUES
     ('user', 'User', 'read_only'),
     ('manager', 'Manager', 'manager'),
     ('admin', 'Admin', 'full')
-ON CONFLICT (key) DO UPDATE
-SET name = EXCLUDED.name;
+ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    rights = VALUES(rights);

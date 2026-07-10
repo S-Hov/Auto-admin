@@ -35,13 +35,14 @@ export const getMigrationsSteps = asyncHandler(async (_req: Request, res: Respon
 })
 
 export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Response) => {
-    const { step } = req.params;
+    const stepParam: string | string[] | undefined = req.params.step;
+    const step = Array.isArray(stepParam) ? stepParam[0] : stepParam;
 
     if (!step) {
         throw badRequest('Некорректный шаг миграции');
     }
-    
-    // const data = await ApplyMigrationsStepService(step);
 
-    return ok(res, 'Шаги миграции получены');
+    const data = await ApplyMigrationsStepService(step);
+
+    return ok(res, 'Шаги миграции получены', data);
 })

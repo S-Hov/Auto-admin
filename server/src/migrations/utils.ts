@@ -19,12 +19,13 @@ export const hasMigrationTable = async (): Promise<boolean> => {
 
 export const createMigrationTable = async (): Promise<void> => {
     await getPool().query(`
-        CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (
-            name TEXT PRIMARY KEY,
-            applied_at TIMESTAMP NOT NULL DEFAULT NOW()
+        CREATE TABLE IF NOT EXISTS \`${MIGRATIONS_TABLE}\` (
+            name VARCHAR(255) PRIMARY KEY,
+            applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     `);
 }
+
 
 export const getAppliedMigrationNames = async (): Promise<Set<string>> => {
     const [rows] = await getPool().query<MigrationRow[]>(`
@@ -55,7 +56,7 @@ export const getMigrationTable = async (): Promise<MigrationRow[]> => {
     return rows;
 }
 
-export const getMigrationFiles = async(reverseSorting: boolean = false): Promise<string[]> => {
+export const getMigrationFiles = async (reverseSorting: boolean = false): Promise<string[]> => {
     const files = await fs.readdir(path.join(process.cwd(), MIGRATIONS_FILES_DIR))
     const SQLFiles = files.filter(file => file.endsWith('.sql'));
 
@@ -76,12 +77,12 @@ export const getLastMigrationFile = async (): Promise<string> => {
 export const getMigrationsSteps = async (): Promise<string[]> => {
     let result = [];
     const migrationFiles = await getMigrationFiles();
-    if (!await hasMigrationTable()){
+    if (!await hasMigrationTable()) {
         result.push('Создание таблицы миграций');
         const files = migrationFiles;
         result.push(...files);
-    } 
-    else{
+    }
+    else {
         const appliedMigrations = await getAppliedMigrationNames();
         result = [...migrationFiles].filter(file => !appliedMigrations.has(file));
     }
@@ -90,10 +91,10 @@ export const getMigrationsSteps = async (): Promise<string[]> => {
 }
 
 export const getFirstMigrationStep = async (): Promise<string> => {
-    if (!await hasMigrationTable()){
+    if (!await hasMigrationTable()) {
         return CREATE_MIGRATION_TABLE_KEY;
     }
-    else{
+    else {
         const steps = await getMigrationsSteps();
         return steps[0] || '';
     }
@@ -103,28 +104,41 @@ export const hasCompletedMigrationsStep = async (step: string): Promise<boolean>
     return (await getAppliedMigrationNames()).has(step);
 }
 
+export const recordCompletedMigrationStep = async (step: string): Promise<void> => {
+    await getPool().query(`
+        INSERT INTO \`${MIGRATIONS_TABLE}\` (name) VALUES (?)
+    `, [step]);
+}
+
 export const applyMigrationStep = async (step: string): Promise<void> => {
-    if(step === CREATE_MIGRATION_TABLE_KEY){
-        if(!await hasMigrationTable()){
+    if (step === CREATE_MIGRATION_TABLE_KEY) {
+        if (!await hasMigrationTable()) {
             await createMigrationTable();
+        } else {
+            console.log('Таблица миграций уже существует, шаг пропущен.');
+            return;
         }
-        else {
-            throw new Error('Таблица миграций уже существует');
-        }
-    }
-    else {
+    } else {
         try {
             if (!await hasCompletedMigrationsStep(step)) {
                 const migrationFile = (await getMigrationFiles()).find(file => file.startsWith(step));
                 if (!migrationFile) {
                     throw new Error(`Шаг ${step} не найден`);
                 }
-            }
-            else {
+
+                const filePath = path.join(MIGRATIONS_FILES_DIR, migrationFile);
+                const sqlQuery = await fs.readFile(filePath, 'utf-8');
+
+                await getPool().query(sqlQuery);
+                await recordCompletedMigrationStep(step);
+                
+                console.log(`Шаг миграции ${step} успешно применен.`);
+            } else {
                 throw new Error(`Шаг ${step} уже выполнен`);
             }
         } catch (error) {
-            throw new Error(`Ошибка при применении шага ${step}: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new Error(`Ошибка при применении шага ${step}: ${errorMessage}`);
         }
     }
 }

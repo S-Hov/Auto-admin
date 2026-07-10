@@ -5,8 +5,8 @@ import { checkConnectionRepository } from "./install.repository";
 import { resetPool } from "../../db";
 import { DbConnectionData, RegisterData } from "./install.types";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
-import { createMigrationTable, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
-import type { DbCheckResponse, MigrationsStepsResponse } from "./install.types";
+import { applyMigrationStep, createMigrationTable, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
+import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
     const redirectedTo = '/install/runMigrations';
@@ -27,10 +27,10 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
         await fs.writeFile(filePath, envContent, "utf8");
 
         Object.assign(process.env, dotenv.parse(envContent));
-        
+
         await resetPool();
 
-        return {...version, redirectedTo};
+        return { ...version, redirectedTo };
 
     } catch (error) {
         throw badRequest('Ошибка при проверке подключения к базе данных');
@@ -47,23 +47,24 @@ export const registerService = async (data: RegisterData): Promise<{ redirectedT
 }
 
 export const getMigrationsFirstStepService = async (): Promise<{ redirectedTo?: string }> => {
-    try {
-        const migrationTable = await hasMigrationTable();
-        if (!migrationTable) {
-            try {
-                await createMigrationTable();
-                return { redirectedTo: '/install/migrations/1' }
-            } catch (error) {
-                throw badRequest('Ошибка при создании таблицы миграций');
-            }
-        }
-        else {
-            return { redirectedTo: '/install/migrations/2' }
-        }
-    }
-    catch (error) {
-        throw badRequest('Ошибка при регистрации пользователя');
-    }
+    // try {
+    //     const migrationTable = await hasMigrationTable();
+    //     if (!migrationTable) {
+    //         try {
+    //             await createMigrationTable();
+    //             return { redirectedTo: '/install/migrations/1' }
+    //         } catch (error) {
+    //             throw badRequest('Ошибка при создании таблицы миграций');
+    //         }
+    //     }
+    //     else {
+    //         return { redirectedTo: '/install/migrations/2' }
+    //     }
+    // }
+    // catch (error) {
+    //     throw badRequest('Ошибка при регистрации пользователя');
+    // }
+    return { redirectedTo: '/install/migrations/error' }
 }
 
 export const getMigrationsStepsService = async (): Promise<MigrationsStepsResponse> => {
@@ -77,14 +78,21 @@ export const getMigrationsStepsService = async (): Promise<MigrationsStepsRespon
     }
 }
 
-export const ApplyMigrationsStepService = async (step: string): Promise<MigrationsStepsResponse> => {
+export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMigrationsStepResponse> => {
     try {
-        const steps = await getMigrationsSteps();
-        const nextStep = await getFirstMigrationStep();
-        return { steps, nextStepUrl: nextStep };
+        await applyMigrationStep(step)
+
+        try {
+            const nextStepUrl = await getFirstMigrationStep()
+            
+            return { nextStepUrl }
+        }
+        catch {
+            throw internal('Ошибка при получении следующего шага миграции');
+        }
+
     }
     catch (error) {
-        throw badRequest('Ошибка при получении шагов миграции');
+        throw badRequest(`Ошибка при выполнении шага: ${step}`)
     }
 }
-
