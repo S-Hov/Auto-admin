@@ -11,12 +11,6 @@ export interface DbCheckResponse {
     redirectedTo?: string;
 }
 
-export interface RegisterData {
-    userName: string;
-    password: string;
-    confirmPassword: string;
-}
-
 export interface RegisterResponse {
     redirectedTo?: string,
 }

@@ -6,7 +6,7 @@ import {
     getMigrationsFirstStepService,
     getMigrationsStepsService
 } from './install.service';
-import { RegisterData, type DbConnectionData } from './install.types';
+import { type DbConnectionData } from './install.types';
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
 
@@ -18,14 +18,10 @@ export const checkConnectionController = asyncHandler(async (req: Request, res: 
     return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
 })
 
-export const registerController = asyncHandler(async (req: Request, res: Response) => {
-    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан');
-})
-
 export const getMigrationsFirstStep = asyncHandler(async (_req: Request, res: Response) => {
     getMigrationsFirstStepService()
 
-    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан');
+    return ok(res, 'Последний шаг миграции получен');
 })
 
 export const getMigrationsSteps = asyncHandler(async (_req: Request, res: Response) => {

@@ -4,7 +4,6 @@ import {
     checkConnectionController, 
     getMigrationsFirstStep, 
     getMigrationsSteps, 
-    registerController 
 } from "./install.controller";
 
 const installRouter = express.Router();
@@ -16,7 +15,5 @@ installRouter.get("/migrations/getFirstStep", getMigrationsFirstStep);
 installRouter.get("/migrations/getMigrationsSteps", getMigrationsSteps);
 
 installRouter.post("/migrations/steps/:step", ApplyMigrationsStep);
-
-installRouter.post("/register", registerController);
 
 export default installRouter;

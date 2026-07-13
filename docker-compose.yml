@@ -6,6 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auto_admin_test
+      # MYSQL_ONETIME_PASSWORD: "yes"
     ports:
       - "3307:3306"
     volumes:
