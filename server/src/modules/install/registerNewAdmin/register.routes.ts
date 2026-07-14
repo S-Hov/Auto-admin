@@ -6,3 +6,5 @@ import { registerSchema } from "./middleware/schema";
 const registerRouter = express.Router();
 
 registerRouter.post('/register',  validate(registerSchema), registerController);
+
+export default registerRouter;

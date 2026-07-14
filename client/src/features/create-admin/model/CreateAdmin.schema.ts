@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const CreateAdminSchema = z
     .object({
-        username: z
+        userName: z
             .string()
             .min(3, { message: 'Имя должно содержать не менее 3 символов' })
             .max(20, { message: 'Имя не должно превышать 20 символов' }),

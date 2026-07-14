@@ -17,3 +17,7 @@ export interface UserRole extends RowDataPacket {
     name?: 'User' | 'Manager' | 'Admin' | string,
     rights?: 'read_only' | 'manager' | 'full' | string,
 }
+
+export interface RegisterResponse {
+    redirectedTo?: string;
+}

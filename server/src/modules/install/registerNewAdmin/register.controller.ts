@@ -19,7 +19,7 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 
     const requestMeta = getRequestMeta(req)
 
-    await registerService({userName, password, confirmPassword}, requestMeta)
+    const data = await registerService({userName, password, confirmPassword}, requestMeta)
 
-    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан');
+    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
 })

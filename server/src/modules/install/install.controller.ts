@@ -3,7 +3,6 @@ import { asyncHandler } from '../../utils/asyncHandler';
 import {
     ApplyMigrationsStepService,
     checkConnectionService,
-    getMigrationsFirstStepService,
     getMigrationsStepsService
 } from './install.service';
 import { type DbConnectionData } from './install.types';
@@ -16,12 +15,6 @@ export const checkConnectionController = asyncHandler(async (req: Request, res: 
     console.log('data :', data);
 
     return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
-})
-
-export const getMigrationsFirstStep = asyncHandler(async (_req: Request, res: Response) => {
-    getMigrationsFirstStepService()
-
-    return ok(res, 'Последний шаг миграции получен');
 })
 
 export const getMigrationsSteps = asyncHandler(async (_req: Request, res: Response) => {
