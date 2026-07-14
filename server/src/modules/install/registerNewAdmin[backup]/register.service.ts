@@ -5,7 +5,7 @@ import { getRoleByKey, register, registerLogger } from './register.repository';
 import { internal, notFound } from '../../../shared/api/errors/error-helpers';
 
 const adminRoleKey = 'admin' as const;
-const loginPagePath = '/login' as const;
+const loginPagePath = '/auth/login' as const;
 
 export const registerService = async (data: RegisterData, meta: RequestMeta): Promise<RegisterResponse> => {
     const {

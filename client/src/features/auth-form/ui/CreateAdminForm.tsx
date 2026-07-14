@@ -3,13 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import CardForm from '../../../shared/form/CardForm/CardForm';
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
 import { Button } from '../../../shared/ui/Button/Button';
-import { CreateAdminSchema, type CreateAdminFormValues } from '../model/CreateAdmin.schema';
-import { auth } from '../../../shared/api/database/auth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.schema';
 
 interface FieldConfig {
-    name: keyof CreateAdminFormValues;
+    name: keyof AuthSchemaFormValues;
     label: string;
     type?: 'text' | 'password';
     placeholder: string;
@@ -18,48 +17,34 @@ interface FieldConfig {
 const FIELDS: FieldConfig[] = [
     { name: 'userName', label: 'Имя пользователя', placeholder: 'admin' },
     { name: 'password', label: 'Пароль', type: 'password', placeholder: '••••••••' },
-    { name: 'confirm_password', label: 'Подтвердите пароль', type: 'password', placeholder: '••••••••' },
 ] as const;
 
-const CreateAdminForm = () => {
+const AuthForm = () => {
 
     const {
         control,
         handleSubmit,
         formState: { isSubmitting }
-    } = useForm<CreateAdminFormValues>({
+    } = useForm<AuthSchemaFormValues>({
         mode: 'onChange',
-        resolver: zodResolver(CreateAdminSchema),
+        resolver: zodResolver(AuthFormSchema),
         defaultValues: {
             userName: '',
             password: '',
-            confirm_password: '',
         }
     });
 
     const navigate = useNavigate();
 
-    const onSubmit = (data: CreateAdminFormValues) => {
-    console.log('data :', data);
-        const createAdminPromise = auth.register(data)
+    const onSubmit = (data: AuthSchemaFormValues) => {
+        console.log('data :', data);
 
-        toast.promise(createAdminPromise, {
-            loading: 'Создаём администратора...',
-
-            success: (response) => {
-                if (response.success) {
-                    if(response.data?.redirectedTo) navigate(response.data.redirectedTo);
-                    return `${response.message}`;
-                }
-                throw new Error('Сервер отклонил параметры подключения');
-            }
-        })
     }
 
     return (
         <CardForm
-            headerTitle="Создание администратора"
-            headerDescription="Введите имя и пароль администратора"
+            headerTitle="Вход в админ панель"
+            headerDescription="Введите имя и пароль пользователя"
             onSubmit={handleSubmit(onSubmit)}
         >
             {
@@ -81,10 +66,10 @@ const CreateAdminForm = () => {
                 disabled={isSubmitting} 
                 isLoading={isSubmitting}
             >
-                Создать администратора
+                Вход
             </Button>
         </CardForm>
     );
 };
 
-export default CreateAdminForm;
+export default AuthForm;

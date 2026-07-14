@@ -9,6 +9,7 @@ const InstallPage = lazy(() => import('../../pages/install/installPage'))
 const HomePage = lazy(() => import('../../pages/home/homePage'))
 const NotFoundPage = lazy(() => import('../../pages/notFound/notFoundPage'))
 const CreateAdminPage = lazy(() => import('../../pages/createAdmin/createAdminPage'))
+const LoginPage = lazy(() => import('../../pages/login/loginPage'))
 const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'))
 
 // Вспомогательный компонент для отображения загрузки (Spinner/Skeleton)
@@ -36,10 +37,10 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     errorElement: PageLoader(<NotFoundPage />),
     children: [
-      // {
-      //   path: 'login',
-      //   element: PageLoader(<LoginPage />),
-      // },
+      {
+        path: 'login',
+        element: PageLoader(<LoginPage />),
+      },
       {
         path: 'create-admin',
         element: PageLoader(<CreateAdminPage />),
