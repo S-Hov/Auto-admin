@@ -5,7 +5,12 @@ import {
     checkConnectionService,
     getMigrationsStepsService
 } from './install.service';
-import { type DbConnectionData } from './install.types';
+import type { 
+    DbCheckResponse, 
+    MigrationsStepsResponse, 
+    DbConnectionData, 
+    ApplyMigrationsStepResponse 
+} from './install.types';
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
 
@@ -14,13 +19,13 @@ export const checkConnectionController = asyncHandler(async (req: Request, res: 
     const data = await checkConnectionService({ host, port, database, user, password });
     console.log('data :', data);
 
-    return ok(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
+    return ok<DbCheckResponse>(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
 })
 
 export const getMigrationsSteps = asyncHandler(async (_req: Request, res: Response) => {
     const data = await getMigrationsStepsService();
 
-    return ok(res, 'Шаги миграции получены', data);
+    return ok<MigrationsStepsResponse>(res, 'Шаги миграции получены', data);
 })
 
 export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Response) => {
@@ -33,5 +38,7 @@ export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Respon
 
     const data = await ApplyMigrationsStepService(step);
 
-    return ok(res, 'Шаги миграции получены', data);
+    return ok<ApplyMigrationsStepResponse>(res, 'Шаги миграции получены', data);
 })
+
+const a = 'Иван'
