@@ -12,7 +12,7 @@ export function getPool() {
         return pool;
     }
 
-    try{
+    try {
         pool = mysql.createPool({
             host: process.env.Auto_Admin__DB_HOST,
             port: Number(process.env.Auto_Admin__DB_PORT),
@@ -23,6 +23,8 @@ export function getPool() {
             connectionLimit: 10,
             queueLimit: 0,
             multipleStatements: true,
+            supportBigNumbers: true,
+            bigNumberStrings: false,
         });
 
         return pool;
