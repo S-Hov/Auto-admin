@@ -29,3 +29,5 @@ export interface ApplyMigrationsStepResponse {
 
 export type InstallationStatus = RowDataPacket &
     Pick<AutoAdmin.Installation, 'status'>
+
+export type InstallationStatusValue = 'new' | 'migrated' | 'ready';

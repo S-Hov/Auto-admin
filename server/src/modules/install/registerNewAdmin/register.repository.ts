@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import { PoolConnection } from "mysql2/promise";
-import { getPool } from "../../../db";
+import { DbExecutor, getPool } from "../../../db";
 import type { AdminLookupRow, RequestMeta, UserRole } from "./register.types";
 
 export const getRoleByKey = async (key: string): Promise<UserRole> => {
@@ -30,8 +30,8 @@ export const registerLogger = async (connection: PoolConnection, meta: RequestMe
     `, [userId, 'register_success', meta.ipAddress, meta.userAgent]);
 }
 
-export const getAdminByRoleId = async (roleId: number): Promise<AdminLookupRow | undefined> => {
-    const [users] = await getPool().query<AdminLookupRow[]>(`
+export const getAdminByRoleId = async (executor: DbExecutor, roleId: number): Promise<AdminLookupRow | undefined> => {
+    const [users] = await executor.query<AdminLookupRow[]>(`
         SELECT id, username FROM Auto_Admin__users
         WHERE role_id = ?
         LIMIT 1
