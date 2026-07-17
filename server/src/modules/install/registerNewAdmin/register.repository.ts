@@ -1,5 +1,5 @@
 import { getPool } from "../../../db";
-import { RequestMeta, UserRole } from "./register.types";
+import type { AdminLookupRow, RequestMeta, UserRole } from "./register.types";
 
 export const getRoleByKey = async (key: string): Promise<UserRole> => {
     const [role] = await getPool().query<UserRole[]>(`
@@ -24,4 +24,14 @@ export const registerLogger = async (meta: RequestMeta) => {
         (event_type, ip_address, user_agent)
         VALUES (register_success, ?, ?)
     `, [meta.ipAddress, meta.userAgent]);
+}
+
+export const getAdminByRoleId = async (roleId: number): Promise<AdminLookupRow | undefined> => {
+    const [users] = await getPool().query<AdminLookupRow[]>(`
+        SELECT id, username FROM Auto_Admin__users
+        Where role_id = ?
+        LIMIT 1
+    `, [roleId]);
+
+    return users[0];
 }
