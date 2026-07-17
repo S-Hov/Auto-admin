@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
 import type { RequestMeta, RegisterData, RegisterResponse } from "./register.types";
 import { getRoleByKey, register, registerLogger } from './register.repository';
 import { internal, notFound } from '../../../shared/api/errors/error-helpers';
@@ -28,10 +27,6 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
         catch (error){
             console.log('ошибка логгирования', '\n', error);
         }
-
-        const pathToCurrentDir = __dirname;
-        fs.rmSync(pathToCurrentDir, { recursive: true, force: true });
-        console.log('[Install] Папка registerNewAdmin успешно удалена.');
     }
     catch (error) {
         console.log('ошибка регистрации', '\n', error);
