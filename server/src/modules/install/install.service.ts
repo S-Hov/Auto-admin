@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
 import { checkConnectionRepository, updateInstallationStatus } from "./install.repository";
-import { resetPool } from "../../db";
+import { getPool, resetPool, withTransaction } from "../../db";
 import { DbConnectionData } from "./install.types";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
 import { applyMigrationStep, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
@@ -54,7 +54,7 @@ export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMig
     const nextStepUrl = await getFirstMigrationStep()
 
     if (nextStepUrl === '') {
-        await updateInstallationStatus('migrated')
+        await updateInstallationStatus(getPool(), 'migrated')
     }
 
     return { nextStepUrl }

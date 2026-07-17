@@ -1,4 +1,4 @@
-import { RowDataPacket } from "mysql2";
+import { PoolConnection, RowDataPacket } from "mysql2";
 import fs from "fs/promises";
 import path from "path";
 import { getPool } from "../db";

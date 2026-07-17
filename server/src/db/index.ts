@@ -7,6 +7,8 @@ dotenv.config({ path: path.join(process.cwd(), ".Auto-Admin.env") });
 
 let pool: mysql.Pool | null = null;
 
+export type DbExecutor = mysql.Pool | mysql.PoolConnection;
+
 export function getPool() {
     if (pool) {
         return pool;
@@ -42,4 +44,25 @@ export async function resetPool() {
 
     await pool.end();
     pool = null;
+}
+
+export async function withTransaction<T>(
+    callback: (connection: mysql.PoolConnection) => Promise<T>
+): Promise<T> {
+    const connection = await getPool().getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        const result = await callback(connection);
+
+        await connection.commit();
+
+        return result;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 }

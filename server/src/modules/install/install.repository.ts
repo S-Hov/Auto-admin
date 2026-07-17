@@ -1,6 +1,6 @@
-import { getPool } from "../../db";
+import { DbExecutor, getPool } from "../../db";
 import { DbConnectionData, InstallationStatus } from "./install.types";
-import mysql from "mysql2/promise";
+import mysql, { PoolConnection } from "mysql2/promise";
 
 export const checkConnectionRepository = async (data: DbConnectionData): Promise<{ version?: string }> => {
     const { host, port, database, user, password } = data;
@@ -36,8 +36,8 @@ export const getInstallationStatus = async (): Promise<InstallationStatus> => {
     return status[0];
 }
 
-export const updateInstallationStatus = async (newStatus: string): Promise<void> => {
-    await getPool().query(`
+export const updateInstallationStatus = async (executor: DbExecutor, newStatus: string): Promise<void> => {
+    await executor.query(`
         INSERT INTO Auto_Admin__installation (id, status) 
         VALUES (1, ?) 
         ON DUPLICATE KEY UPDATE status = VALUES(status)

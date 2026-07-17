@@ -1,4 +1,5 @@
 import { ResultSetHeader } from "mysql2";
+import { PoolConnection } from "mysql2/promise";
 import { getPool } from "../../../db";
 import type { AdminLookupRow, RequestMeta, UserRole } from "./register.types";
 
@@ -11,8 +12,8 @@ export const getRoleByKey = async (key: string): Promise<UserRole> => {
     return role[0];
 }
 
-export const register = async (roleId: number, name: string, passwordHash: string): Promise<number> => {
-    const [result] = await getPool().query<ResultSetHeader>(`
+export const register = async (connection: PoolConnection, roleId: number, name: string, passwordHash: string): Promise<number> => {
+    const [result] = await connection.query<ResultSetHeader>(`
         INSERT INTO Auto_Admin__users
         (role_id, username, password_hash)
         VALUES (?, ?, ?)
@@ -21,8 +22,8 @@ export const register = async (roleId: number, name: string, passwordHash: strin
     return result.insertId;
 }
 
-export const registerLogger = async (meta: RequestMeta, userId: number) => {
-    await getPool().query(`
+export const registerLogger = async (connection: PoolConnection, meta: RequestMeta, userId: number) => {
+    await connection.query(`
         INSERT INTO Auto_Admin__auth_logs
         (user_id, event_type, ip_address, user_agent)
         VALUES (?, ?, ?, ?)

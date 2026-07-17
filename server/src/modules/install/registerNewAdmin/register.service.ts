@@ -3,6 +3,7 @@ import type { RequestMeta, RegisterData, RegisterResponse } from "./register.typ
 import { getAdminByRoleId, getRoleByKey, register, registerLogger } from './register.repository';
 import { conflict, internal, notFound } from '../../../shared/api/errors/error-helpers';
 import { updateInstallationStatus } from '../install.repository';
+import { withTransaction } from '../../../db';
 
 const adminRoleKey = 'admin' as const;
 const loginPagePath = '/auth/login' as const;
@@ -21,11 +22,13 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const adminId = await register(role.id, userName, hashedPassword);
+    await withTransaction(async (transaction) => {
+        const adminId = await register(transaction, role.id, userName, hashedPassword);
 
-    await registerLogger(meta, adminId)
+        await registerLogger(transaction, meta, adminId)
 
-    await updateInstallationStatus('ready')
+        await updateInstallationStatus(transaction, 'ready')
+    })
 
     return ({ redirectedTo: loginPagePath })
 }
