@@ -22,8 +22,8 @@ export const registerLogger = async (meta: RequestMeta) => {
     await getPool().query(`
         INSERT INTO Auto_Admin__auth_logs
         (event_type, ip_address, user_agent)
-        VALUES (register_success, ?, ?)
-    `, [meta.ipAddress, meta.userAgent]);
+        VALUES (?, ?, ?)
+    `, ['register_success', meta.ipAddress, meta.userAgent]);
 }
 
 export const getAdminByRoleId = async (roleId: number): Promise<AdminLookupRow | undefined> => {
