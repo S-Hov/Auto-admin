@@ -13,24 +13,16 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
     } = data;
 
     const role = await getRoleByKey(adminRoleKey);
-
     if (!role) throw notFound('Роль администратора не найдена. Регистрация не выполнена');
+
+    const admin = await getAdminByRoleId(role.id)
+    if (admin) throw conflict('Администратор уже создан')
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const admins = await getAdminByRoleId(role.id)
+    const adminId = await register(role.id, userName, hashedPassword);
 
-    if (admins) throw conflict('Администратор уже создан')
-
-    try {
-        await register(role?.id, userName, hashedPassword);
-
-        await registerLogger(meta)
-    }
-    catch (error) {
-        console.log('ошибка регистрации', '\n', error);
-        throw internal('Не удалось создать пользователя');
-    }
+    await registerLogger(meta, adminId)
 
     return ({ redirectedTo: loginPagePath })
 }

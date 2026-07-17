@@ -342,7 +342,7 @@ API использует request ID и стабильные error codes, не в
 3. **Создание admin не атомарно.** Нет транзакции, блокировки и unique username.
 4. **Audit INSERT сломан.** `register_success` передан без кавычек/placeholder и будет воспринят как колонка.
 5. **Ошибки dynamic route не передаются Express.** Возвращается `ApiError` или вызывается `internal()` без `throw/next`; запрос может зависнуть.
-6. **Контракт пароля расходится.** Схемы используют `confirm_password`, controller читает `confirmPassword`.
+6. **Контракт пароля расходится.** Схемы используют `confirmPassword`, controller читает `confirmPassword`.
 7. **Auth отсутствует как законченная функция.** Routes не подключены, handlers пусты, сессий и guards нет.
 8. **`multipleStatements: true` включён в общем pool.** В runtime pool это нужно выключить; миграциям нужен отдельный механизм.
 

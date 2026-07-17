@@ -1,3 +1,4 @@
+import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../../db";
 import type { AdminLookupRow, RequestMeta, UserRole } from "./register.types";
 
@@ -10,20 +11,22 @@ export const getRoleByKey = async (key: string): Promise<UserRole> => {
     return role[0];
 }
 
-export const register = async (roleId: number, name: string, passwordHash: string): Promise<void> => {
-    await getPool().query(`
+export const register = async (roleId: number, name: string, passwordHash: string): Promise<number> => {
+    const [result] = await getPool().query<ResultSetHeader>(`
         INSERT INTO Auto_Admin__users
         (role_id, username, password_hash)
         VALUES (?, ?, ?)
     `, [roleId, name, passwordHash]);
+
+    return result.insertId;
 }
 
-export const registerLogger = async (meta: RequestMeta) => {
+export const registerLogger = async (meta: RequestMeta, userId: number) => {
     await getPool().query(`
         INSERT INTO Auto_Admin__auth_logs
-        (event_type, ip_address, user_agent)
-        VALUES (?, ?, ?)
-    `, ['register_success', meta.ipAddress, meta.userAgent]);
+        (user_id, event_type, ip_address, user_agent)
+        VALUES (?, ?, ?, ?)
+    `, [userId, 'register_success', meta.ipAddress, meta.userAgent]);
 }
 
 export const getAdminByRoleId = async (roleId: number): Promise<AdminLookupRow | undefined> => {

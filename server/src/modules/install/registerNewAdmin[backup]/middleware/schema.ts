@@ -21,9 +21,9 @@ export const registerSchema = z
                 message: 'Пароль должен содержать хотя бы один спецсимвол (!@#$%^&*)',
             }),
 
-        confirm_password: z.string().min(6, { message: 'Пароль администратора должен быть не менее 6 символов' }),
+        confirmPassword: z.string().min(6, { message: 'Пароль администратора должен быть не менее 6 символов' }),
     })
-    .refine((data) => data.password === data.confirm_password, {
+    .refine((data) => data.password === data.confirmPassword, {
         message: 'Пароли не совпадают',
-        path: ['confirm_password'],
+        path: ['confirmPassword'],
     });

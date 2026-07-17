@@ -18,7 +18,7 @@ interface FieldConfig {
 const FIELDS: FieldConfig[] = [
     { name: 'userName', label: 'Имя пользователя', placeholder: 'admin' },
     { name: 'password', label: 'Пароль', type: 'password', placeholder: '••••••••' },
-    { name: 'confirm_password', label: 'Подтвердите пароль', type: 'password', placeholder: '••••••••' },
+    { name: 'confirmPassword', label: 'Подтвердите пароль', type: 'password', placeholder: '••••••••' },
 ] as const;
 
 const CreateAdminForm = () => {
@@ -33,7 +33,7 @@ const CreateAdminForm = () => {
         defaultValues: {
             userName: '',
             password: '',
-            confirm_password: '',
+            confirmPassword: '',
         }
     });
 
