@@ -29,7 +29,7 @@ export const registerLogger = async (meta: RequestMeta) => {
 export const getAdminByRoleId = async (roleId: number): Promise<AdminLookupRow | undefined> => {
     const [users] = await getPool().query<AdminLookupRow[]>(`
         SELECT id, username FROM Auto_Admin__users
-        Where role_id = ?
+        WHERE role_id = ?
         LIMIT 1
     `, [roleId]);
 

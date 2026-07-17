@@ -1,3 +1,4 @@
+import { unknown } from 'zod';
 import { ApiError } from './ApiError';
 
 export const badRequest = (
@@ -38,4 +39,12 @@ export const internal = (
     code = 'COMMON.INTERNAL_ERROR'
 ) => {
     return new ApiError(message, 500, code, data);
+};
+
+export const conflict = (
+    message = 'Конфликт состояния',
+    data?: unknown,
+    code = 'COMMON.CONFLICT'
+) => {
+    return new ApiError(message, 409, code, data)
 };

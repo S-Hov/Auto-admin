@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import { AutoAdmin } from "../../../db/db.types";
+import type { AutoAdmin } from "../../../db/db.types";
 
 export interface RegisterData {
     userName: string;
@@ -24,4 +24,4 @@ export interface RegisterResponse {
 }
 
 export type AdminLookupRow = RowDataPacket &
-    Pick<AutoAdmin.User, 'id' | 'username'>
+    Pick<AutoAdmin.User, 'id' | 'username'>;
