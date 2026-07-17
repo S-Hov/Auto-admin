@@ -2,6 +2,12 @@ import { RowDataPacket } from 'mysql2';
 
 export namespace AutoAdmin {
 
+    export interface Installation extends RowDataPacket {
+        id: number,
+        status: 'new' | 'migrated' | 'ready',
+        updated_at: Date;
+    }
+
     export interface User extends RowDataPacket {
         id: number;
         role_id: number;

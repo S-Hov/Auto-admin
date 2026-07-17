@@ -38,7 +38,5 @@ export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Respon
 
     const data = await ApplyMigrationsStepService(step);
 
-    return ok<ApplyMigrationsStepResponse>(res, 'Шаги миграции получены', data);
+    return ok<ApplyMigrationsStepResponse>(res, 'Шаг миграции выполнен', data);
 })
-
-const a = 'Иван'

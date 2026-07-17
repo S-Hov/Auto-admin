@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import type { RequestMeta, RegisterData, RegisterResponse } from "./register.types";
 import { getAdminByRoleId, getRoleByKey, register, registerLogger } from './register.repository';
 import { conflict, internal, notFound } from '../../../shared/api/errors/error-helpers';
+import { updateInstallationStatus } from '../install.repository';
 
 const adminRoleKey = 'admin' as const;
 const loginPagePath = '/auth/login' as const;
@@ -23,6 +24,8 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
     const adminId = await register(role.id, userName, hashedPassword);
 
     await registerLogger(meta, adminId)
+
+    await updateInstallationStatus('ready')
 
     return ({ redirectedTo: loginPagePath })
 }

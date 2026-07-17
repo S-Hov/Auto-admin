@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
-import { checkConnectionRepository } from "./install.repository";
+import { checkConnectionRepository, updateInstallationStatus } from "./install.repository";
 import { resetPool } from "../../db";
 import { DbConnectionData } from "./install.types";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
@@ -49,20 +49,14 @@ export const getMigrationsStepsService = async (): Promise<MigrationsStepsRespon
 }
 
 export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMigrationsStepResponse> => {
-    try {
-        await applyMigrationStep(step)
+    await applyMigrationStep(step)
 
-        try {
-            const nextStepUrl = await getFirstMigrationStep()
-            
-            return { nextStepUrl }
-        }
-        catch {
-            throw internal('Ошибка при получении следующего шага миграции');
-        }
+    const nextStepUrl = await getFirstMigrationStep()
 
+    if (nextStepUrl === '') {
+        await updateInstallationStatus('migrated')
     }
-    catch (error) {
-        throw badRequest(`Ошибка при выполнении шага: ${step}`)
-    }
+
+    return { nextStepUrl }
+
 }
