@@ -8,6 +8,14 @@ export namespace AutoAdmin {
         updated_at: Date;
     }
 
+    export interface Role extends RowDataPacket {
+        id: number;
+        key: string;
+        name: string;
+        rights: 'full' | 'read_only' | 'manager' | 'none' | 'custom';
+        created_at: Date;
+    }
+
     export interface User extends RowDataPacket {
         id: number;
         role_id: number;

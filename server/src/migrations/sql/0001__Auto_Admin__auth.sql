@@ -37,9 +37,10 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__sessions (
     last_seen_at TIMESTAMP NULL DEFAULT NULL,
     ip_address VARCHAR(45) NULL DEFAULT NULL,
     user_agent TEXT NULL,
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES Auto_Admin__users(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    UNIQUE KEY idx_token_hash (token_hash),
-    INDEX idx_user_id (user_id)
+    CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES Auto_Admin__users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY uq_sessions_token_hash (token_hash),
+    INDEX idx_user_id (user_id),
+    INDEX idx_expires_at (expires_at)
 );
 
 CREATE TABLE IF NOT EXISTS Auto_Admin__auth_logs (
