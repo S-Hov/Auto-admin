@@ -4,7 +4,7 @@ import { getRequestMeta } from "../../utils/getRequestMeta";
 import { loginService } from "./auth.service";
 import type { LoginData } from './auth.types'
 
-export const loginController = asyncHandler(async (req: Request, res: Response) => {
+export const loginController = asyncHandler(async (req: Request, _res: Response) => {
     const meta = getRequestMeta(req)
 
     const {
