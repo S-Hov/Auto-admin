@@ -1,7 +1,8 @@
+import { PagePaths } from "../../constants/pagePaths";
 import { unauthorized } from "../../shared/api/errors/error-helpers"
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import { createSession, getActiveSessionByTokenHash, getUserByUserName } from "./auth.repository"
-import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult } from "./auth.types"
+import { createSession, getActiveSessionByTokenHash, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
+import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
@@ -57,4 +58,11 @@ export const getMeService = async (token: string): Promise<GetMeServiceResult> =
     };
 
     return response;
+}
+
+export const logoutService = async (token: string): Promise<LogoutResponse> => {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    await revokeSessionByTokenHash(tokenHash);
+
+    return {redirectedTo: PagePaths.login}
 }

@@ -4,9 +4,9 @@ import { getAdminByRoleId, getRoleByKey, register, registerLogger } from './regi
 import { conflict, notFound } from '../../../shared/api/errors/error-helpers';
 import { getInstallationStatusForUpdate, updateInstallationStatus } from '../install.repository';
 import { withTransaction } from '../../../db';
+import { PagePaths } from '../../../constants/pagePaths';
 
 const adminRoleKey = 'admin' as const;
-const loginPagePath = '/auth/login' as const;
 
 export const registerService = async (data: RegisterData, meta: RequestMeta): Promise<RegisterResponse> => {
     const {
@@ -33,5 +33,5 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
         await updateInstallationStatus(transaction, 'ready')
     })
 
-    return ({ redirectedTo: loginPagePath })
+    return ({ redirectedTo: PagePaths.login })
 }

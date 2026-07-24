@@ -2,17 +2,16 @@ import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from 'path';
 import { checkConnectionRepository, updateInstallationStatus } from "./install.repository";
-import { getPool, resetPool, withTransaction } from "../../db";
+import { getPool, resetPool } from "../../db";
 import { DbConnectionData } from "./install.types";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
 import { applyMigrationStep, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
 import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
+import { PagePaths } from "../../constants/pagePaths";
 
 const envPath = path.join(process.cwd(), '.env');
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
-    const redirectedTo = '/install/runMigrations';
-
     try {
         const version = await checkConnectionRepository(data);
 
@@ -54,7 +53,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
 
         await resetPool();
 
-        return { ...version, redirectedTo };
+        return { ...version, redirectedTo: PagePaths.login };
 
     } catch (error) {
         throw badRequest('Ошибка при проверке подключения к базе данных');

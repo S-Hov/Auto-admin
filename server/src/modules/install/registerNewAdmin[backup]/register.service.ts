@@ -3,9 +3,9 @@ import fs from 'fs';
 import type { RequestMeta, RegisterData, RegisterResponse } from "./register.types";
 import { getRoleByKey, register, registerLogger } from './register.repository';
 import { internal, notFound } from '../../../shared/api/errors/error-helpers';
+import { PagePaths } from '../../../constants/pagePaths';
 
 const adminRoleKey = 'admin' as const;
-const loginPagePath = '/auth/login' as const;
 
 export const registerService = async (data: RegisterData, meta: RequestMeta): Promise<RegisterResponse> => {
     const {
@@ -38,5 +38,5 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
         throw internal('Не удалось создать пользователя');
     }
 
-    return ({redirectedTo: loginPagePath})
+    return ({redirectedTo: PagePaths.login})
 }
