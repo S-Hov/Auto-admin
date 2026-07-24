@@ -26,3 +26,8 @@ export interface ActiveSessionRow extends RowDataPacket {
     rights: 'full' | 'read_only' | 'manager' | 'none' | 'custom';
     expiresAt: Date;
 }
+
+export interface LoginServiceResult {
+    token: string;
+    expiresAt: Date;
+}
