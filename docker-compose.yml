@@ -37,7 +37,7 @@ services:
   
   server:
     build: ./server
-    container_name: auto_admin_server
+    container_name: auto_admin_server 
     restart: unless-stopped
     ports:
       - "5180:5174" # Пробрасываем порт Node.js наружу в Windows
@@ -46,8 +46,9 @@ services:
       - /app/node_modules # Изолируем зависимости
     environment:
       - WATCHPACK_POLLING=true # Помогает Hot Reload в WSL
-      - PORT=5174              # <-- Указываем серверу слушать нужный порт!
-      - HOST=0.0.0.0           # <-- Разрешаем запросы снаружи контейнера!
+      - Auto_Admin__PORT=5174              # <-- Указываем серверу слушать нужный порт!
+      - Auto_Admin__HOST=0.0.0.0           # <-- Разрешаем запросы снаружи контейнера!
+      - Auto_Admin__NODE_ENV=development
     depends_on:
       - mysql
 

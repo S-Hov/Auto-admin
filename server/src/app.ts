@@ -1,15 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
 import installRouter from './modules/install/install.routes';
 import authRouter from './modules/auth/auth.routes';
 import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
 
 dotenv.config();
-
-dotenv.config({ path: path.join(process.cwd(), '.Auto-Admin.env') });
 
 const app = express();
 
@@ -45,8 +42,8 @@ app.use("/api/auth", authRouter);
 
 app.use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 3000;
-const HOST = process.env.HOST || 'localhost';
+const PORT = Number(process.env.Auto_Admin__PORT) || 3000;
+const HOST = process.env.Auto_Admin__HOST || 'localhost';
 
 app.listen(PORT, HOST, () => {
   console.log(`Server started on http://${HOST}:${PORT}`);

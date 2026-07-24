@@ -1,9 +1,4 @@
 import mysql from "mysql2/promise";
-import dotenv from "dotenv";
-import path from "path";
-
-dotenv.config();
-dotenv.config({ path: path.join(process.cwd(), ".Auto-Admin.env") });
 
 let pool: mysql.Pool | null = null;
 
@@ -24,7 +19,6 @@ export function getPool() {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
-            multipleStatements: true,
             supportBigNumbers: true,
             bigNumberStrings: false,
         });

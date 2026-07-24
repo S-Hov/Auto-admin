@@ -17,7 +17,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 
     res.cookie('auto_admin_session', data.token, {
         httpOnly: true,
-        secure: process.env.Auto_Admin__SYSTEM_MODE === 'production',
+        secure: process.env.Auto_Admin__NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         expires: data.expiresAt,

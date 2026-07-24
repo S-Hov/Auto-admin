@@ -1,6 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
 import dotenv from "dotenv";
+import fs from "fs/promises";
+import path from 'path';
 import { checkConnectionRepository, updateInstallationStatus } from "./install.repository";
 import { getPool, resetPool, withTransaction } from "../../db";
 import { DbConnectionData } from "./install.types";
@@ -8,25 +8,49 @@ import { badRequest, internal } from "../../shared/api/errors/error-helpers";
 import { applyMigrationStep, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
 import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 
+const envPath = path.join(process.cwd(), '.env');
+
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
     const redirectedTo = '/install/runMigrations';
 
     try {
         const version = await checkConnectionRepository(data);
 
-        const envContent = [
-            `Auto_Admin__DB_HOST=${data.host}`,
-            `Auto_Admin__DB_PORT=${data.port}`,
-            `Auto_Admin__DB_DATABASE=${data.database}`,
-            `Auto_Admin__DB_USERNAME=${data.user}`,
-            `Auto_Admin__DB_PASSWORD=${data.password}`
-        ].join('\n');
+        const databaseEnv = {
+            Auto_Admin__DB_HOST: data.host,
+            Auto_Admin__DB_PORT: String(data.port),
+            Auto_Admin__DB_DATABASE: data.database,
+            Auto_Admin__DB_USERNAME: data.user,
+            Auto_Admin__DB_PASSWORD: data.password,
+        };
 
-        const filePath = path.join(process.cwd(), '.Auto-Admin.env');
+        let currentContent = '';
 
-        await fs.writeFile(filePath, envContent, "utf8");
+        try {
+            currentContent = await fs.readFile(envPath, 'utf8');
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw error;
+            }
+        }
 
-        Object.assign(process.env, dotenv.parse(envContent));
+        const currentEnv = dotenv.parse(currentContent);
+        const updatedEnv = { ...currentEnv, ...databaseEnv };
+
+        const updatedContent = Object.entries(updatedEnv)
+            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+            .join('\n') + '\n';
+
+        const temporaryPath = `${envPath}.tmp`;
+
+        await fs.writeFile(temporaryPath, updatedContent, {
+            encoding: 'utf8',
+            mode: 0o600,
+        });
+
+        await fs.rename(temporaryPath, envPath);
+
+        Object.assign(process.env, databaseEnv);
 
         await resetPool();
 
