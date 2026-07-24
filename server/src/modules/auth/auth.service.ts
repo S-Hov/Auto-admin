@@ -1,7 +1,7 @@
 import { unauthorized } from "../../shared/api/errors/error-helpers"
 import type { RequestMeta } from "../../utils/getRequestMeta"
 import { createSession, getActiveSessionByTokenHash, getUserByUserName } from "./auth.repository"
-import { ActiveSessionRow, CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult } from "./auth.types"
+import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 

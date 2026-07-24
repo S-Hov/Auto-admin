@@ -5,6 +5,7 @@ import installRouter from './modules/install/install.routes';
 import authRouter from './modules/auth/auth.routes';
 import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -34,6 +35,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use(logger);
 

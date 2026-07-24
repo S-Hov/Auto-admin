@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { cookieParser } from "../../../utils/cookieParser";
 
-export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
-    const cookey = cookieParser(req.cookies);
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.Auto_Admin_session;
 
-    
+    next()
 }
