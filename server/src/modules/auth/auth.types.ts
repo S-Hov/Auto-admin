@@ -36,3 +36,11 @@ export interface LoginServiceResult {
 export interface LoginResponse {
     redirectedTo: string;
 }
+
+export type GetMeServiceResult = 
+    Pick<ActiveSessionRow, 'userId'
+        | 'username'
+        | 'roleId'
+        | 'roleKey'
+        | 'expiresAt'
+    >

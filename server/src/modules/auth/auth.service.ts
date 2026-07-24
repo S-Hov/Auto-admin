@@ -1,7 +1,7 @@
 import { unauthorized } from "../../shared/api/errors/error-helpers"
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import { createSession, getUserByUserName } from "./auth.repository"
-import { CreateSessionData, LoginData, LoginServiceResult } from "./auth.types"
+import { createSession, getActiveSessionByTokenHash, getUserByUserName } from "./auth.repository"
+import { ActiveSessionRow, CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
@@ -41,6 +41,19 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
     return {token, expiresAt, redirectedTo: homePagePath};
 }
 
-export const loginConfirmationService = async (id: Number) => {
+export const getMeService = async (token: string): Promise<GetMeServiceResult> => {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
+    const session = await getActiveSessionByTokenHash(tokenHash);
+    if (!session) throw unauthorized('Нет доступа');
+
+    const response: GetMeServiceResult = {
+        userId: session.userId,
+        username: session.username,
+        roleId: session.roleId,
+        roleKey: session.roleKey,
+        expiresAt: session.expiresAt,
+    };
+
+    return response;
 }
