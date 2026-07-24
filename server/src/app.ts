@@ -1,11 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import installRouter from './modules/install/install.routes';
-import authRouter from './modules/auth/auth.routes';
 import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
 import cookieParser from 'cookie-parser';
+import ApiRouter from './routes/ApiRouter';
 
 dotenv.config();
 
@@ -40,8 +39,7 @@ app.use(cookieParser());
 
 app.use(logger);
 
-app.use("/api/install", installRouter);
-app.use("/api/auth", authRouter);
+app.use('/api', ApiRouter)
 
 app.use(errorHandler);
 

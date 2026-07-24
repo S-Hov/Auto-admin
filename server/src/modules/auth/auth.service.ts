@@ -53,6 +53,7 @@ export const getMeService = async (token: string): Promise<GetMeServiceResult> =
         roleId: session.roleId,
         roleKey: session.roleKey,
         expiresAt: session.expiresAt,
+        rights: session.rights,
     };
 
     return response;

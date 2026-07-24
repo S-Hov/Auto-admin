@@ -43,4 +43,5 @@ export type GetMeServiceResult =
         | 'roleId'
         | 'roleKey'
         | 'expiresAt'
+        | 'rights'
     >
