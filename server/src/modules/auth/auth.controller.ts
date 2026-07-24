@@ -15,5 +15,13 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 
     const data = await loginService({ userName, password }, meta);
 
-    
+    res.cookie('auto_admin_session', data.token, {
+        httpOnly: true,
+        secure: process.env.Auto_Admin__SYSTEM_MODE === 'production',
+        sameSite: 'lax',
+        path: '/',
+        expires: data.expiresAt,
+    })
+
+    return ok(res, 'Выполнен успешный вход в систему')
 })

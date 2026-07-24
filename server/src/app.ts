@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import installRouter from './modules/install/install.routes';
+import authRouter from './modules/auth/auth.routes';
 import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
 
@@ -40,6 +41,7 @@ app.use(express.json());
 app.use(logger);
 
 app.use("/api/install", installRouter);
+app.use("/api/auth", authRouter);
 
 app.use(errorHandler);
 
