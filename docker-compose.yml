@@ -36,6 +36,7 @@ services:
       - mysql
   
   server:
+    user: "1000:1000"
     build: ./server
     container_name: auto_admin_server 
     restart: unless-stopped

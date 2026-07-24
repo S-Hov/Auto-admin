@@ -6,6 +6,8 @@ import { Button } from '../../../shared/ui/Button/Button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.schema';
+import { auth } from '../../../shared/api/auth';
+import type { ApiError } from '../../../shared/api/apiClient';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -36,10 +38,23 @@ const AuthForm = () => {
 
     const navigate = useNavigate();
 
-    const onSubmit = (data: AuthSchemaFormValues) => {
-        console.log('data :', data);
+    const onSubmit = async (data: AuthSchemaFormValues) => {
+        try {
+            await toast.promise(auth.login(data), {
+                loading: 'Выполняется запрос...',
+                success: (response) => {
+                    if (response.data?.redirectedTo) {
+                        navigate(response.data.redirectedTo);
+                    }
 
-    }
+                    return response.message;
+                },
+                error: (error: ApiError) => error.message,
+            }).unwrap();
+        } catch {
+            // Ошибка уже отображена через toast
+        }
+    };
 
     return (
         <CardForm
@@ -59,11 +74,11 @@ const AuthForm = () => {
                     />
                 ))
             }
-            <Button 
-                type="submit" 
-                variant='primary' 
-                className="check-button w-100__percent" 
-                disabled={isSubmitting} 
+            <Button
+                type="submit"
+                variant='primary'
+                className="check-button w-100__percent"
+                disabled={isSubmitting}
                 isLoading={isSubmitting}
             >
                 Вход

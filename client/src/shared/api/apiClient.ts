@@ -104,30 +104,3 @@ function extractMessage(payload: any, fallbackMessage: string): string {
 
     return fallbackMessage
 }
-
-function unwrapUnifiedResponse(payload :UnifiedResponse<any>): any {
-    const responseMeta = {
-        success: payload.success,
-        status: payload.status,
-        message: payload.message
-    }
-
-    const hasData = Object.prototype.hasOwnProperty.call(payload, 'data')
-    const responseData = hasData ? payload.data : null
-
-    if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
-        return {
-            ...responseData,
-            ...responseMeta
-        }
-    }
-
-    if (responseData === null || responseData === undefined) {
-        return responseMeta
-    }
-
-    return {
-        ...responseMeta,
-        data: responseData
-    }
-}

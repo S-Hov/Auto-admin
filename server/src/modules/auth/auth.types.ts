@@ -30,4 +30,9 @@ export interface ActiveSessionRow extends RowDataPacket {
 export interface LoginServiceResult {
     token: string;
     expiresAt: Date;
+    redirectedTo: string;
+}
+
+export interface LoginResponse {
+    redirectedTo: string;
 }

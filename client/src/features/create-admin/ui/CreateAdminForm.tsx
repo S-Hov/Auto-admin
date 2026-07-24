@@ -40,7 +40,6 @@ const CreateAdminForm = () => {
     const navigate = useNavigate();
 
     const onSubmit = (data: CreateAdminFormValues) => {
-    console.log('data :', data);
         const createAdminPromise = auth.register(data)
 
         toast.promise(createAdminPromise, {
