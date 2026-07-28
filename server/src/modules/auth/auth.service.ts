@@ -1,5 +1,6 @@
 import { PagePaths } from "../../constants/pagePaths";
 import { unauthorized } from "../../shared/api/errors/error-helpers"
+import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
 import { createSession, getActiveSessionByTokenHash, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
 import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
@@ -39,7 +40,7 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
 
     await createSession(createSessionData);
 
-    return {token, expiresAt, redirectedTo: homePagePath};
+    return { token, expiresAt, redirectedTo: homePagePath };
 }
 
 export const getMeService = async (token: string): Promise<GetMeServiceResult> => {
@@ -61,8 +62,10 @@ export const getMeService = async (token: string): Promise<GetMeServiceResult> =
 }
 
 export const logoutService = async (token: string): Promise<LogoutResponse> => {
+    if (!checkAuthToken(token)) return { redirectedTo: PagePaths.login };
+
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     await revokeSessionByTokenHash(tokenHash);
 
-    return {redirectedTo: PagePaths.login}
+    return { redirectedTo: PagePaths.login };
 }

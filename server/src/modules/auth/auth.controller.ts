@@ -24,7 +24,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
         expires: data.expiresAt,
     });
 
-    return ok<LoginResponse>(res, 'Выполнен успешный вход в систему', {redirectedTo: data.redirectedTo});
+    return ok<LoginResponse>(res, 'Выполнен успешный вход в систему', { redirectedTo: data.redirectedTo });
 })
 
 export const getMeController = asyncHandler(async (req: Request, res: Response) => {
@@ -32,8 +32,9 @@ export const getMeController = asyncHandler(async (req: Request, res: Response) 
 })
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
-    const token = req.cookies[COOKIE_NAMES.AUTH_SESSION]
+    const token = req.cookies[COOKIE_NAMES.AUTH_SESSION];
     const data = await logoutService(token);
+
     res.clearCookie(COOKIE_NAMES.AUTH_SESSION, {
         secure: process.env.Auto_Admin__NODE_ENV === 'production',
         sameSite: 'lax',
