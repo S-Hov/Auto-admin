@@ -47,3 +47,11 @@ export const conflict = (
 ) => {
     return new ApiError(message, 409, code, data);
 };
+
+export const tooManyRequests = (
+    message = 'Слишком много запросов',
+    data?: unknown,
+    code = 'COMMON.TOO_MANY_REQUESTS'
+) => {
+    return new ApiError(message, 429, code, data);
+};

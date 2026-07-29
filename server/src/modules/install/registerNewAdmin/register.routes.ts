@@ -1,7 +1,7 @@
 import express from "express";
 import { registerController } from "./register.controller";
-import { validate } from "./middleware/validateAuth";
-import { registerSchema } from "./middleware/schema";
+import { validate } from "../../../shared/middleware/validate";
+import { registerSchema } from "./schema/register.schema";
 
 const registerRouter = express.Router();
 

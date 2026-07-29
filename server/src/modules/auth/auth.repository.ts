@@ -1,11 +1,11 @@
 import { getPool } from "../../db"
-import { ActiveSessionRow, CreateSessionData, LoginUserRow } from "./auth.types";
+import { ActiveSessionRow, CreateSessionData, LoginAttemptsRow, LoginUserRow } from "./auth.types";
 
 export const getUserByUserName = async (userName: string): Promise<LoginUserRow | undefined> => {
     const [user] = await getPool().query<LoginUserRow[]>(`
         SELECT id, role_id, username, password_hash, is_active FROM Auto_Admin__users
         WHERE username = ?
-    `, [userName])
+    `, [userName]);
 
     return user[0];
 }
@@ -34,7 +34,7 @@ export const getActiveSessionByTokenHash = async (tokenHash: string): Promise<Ac
         AND ses.revoked_at IS NULL
         AND ses.expires_at > NOW()
         AND usr.is_active = true
-    `, [tokenHash])
+    `, [tokenHash]);
 
     return session[0]
 }
@@ -45,5 +45,26 @@ export const revokeSessionByTokenHash = async (tokenHash: string): Promise<void>
         SET revoked_at = NOW()
         WHERE token_hash = ?
         AND revoked_at IS NULL
-    `, [tokenHash])
+    `, [tokenHash]);
+}
+
+export const getLoginAttempts = async (username: string, ipAddress: string | null): Promise<LoginAttemptsRow> => {
+    const [attempts] = await getPool().query<LoginAttemptsRow[]>(`
+        SELECT 
+            COALESCE(SUM(CASE WHEN username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS count15m,
+            COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL 1 DAY THEN 1 ELSE 0 END), 0) AS count1d
+        FROM Auto_Admin__login_attempts 
+        WHERE ip_address = ? 
+        AND created_at >= NOW() - INTERVAL 1 DAY;
+    `, [username, ipAddress]);
+
+    return attempts[0];
+}
+
+export const createLoginAttempts = async (username: string, ipAddress: string | null) => {
+    await getPool().query(`
+        INSERT INTO Auto_Admin__login_attempts
+        (username, ip_address)
+        VALUES(?, ?)
+    `, [username, ipAddress])
 }

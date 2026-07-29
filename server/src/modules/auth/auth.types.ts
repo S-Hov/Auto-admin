@@ -27,6 +27,11 @@ export interface ActiveSessionRow extends RowDataPacket {
     expiresAt: Date;
 }
 
+export interface LoginAttemptsRow extends RowDataPacket {
+    count15m: number,
+    count1d: number,
+}
+
 export interface LoginServiceResult {
     token: string;
     expiresAt: Date;
@@ -41,7 +46,7 @@ export interface LogoutResponse {
     redirectedTo: string;
 }
 
-export type GetMeServiceResult = 
+export type GetMeServiceResult =
     Pick<ActiveSessionRow, 'userId'
         | 'username'
         | 'roleId'

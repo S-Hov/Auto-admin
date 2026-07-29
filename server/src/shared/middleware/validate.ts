@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { badRequest } from "../../../../shared/api/errors/error-helpers";
+import { badRequest } from "../api/errors/error-helpers";
 import { ZodError, ZodType } from "zod";
 
 export const validate = (schema: ZodType ) => (req: Request, _res: Response, next: NextFunction) => {

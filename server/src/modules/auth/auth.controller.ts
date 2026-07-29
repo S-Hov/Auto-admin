@@ -32,7 +32,7 @@ export const getMeController = asyncHandler(async (req: Request, res: Response) 
 })
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
-    const token = req.cookies[COOKIE_NAMES.AUTH_SESSION];
+    const token: unknown = req.cookies[COOKIE_NAMES.AUTH_SESSION];
     const data = await logoutService(token);
 
     res.clearCookie(COOKIE_NAMES.AUTH_SESSION, {

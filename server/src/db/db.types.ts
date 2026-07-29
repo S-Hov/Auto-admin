@@ -47,4 +47,11 @@ export namespace AutoAdmin {
         user_agent: string | null,
         created_at: Date,
     }
+
+    export interface login_attempts extends RowDataPacket {
+        id: number,
+        username: string,
+        ip_address: string | null,
+        created_at: Date,
+    }
 }

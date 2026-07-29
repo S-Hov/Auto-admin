@@ -1,8 +1,8 @@
 import { PagePaths } from "../../constants/pagePaths";
-import { unauthorized } from "../../shared/api/errors/error-helpers"
+import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-helpers"
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import { createSession, getActiveSessionByTokenHash, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
+import { createLoginAttempts, createSession, getActiveSessionByTokenHash, getLoginAttempts, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
 import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -16,14 +16,24 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
         userName,
         password
     } = data;
+    
+    const normalizeUsername = userName.trim().toLowerCase();
+    const attempts = await getLoginAttempts(normalizeUsername, meta.ipAddress);
 
+    const handleLoginFailure = async(): Promise<never> => {
+        await createLoginAttempts(normalizeUsername, meta.ipAddress);
+        throw unauthorized('Пользователь с таким именем и паролем не найден');
+    }
+    
+    if (attempts.count15m >= 5 || attempts.count1d >= 100) throw tooManyRequests();
+    
     const user = await getUserByUserName(userName);
-    if (!user) throw unauthorized('Пользователь с таким именем и паролем не найден');
-
-    if (!user.is_active) throw unauthorized('Пользователь с таким именем и паролем не найден');
-
+    if (!user) return await handleLoginFailure();
+    
+    if (!user.is_active) return await handleLoginFailure();
+    
     const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) throw unauthorized('Пользователь с таким именем и паролем не найден');
+    if (!match) return await handleLoginFailure();
 
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -61,7 +71,7 @@ export const getMeService = async (token: string): Promise<GetMeServiceResult> =
     return response;
 }
 
-export const logoutService = async (token: string): Promise<LogoutResponse> => {
+export const logoutService = async (token: unknown): Promise<LogoutResponse> => {
     if (!checkAuthToken(token)) return { redirectedTo: PagePaths.login };
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
