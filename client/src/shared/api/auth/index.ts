@@ -1,12 +1,23 @@
-import type { AuthSchemaFormValues } from '../../../features/auth-form/model/AuthForm.schema';
 import { apiClient, type UnifiedResponse } from '../apiClient';
-import type { Login } from './auth.types';
+import type { AuthUser, LoginRequest, LoginResponse, LogoutResponse } from './auth.types';
 
 export const auth = {
-    login(data: AuthSchemaFormValues){
-        return apiClient<UnifiedResponse<Login>>('/auth/login', {
+    login(data: LoginRequest) {
+        return apiClient<UnifiedResponse<LoginResponse>>('/auth/login', {
             method: 'POST',
             body: JSON.stringify(data)
+        })
+    },
+
+    getMe() {
+        return apiClient<UnifiedResponse<AuthUser>>('/auth/me', {
+            method: 'GET'
+        })
+    },
+
+    logout() {
+        return apiClient<UnifiedResponse<LogoutResponse>>('/auth/logout', {
+            method: 'POST'
         })
     },
 }
