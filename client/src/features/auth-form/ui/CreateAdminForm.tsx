@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.schema';
 import { auth } from '../../../shared/api/auth';
 import type { ApiError } from '../../../shared/api/apiClient';
+import { useAuth } from '../../../app/providers/auth/AuthContext';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -22,6 +23,7 @@ const FIELDS: FieldConfig[] = [
 ] as const;
 
 const AuthForm = () => {
+    const { refreshAuth } = useAuth();
 
     const {
         control,
@@ -40,17 +42,18 @@ const AuthForm = () => {
 
     const onSubmit = async (data: AuthSchemaFormValues) => {
         try {
-            await toast.promise(auth.login(data), {
+            const loginResponse = await toast.promise(auth.login(data), {
                 loading: 'Выполняется запрос...',
-                success: (response) => {
-                    if (response.data?.redirectedTo) {
-                        navigate(response.data.redirectedTo);
-                    }
-
-                    return response.message;
-                },
+                success: (response) => response.message,
                 error: (error: ApiError) => error.message,
+
             }).unwrap();
+
+            await refreshAuth();
+
+            if (loginResponse.data?.redirectedTo) {
+                navigate(loginResponse.data.redirectedTo);
+            }
         } catch {
             // Ошибка уже отображена через toast
         }
