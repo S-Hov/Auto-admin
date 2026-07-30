@@ -3,7 +3,7 @@ import { useAuth } from '../../providers/auth/AuthContext';
 
 export default function AdminLayout() {
   const location = useLocation();
-  const { user, status } = useAuth();
+  const { user, status, logout } = useAuth();
 
   if (status === 'checking') {
     return <div>Проверяем сессию...</div>;
@@ -46,6 +46,8 @@ export default function AdminLayout() {
           <span>
             Вы вошли как: <strong>{user.username}</strong>
           </span>
+
+          <button onClick={logout}>Выйти</button>
         </header>
 
         <Outlet />

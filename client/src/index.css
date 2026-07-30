@@ -6,4 +6,5 @@ section[aria-label="Notifications alt+T"] {
     height: 100px !important;
     z-index: 99999 !important;
     padding: 20px !important;
+    pointer-events: none;
 }

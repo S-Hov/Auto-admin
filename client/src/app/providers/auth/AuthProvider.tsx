@@ -34,12 +34,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
     }, []);
 
+    const logout = useCallback(async (): Promise<void> => {
+        console.log('logout :');
+
+        await auth.logout();
+
+        setUser(null);
+        setStatus('unauthenticated');
+    }, []);
+
     useEffect(() => {
         void refreshAuth();
     }, [refreshAuth]);
 
     return (
-        <AuthContext.Provider value={{ user, status, refreshAuth }}>
+        <AuthContext.Provider value={{ user, status, refreshAuth, logout }}>
             {children}
         </AuthContext.Provider>
     );
