@@ -58,7 +58,7 @@
 
     & .button-loader {
         display: block;
-        width: min(42px, 100%);
+        width: 42px;
         margin: 0 auto;
         aspect-ratio: 4;
         --_g: no-repeat radial-gradient(circle closest-side, var(--button-loader-color, currentColor) 90%, #ffffff00);

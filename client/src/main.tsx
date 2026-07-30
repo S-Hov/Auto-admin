@@ -11,9 +11,15 @@ import { AuthProvider } from './app/providers/auth/AuthProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Toaster richColors position="top-center" closeButton />
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
+    <Toaster
+        richColors
+        position="top-center"
+        closeButton
+        offset={{ top: 16 }}
+        visibleToasts={6}
+    />
   </StrictMode>,
 )

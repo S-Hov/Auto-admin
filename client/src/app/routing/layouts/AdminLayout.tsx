@@ -1,9 +1,14 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../../providers/auth/AuthContext';
+import { Button } from '../../../shared/ui/Button/Button';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import type { ApiError } from '../../../shared/api/apiClient';
 
 export default function AdminLayout() {
   const location = useLocation();
   const { user, status, logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (status === 'checking') {
     return <div>Проверяем сессию...</div>;
@@ -20,6 +25,24 @@ export default function AdminLayout() {
   if (!user) {
     return <div>Данные пользователя не получены</div>;
   }
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      await toast.promise(logout(), {
+        loading: 'Выполняется выход...',
+        success: 'Вы успешно вышли из системы',
+        error: (error: ApiError) => error.message,
+      }).unwrap();
+    } catch {
+      // Ошибка уже показана через toast
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -47,9 +70,15 @@ export default function AdminLayout() {
             Вы вошли как: <strong>{user.username}</strong>
           </span>
 
-          <button onClick={logout}>Выйти</button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => void handleLogout()}
+            isLoading={isLoggingOut}
+          >
+            Выйти
+          </Button>
         </header>
-
         <Outlet />
       </main>
     </div>
