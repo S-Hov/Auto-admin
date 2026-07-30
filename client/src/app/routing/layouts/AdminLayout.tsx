@@ -1,10 +1,25 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../../providers/auth/AuthContext';
 
 export default function AdminLayout() {
   const location = useLocation();
   const { user, status } = useAuth();
 
+  if (status === 'checking') {
+    return <div>Проверяем сессию...</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  if (status === 'error') {
+    return <div>Не удалось проверить сессию</div>;
+  }
+
+  if (!user) {
+    return <div>Данные пользователя не получены</div>;
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -28,25 +43,9 @@ export default function AdminLayout() {
 
       <main style={{ flex: 1, padding: '20px', background: '#f8fafc' }}>
         <header style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid #e2e8f0' }}>
-          {status === 'checking' && (
-            <span>Проверяем сессию...</span>
-          )}
-
-          {status === 'authenticated' && user && (
-            <span>
-                Вы вошли как: <strong>{user.username}</strong>
-                {/* ID: <strong>{user.userId}</strong>
-                Роль: <strong>{user.roleKey}</strong> */}
-            </span>
-          )}
-
-          {status === 'unauthenticated' && (
-            <span>Сессия отсутствует</span>
-          )}
-
-          {status === 'error' && (
-            <span>Не удалось проверить сессию</span>
-          )}
+          <span>
+            Вы вошли как: <strong>{user.username}</strong>
+          </span>
         </header>
 
         <Outlet />
