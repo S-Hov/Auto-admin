@@ -1,13 +1,13 @@
 import { createContext, useContext  } from "react";
 import type { AuthUser } from '../../../shared/api/auth/auth.types';
 
-type AuthStatus =
+export type AuthStatus =
     | 'checking'
     | 'authenticated'
     | 'unauthenticated'
     | 'error';
 
-interface AuthContextValue {
+export interface AuthContextValue {
     user: AuthUser | null;
     status: AuthStatus;
     refreshAuth: () => Promise<void>;
