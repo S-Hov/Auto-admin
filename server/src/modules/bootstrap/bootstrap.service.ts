@@ -1,5 +1,8 @@
+import { checkConnection } from "../../db/checkConnection";
+import { hasCompleteConfig } from "../../db/databaseConfig";
 import { getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
-import { checkConnection, getInstallationStatus, hasCompleteConfig, InstallationStatus } from "../../utils/db"
+import { readInstallationStatus } from '../install';
+import { InstallationStatus } from "../install/install.types";
 import { BootstrapStage } from "./bootstrap.types";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
@@ -27,15 +30,9 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
         return 'migrations_required';
     }
 
-    let installationStatus: InstallationStatus | undefined;
+    let installationStatus = await readInstallationStatus();
 
-    try {
-        installationStatus = await getInstallationStatus();
-    } catch {
-        return 'system_error';
-    }
-
-    switch (installationStatus?.status) {
+    switch (installationStatus) {
         case 'new':
             return 'system_error';
         case 'migrated':

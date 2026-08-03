@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { conflict } from "../api/errors/error-helpers";
-import { getInstallationStatus } from "../../utils/db";
+import { getInstallationStatus } from "../../modules/install/install.repository";
 
 export const statusNew = async (_req: Request, _res: Response, next: NextFunction) => {
     try {

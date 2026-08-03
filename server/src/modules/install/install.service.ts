@@ -7,12 +7,11 @@ import { badRequest, internal } from "../../shared/api/errors/error-helpers";
 import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
 import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
-import { AutoAdmin } from "../../db/db.types";
-import { checkConnection } from "../../utils/db";
+import { checkConnection, DbConnectionData } from "../../db/checkConnection";
 
 const envPath = path.join(process.cwd(), '.env');
 
-export const checkConnectionService = async (data: AutoAdmin.DbConnectionData): Promise<DbCheckResponse> => {
+export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
     try {
         const version = await checkConnection(data);
 

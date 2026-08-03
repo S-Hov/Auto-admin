@@ -12,10 +12,10 @@ import type {
 } from './install.types';
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
-import { AutoAdmin } from '../../db/db.types';
+import { DbConnectionData } from '../../db/checkConnection';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
-    const { host, port, database, user, password }: AutoAdmin.DbConnectionData = req.body;
+    const { host, port, database, user, password }: DbConnectionData = req.body;
     const data = await checkConnectionService({ host, port, database, user, password });
     console.log('data :', data);
 

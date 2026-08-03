@@ -1,6 +1,5 @@
-import { DbExecutor } from "../../db";
-import { InstallationStatus } from "../../utils/db";
-import { InstallationStatusValue } from "./install.types";
+import { DbExecutor, getPool } from "../../db";
+import { InstallationStatus, InstallationStatusValue } from "./install.types";
 import { PoolConnection } from "mysql2/promise";
 
 export const updateInstallationStatus = async (executor: DbExecutor, newStatus: InstallationStatusValue): Promise<void> => {
@@ -22,3 +21,10 @@ export const getInstallationStatusForUpdate = async (connection: PoolConnection)
 
     return rows[0];
 };
+
+export const getInstallationStatus = async (): Promise<InstallationStatus | undefined> => {
+    const [status] = await getPool().query<InstallationStatus[]>(`
+        SELECT status FROM Auto_Admin__installation
+    `);
+    return status[0];
+}

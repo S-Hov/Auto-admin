@@ -1,14 +1,6 @@
 import { RowDataPacket } from 'mysql2';
 
 export namespace AutoAdmin {
-    export interface DbConnectionData {
-        host: string;
-        port: number;
-        database: string;
-        user: string;
-        password: string;
-    }
-
     export interface Installation extends RowDataPacket {
         id: number,
         status: 'new' | 'migrated' | 'ready',
