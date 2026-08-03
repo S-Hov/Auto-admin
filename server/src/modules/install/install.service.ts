@@ -1,19 +1,20 @@
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from 'path';
-import { checkConnectionRepository, updateInstallationStatus } from "./install.repository";
+import { updateInstallationStatus } from "./install.repository";
 import { getPool, resetPool } from "../../db";
-import { DbConnectionData } from "./install.types";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
-import { applyMigrationStep, getFirstMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
+import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
 import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
+import { AutoAdmin } from "../../db/db.types";
+import { checkConnection } from "../../utils/db";
 
 const envPath = path.join(process.cwd(), '.env');
 
-export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
+export const checkConnectionService = async (data: AutoAdmin.DbConnectionData): Promise<DbCheckResponse> => {
     try {
-        const version = await checkConnectionRepository(data);
+        const version = await checkConnection(data);
 
         const databaseEnv = {
             Auto_Admin__DB_HOST: data.host,
@@ -63,7 +64,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
 export const getMigrationsStepsService = async (): Promise<MigrationsStepsResponse> => {
     try {
         const steps = await getMigrationsSteps();
-        const nextStep = await getFirstMigrationStep();
+        const nextStep = await getNextMigrationStep();
         return { steps, nextStepUrl: nextStep };
     }
     catch (error) {
@@ -74,7 +75,7 @@ export const getMigrationsStepsService = async (): Promise<MigrationsStepsRespon
 export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMigrationsStepResponse> => {
     await applyMigrationStep(step)
 
-    const nextStepUrl = await getFirstMigrationStep()
+    const nextStepUrl = await getNextMigrationStep()
 
     if (nextStepUrl === '') {
         await updateInstallationStatus(getPool(), 'migrated')

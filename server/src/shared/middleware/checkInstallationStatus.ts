@@ -1,36 +1,36 @@
 import type { NextFunction, Request, Response } from "express";
-import { getInstallationStatus } from "../../modules/install/install.repository";
 import { conflict } from "../api/errors/error-helpers";
+import { getInstallationStatus } from "../../utils/db";
 
 export const statusNew = async (_req: Request, _res: Response, next: NextFunction) => {
     try {
-        const installationStatus = await getInstallationStatus()
-        if (installationStatus?.status === 'new') return next()
-        return next(conflict())
+        const installationStatus = await getInstallationStatus();
+        if (installationStatus?.status === 'new') return next();
+        return next(conflict());
     }
     catch {
-        return next(conflict())
+        return next(conflict());
     }
 }
 
 export const statusMigrated = async (_req: Request, _res: Response, next: NextFunction) => {
     try {
-        const installationStatus = await getInstallationStatus()
-        if (installationStatus?.status === 'migrated') return next()
-        return next(conflict())
+        const installationStatus = await getInstallationStatus();
+        if (installationStatus?.status === 'migrated') return next();
+        return next(conflict());
     }
     catch {
-        return next(conflict())
+        return next(conflict());
     }
 }
 
 export const statusReady = async (_req: Request, _res: Response, next: NextFunction) => {
     try {
-        const installationStatus = await getInstallationStatus()
-        if (installationStatus?.status === 'ready') return next()
-        return next(conflict())
+        const installationStatus = await getInstallationStatus();
+        if (installationStatus?.status === 'ready') return next();
+        return next(conflict());
     }
     catch {
-        return next(conflict())
+        return next(conflict());
     }
 }

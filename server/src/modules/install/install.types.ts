@@ -1,14 +1,3 @@
-import { RowDataPacket } from "mysql2";
-import { AutoAdmin } from "../../db/db.types";
-
-export interface DbConnectionData {
-    host: string;
-    port: number;
-    database: string;
-    user: string;
-    password: string;
-}
-
 export interface DbCheckResponse {
     version?: string;
     redirectedTo?: string;
@@ -26,8 +15,5 @@ export interface MigrationsStepsResponse {
 export interface ApplyMigrationsStepResponse {
     nextStepUrl?: string;
 }
-
-export type InstallationStatus = RowDataPacket &
-    Pick<AutoAdmin.Installation, 'status'>
 
 export type InstallationStatusValue = 'new' | 'migrated' | 'ready';

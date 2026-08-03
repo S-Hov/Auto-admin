@@ -90,7 +90,7 @@ export const getMigrationsSteps = async (): Promise<string[]> => {
     return result;
 }
 
-export const getFirstMigrationStep = async (): Promise<string> => {
+export const getNextMigrationStep = async (): Promise<string> => {
     if (!await hasMigrationTable()) {
         return CREATE_MIGRATION_TABLE_KEY;
     }
