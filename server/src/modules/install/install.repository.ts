@@ -11,7 +11,7 @@ export const updateInstallationStatus = async (executor: DbExecutor, newStatus: 
 };
 
 export const getInstallationStatusForUpdate = async (connection: PoolConnection)
-: Promise<InstallationStatus | undefined> => {
+    : Promise<InstallationStatus | undefined> => {
     const [rows] = await connection.query<InstallationStatus[]>(`
         SELECT status
         FROM Auto_Admin__installation
@@ -28,3 +28,15 @@ export const getInstallationStatus = async (): Promise<InstallationStatus | unde
     `);
     return status[0];
 }
+
+export const markMigrationsCompleted = async (executor: DbExecutor): Promise<void> => {
+    await executor.query(`
+        INSERT INTO Auto_Admin__installation (id, status)
+        VALUES (1, 'migrated')
+        ON DUPLICATE KEY UPDATE
+            status = CASE
+                WHEN Auto_Admin__installation.status = 'ready' THEN 'ready'
+                ELSE 'migrated'
+            END
+    `);
+};
