@@ -35,8 +35,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     const logout = useCallback(async (): Promise<void> => {
-        console.log('logout :');
-
         await auth.logout();
 
         setUser(null);

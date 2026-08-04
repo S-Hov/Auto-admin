@@ -8,12 +8,15 @@ import './index.css'
 import './app/styles/global.css'
 import './app/styles/variables.css'
 import { AuthProvider } from './app/providers/auth/AuthProvider'
+import { BootstrapProvider } from './app/providers/bootstrap/BootstrapProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <BootstrapProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </BootstrapProvider>
     <Toaster
         richColors
         position="top-center"
