@@ -6,7 +6,8 @@ import { Button } from '../../../shared/ui/Button/Button';
 import { CreateAdminSchema, type CreateAdminFormValues } from '../model/CreateAdmin.schema';
 import { auth } from '../../../shared/api/database/auth';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
+import type { ApiError } from '../../../shared/api/apiClient';
 
 interface FieldConfig {
     name: keyof CreateAdminFormValues;
@@ -22,7 +23,6 @@ const FIELDS: FieldConfig[] = [
 ] as const;
 
 const CreateAdminForm = () => {
-
     const {
         control,
         handleSubmit,
@@ -36,23 +36,33 @@ const CreateAdminForm = () => {
             confirmPassword: '',
         }
     });
+    const {refreshBootstrap} = useBootstrap();
 
-    const navigate = useNavigate();
+    const onSubmit = async (data: CreateAdminFormValues) => {
+        try {
+            const createAdminPromise = auth.register(data)
+    
+            await toast.promise(createAdminPromise, {
+                loading: 'Создаём администратора...',
+    
+                success: (response) => {
+                    if (response.success) {
+                        return `${response.message}`;
+                    }
+                    throw new Error('Сервер отклонил параметры подключения');
+                },
 
-    const onSubmit = (data: CreateAdminFormValues) => {
-        const createAdminPromise = auth.register(data)
-
-        toast.promise(createAdminPromise, {
-            loading: 'Создаём администратора...',
-
-            success: (response) => {
-                if (response.success) {
-                    if(response.data?.redirectedTo) navigate(response.data.redirectedTo);
-                    return `${response.message}`;
-                }
-                throw new Error('Сервер отклонил параметры подключения');
-            }
-        })
+                error: (err) => {
+                    const apiError = err as ApiError;
+                    return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
+                },
+            }).unwrap();
+    
+            await refreshBootstrap();
+        }
+        catch {
+            // Ошибка уже отображена через toast
+        }
     }
 
     return (

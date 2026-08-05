@@ -4,7 +4,6 @@ import CardForm from '../../../shared/form/CardForm/CardForm';
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
 import { Button } from '../../../shared/ui/Button/Button';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.schema';
 import { auth } from '../../../shared/api/auth';
 import type { ApiError } from '../../../shared/api/apiClient';
@@ -38,11 +37,9 @@ const AuthForm = () => {
         }
     });
 
-    const navigate = useNavigate();
-
     const onSubmit = async (data: AuthSchemaFormValues) => {
         try {
-            const loginResponse = await toast.promise(auth.login(data), {
+            await toast.promise(auth.login(data), {
                 loading: 'Выполняется запрос...',
                 success: (response) => response.message,
                 error: (error: ApiError) => error.message,
@@ -50,10 +47,6 @@ const AuthForm = () => {
             }).unwrap();
 
             await refreshAuth();
-
-            if (loginResponse.data?.redirectedTo) {
-                navigate(loginResponse.data.redirectedTo);
-            }
         } catch {
             // Ошибка уже отображена через toast
         }

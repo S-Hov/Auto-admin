@@ -8,7 +8,7 @@ import { installDatabase } from '../../../shared/api/database/install';
 import { type ApiError } from '../../../shared/api/apiClient';
 
 import CardForm from '../../../shared/form/CardForm/CardForm';
-import { useNavigate } from 'react-router-dom';
+import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -38,43 +38,42 @@ const InstallDatabaseForm = () => {
             password: '',
         },
     });
-    
-    const navigate = useNavigate();
+
+    const { refreshBootstrap } = useBootstrap();
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
-
-        const connectionPromise = installDatabase.checkTheConnection(data);
-
-        toast.promise(connectionPromise, {
-            loading: 'Проверяем подключение к MySQL...',
-
-            success: (response) => {
-
-                if (response.success) {
-                    if(response.data?.redirectedTo) navigate(response.data.redirectedTo);
-                    return `${response.message}`;
-                }
-                throw new Error('Сервер отклонил параметры подключения');
-            },
-
-            error: (err) => {
-                const apiError = err as ApiError;
-                return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
-            },
-
-        });
-
         try {
-            await connectionPromise;
-        } catch (error) {
-            console.warn('Подключение завершилось с ошибкой');
+            const connectionPromise = installDatabase.checkTheConnection(data);
+    
+            await toast.promise(connectionPromise, {
+                loading: 'Проверяем подключение к MySQL...',
+    
+                success:(response) => {
+    
+                    if (response.success) {
+                        return `${response.message}`;
+                    }
+                    throw new Error('Сервер отклонил параметры подключения');
+                },
+    
+                error: (err) => {
+                    const apiError = err as ApiError;
+                    return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
+                },
+    
+            }).unwrap();
+    
+            await refreshBootstrap();
+        }
+        catch {
+            // Ошибка уже отображена через toast
         }
     };
 
     return (
-        <CardForm 
-            headerTitle="Подключение к БД" 
-            headerDescription="Заполните данные ниже" 
+        <CardForm
+            headerTitle="Подключение к БД"
+            headerDescription="Заполните данные ниже"
             formID="dbForm"
             onSubmit={handleSubmit(onSubmit)}
         >
@@ -94,11 +93,11 @@ const InstallDatabaseForm = () => {
                 />
             ))}
 
-            <Button 
-                type="submit" 
-                variant="primary" 
-                isLoading={isSubmitting} 
-                className="check-button w-100__percent" 
+            <Button
+                type="submit"
+                variant="primary"
+                isLoading={isSubmitting}
+                className="check-button w-100__percent"
                 disabled={isSubmitting}
             >
                 Проверить подключение

@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import './runMigrationsForm.css'
 import Loader from "../../../shared/ui/Loader/Loader";
-import { Link } from "react-router-dom";
+import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 
 const RunMigrationsForm = () => {
     const { handleSubmit, formState: { isSubmitting }, } = useForm();
@@ -17,8 +17,9 @@ const RunMigrationsForm = () => {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
     const [executedSteps, setExecutedSteps] = useState<string[]>([]);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    const { refreshBootstrap } = useBootstrap();
 
-    const runNexStep = async (url: string, index: number, currentSteps: string[]) => {
+    const runNextStep = async (url: string, index: number, currentSteps: string[]) => {
         console.log('index :', index);
         try {
             setCurrentStepIndex(index);
@@ -34,12 +35,13 @@ const RunMigrationsForm = () => {
                 toast.success(`Миграция ${url} выполнена`);
 
                 if (response.data?.nextStepUrl) {
-                    await runNexStep(response.data.nextStepUrl, index + 1, currentSteps);
+                    await runNextStep(response.data.nextStepUrl, index + 1, currentSteps);
                 } else {
                     setIsProcessing(false);
                     setCurrentStepIndex(-1);
                     SetIsFinished(true);
                     toast.success('Миграции завершены');
+                    await refreshBootstrap();
                 }
             } else {
                 throw new Error(response.message || 'Ошибка при выполнении миграции');
@@ -51,34 +53,40 @@ const RunMigrationsForm = () => {
         }
     };
 
-    const onSubmit = () => {
-        const stepsPromie = installDatabase.getMigrationsSteps();
+    const onSubmit = async () => {
+        try {
+            const stepsPromise = installDatabase.getMigrationsSteps();
 
-        toast.promise(stepsPromie, {
-            loading: 'получаем миграции...',
-            success: (response) => {
-                const fetchedSteps = response.data?.steps || [];
-                setSteps(fetchedSteps);
+            toast.promise(stepsPromise, {
+                loading: 'получаем миграции...',
+                success: async (response) => {
+                    const fetchedSteps = response.data?.steps || [];
+                    setSteps(fetchedSteps);
 
-                if (response.success) {
-                    console.log('response :', response);
+                    if (response.success) {
 
-                    if (fetchedSteps.length === 0 && response.data?.nextStepUrl === '') {
-                        SetIsFinished(true);
-                        return 'Все миграции применены';
+                        if (fetchedSteps.length === 0 && response.data?.nextStepUrl === '') {
+                            SetIsFinished(true);
+                            return 'Все миграции применены';
+                        }
+
+                        await runNextStep(response.data?.nextStepUrl || '', 0, fetchedSteps);
+
+                        return `${response.message}`;
                     }
-
-                    runNexStep(response.data?.nextStepUrl || '', 0, fetchedSteps);
-
-                    return `${response.message}`;
+                    return 'Запрос выполнен';
+                },
+                error: (err) => {
+                    const apiError = err as ApiError;
+                    return `Ошибка: ${apiError.message || err.message || 'Не удалось получить миграции'}`;
                 }
-                return 'Запрос выполнен';
-            },
-            error: (err) => {
-                const apiError = err as ApiError;
-                return `Ошибка: ${apiError.message || err.message || 'Не удалось получить миграции'}`;
-            }
-        });
+            });
+        }
+        catch {
+            // Ошибка уже отображена через toast
+        }
+
+        await refreshBootstrap();
     };
 
     return (
@@ -103,7 +111,6 @@ const RunMigrationsForm = () => {
             {isFinished && (
                 <div className="migrations-finished-block">
                     <span>Все миграции выполнены</span>
-                    <Link to={`/auth/create-admin`} className="link">Далее</Link>
                 </div>
             )}
 
