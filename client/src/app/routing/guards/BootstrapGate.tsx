@@ -26,15 +26,15 @@ export const BootstrapGate = () => {
     }
 
     if (state.stage === 'database_required' && location.pathname !== '/install') {
-        return <Navigate to="/install" />;
+        return <Navigate to="/install" replace/>;
     }
 
     if (state.stage === 'migrations_required' && location.pathname !== '/install/runMigrations') {
-        return <Navigate to="/install/runMigrations" />;
+        return <Navigate to="/install/runMigrations" replace/>;
     }
 
     if (state.stage === 'admin_required' && location.pathname !== '/install/register') {
-        return <Navigate to="/install/register" />;
+        return <Navigate to="/install/register" replace/>;
     }
 
     if (state.stage === 'database_unavailable') {
