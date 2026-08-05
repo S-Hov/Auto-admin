@@ -1,11 +1,13 @@
 import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { useBootstrap } from "../../providers/bootstrap/BootstrapContext";
 import { Button } from "../../../shared/ui/Button/Button";
+import { useAuth } from "../../providers/auth/AuthContext";
 
 
 export const BootstrapGate = () => {
     const { state, refreshBootstrap } = useBootstrap();
     const location = useLocation();
+    const { status, refreshAuth } = useAuth();
 
     if (state.status === 'checking') {
         return <div>Проверяем статус bootstrap...</div>;
@@ -25,16 +27,31 @@ export const BootstrapGate = () => {
         );
     }
 
-    if (state.stage === 'database_required' && location.pathname !== '/install') {
-        return <Navigate to="/install" replace/>;
+    if (state.stage === 'database_required') {
+        if (location.pathname !== '/install'){
+            return <Navigate to="/install" replace />;
+        }
+        else if (location.pathname === '/install') {
+            return <Outlet />;
+        }
     }
 
-    if (state.stage === 'migrations_required' && location.pathname !== '/install/runMigrations') {
-        return <Navigate to="/install/runMigrations" replace/>;
+    if (state.stage === 'migrations_required') {
+        if (location.pathname !== '/install/runMigrations') {
+            return <Navigate to="/install/runMigrations" replace />;
+        }
+        else if (location.pathname === '/install/runMigrations') {
+            return <Outlet />;
+        }
     }
 
-    if (state.stage === 'admin_required' && location.pathname !== '/install/register') {
-        return <Navigate to="/install/register" replace/>;
+    if (state.stage === 'admin_required') {
+        if (location.pathname !== '/install/register') {
+            return <Navigate to="/install/register" replace />;
+        }
+        else if (location.pathname === '/install/register') {
+            return <Outlet />;
+        }
     }
 
     if (state.stage === 'database_unavailable') {
@@ -64,6 +81,33 @@ export const BootstrapGate = () => {
             </div>
         );
     }
-    
+
+    if (status === 'checking') {
+        return <div>Проверяем статус авторизации...</div>;
+    }
+
+    else if (status === 'error') {
+        return (
+            <div>
+                Произошла ошибка при проверке авторизации.
+                <Button
+                    variant="primary"
+                    onClick={refreshAuth}
+                >
+                    Проверить повторно
+                </Button>
+            </div>
+        );
+    }
+
+    if (status === 'unauthenticated' && location.pathname !== '/auth/login') {
+        return <Navigate to="/auth/login" replace />;
+    }
+
+    const isAuthOrInstallPath = location.pathname.startsWith('/auth/') || location.pathname.startsWith('/install/') || location.pathname === '/auth' || location.pathname === '/install';
+    if (status === 'authenticated' && isAuthOrInstallPath) {
+        return <Navigate to="/" replace />;
+    }
+
     return <Outlet />;
 }
