@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { AuthUser } from '../../../shared/api/auth/auth.types';
 import { AuthContext, type AuthStatus } from './AuthContext';
 import { auth } from '../../../shared/api/auth';
+import { useBootstrap } from '../bootstrap/BootstrapContext';
 
 interface AuthProviderProps {
     children: ReactNode;
@@ -10,6 +11,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [status, setStatus] = useState<AuthStatus>('checking');
+    const { state } = useBootstrap();
 
     const refreshAuth = useCallback(async () => {
         setStatus('checking');
@@ -42,8 +44,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     useEffect(() => {
+        if (state.status !== 'resolved' || state.stage !== 'ready') {
+            setStatus('checking');
+            setUser(null);
+            return;
+        }
         void refreshAuth();
-    }, [refreshAuth]);
+    }, [refreshAuth, state.status, state.stage]);
 
     return (
         <AuthContext.Provider value={{ user, status, refreshAuth, logout }}>
