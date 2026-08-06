@@ -44,10 +44,6 @@ export const router = createBrowserRouter([
             path: 'login',
             element: PageLoader(<LoginPage />),
           },
-          {
-            path: 'create-admin',
-            element: PageLoader(<CreateAdminPage />),
-          },
         ],
       },
       {

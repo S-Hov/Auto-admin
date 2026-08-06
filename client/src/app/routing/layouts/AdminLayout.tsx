@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../providers/auth/AuthContext';
 import { Button } from '../../../shared/ui/Button/Button';
 import { useState } from 'react';
@@ -7,20 +7,8 @@ import type { ApiError } from '../../../shared/api/apiClient';
 
 export default function AdminLayout() {
   const location = useLocation();
-  const { user, status, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  if (status === 'checking') {
-    return <div>Проверяем сессию...</div>;
-  }
-
-  if (status === 'unauthenticated') {
-    return <Navigate to="/auth/login" replace />;
-  }
-
-  if (status === 'error') {
-    return <div>Не удалось проверить сессию</div>;
-  }
 
   if (!user) {
     return <div>Данные пользователя не получены</div>;
