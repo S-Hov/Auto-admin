@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "../../../shared/ui/Button/Button";
 import { installDatabase } from "../../../shared/api/database/install";
-import type { ApiError } from "../../../shared/api/apiClient";
 import { useState } from "react";
 
 import './runMigrationsForm.css'
@@ -13,81 +12,85 @@ import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext"
 const RunMigrationsForm = () => {
     const { handleSubmit, formState: { isSubmitting }, } = useForm();
     const [steps, setSteps] = useState<string[]>([]);
-    const [isFinished, SetIsFinished] = useState<boolean>(false);
+    const [isFinished, setIsFinished] = useState<boolean>(false);
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
     const [executedSteps, setExecutedSteps] = useState<string[]>([]);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const { refreshBootstrap } = useBootstrap();
 
-    const runNextStep = async (url: string, index: number, currentSteps: string[]) => {
+    const runNextStep = async (url: string, index: number, currentSteps: string[]): Promise<void> => {
         console.log('index :', index);
-        try {
-            setCurrentStepIndex(index);
-            setIsProcessing(true);
 
-            const response = await installDatabase.applyMigrationsStep(url);
+        setCurrentStepIndex(index);
+        setIsProcessing(true);
 
-            if (response.success) {
-                const currentStepName = currentSteps[index];
-                console.log('Выполнен шаг:', currentStepName);
+        const response = await installDatabase.applyMigrationsStep(url);
 
-                setExecutedSteps((prev) => [...prev, currentStepName]);
-                toast.success(`Миграция ${url} выполнена`);
-
-                if (response.data?.nextStepUrl) {
-                    await runNextStep(response.data.nextStepUrl, index + 1, currentSteps);
-                } else {
-                    setIsProcessing(false);
-                    setCurrentStepIndex(-1);
-                    SetIsFinished(true);
-                    toast.success('Миграции завершены');
-                    await refreshBootstrap();
-                }
-            } else {
-                throw new Error(response.message || 'Ошибка при выполнении миграции');
+        if (response.success) {
+            if (!response.data) {
+                throw new Error('Нет данных о следующем шаге миграции');
             }
-        } catch (e) {
-            setIsProcessing(false);
-            const err = e as Error;
-            toast.error(`Ошибка на шаге ${index + 1}: ${err.message || 'Неизвестная ошибка'}`);
+            const currentStepName = currentSteps[index];
+            console.log('Выполнен шаг:', currentStepName);
+
+            setExecutedSteps((prev) => [...prev, currentStepName]);
+            toast.success(`Миграция ${url} выполнена`);
+
+            if (response.data.nextStepUrl) {
+                await runNextStep(response.data.nextStepUrl, index + 1, currentSteps);
+            } else {
+                setIsProcessing(false);
+                setCurrentStepIndex(-1);
+                setIsFinished(true);
+                toast.success('Миграции завершены');
+            }
+        } else {
+            throw new Error(response.message || 'Ошибка при выполнении миграции');
         }
     };
 
     const onSubmit = async () => {
         try {
-            const stepsPromise = installDatabase.getMigrationsSteps();
+            const migrationDataPromise = (async () => {
+                const response = await installDatabase.getMigrationsSteps();
 
-            toast.promise(stepsPromise, {
-                loading: 'получаем миграции...',
-                success: async (response) => {
-                    const fetchedSteps = response.data?.steps || [];
-                    setSteps(fetchedSteps);
-
-                    if (response.success) {
-
-                        if (fetchedSteps.length === 0 && response.data?.nextStepUrl === '') {
-                            SetIsFinished(true);
-                            return 'Все миграции применены';
-                        }
-
-                        await runNextStep(response.data?.nextStepUrl || '', 0, fetchedSteps);
-
-                        return `${response.message}`;
-                    }
-                    return 'Запрос выполнен';
-                },
-                error: (err) => {
-                    const apiError = err as ApiError;
-                    return `Ошибка: ${apiError.message || err.message || 'Не удалось получить миграции'}`;
+                if (!response.success) {
+                    throw new Error(response.message || 'Ошибка при получении шагов миграции');
                 }
-            });
-        }
-        catch {
-            // Ошибка уже отображена через toast
-        }
+                if (!response.data) {
+                    throw new Error('Нет данных о шагах миграции');
+                }
 
-        await refreshBootstrap();
+                return response.data;
+            })();
+
+            const data = await toast.promise(migrationDataPromise, {
+                loading: 'Получаем миграции...',
+                success: 'Миграции успешно получены', 
+                error: (err) => {
+                    throw new Error(err.message || 'Ошибка при получении шагов миграции');
+                }
+            }).unwrap();
+
+            if (data.steps.length === 0) {
+                toast.success('Все миграции уже выполнены');
+                setIsFinished(true);
+            } else {
+                setSteps(data.steps);
+                await runNextStep(data.nextStepUrl, 0, data.steps);
+            }
+
+            await refreshBootstrap();
+
+        } catch (error) {
+            // Тост уже автоматически показал ошибку
+            setCurrentStepIndex(-1);
+            setIsProcessing(false);
+            setSteps([]);
+            setExecutedSteps([]);
+        }
     };
+
 
     return (
 
