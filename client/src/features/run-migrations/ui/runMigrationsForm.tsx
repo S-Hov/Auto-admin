@@ -67,9 +67,6 @@ const RunMigrationsForm = () => {
             const data = await toast.promise(migrationDataPromise, {
                 loading: 'Получаем миграции...',
                 success: 'Миграции успешно получены', 
-                error: (err) => {
-                    throw new Error(err.message || 'Ошибка при получении шагов миграции');
-                }
             }).unwrap();
 
             if (data.steps.length === 0) {
@@ -77,6 +74,9 @@ const RunMigrationsForm = () => {
                 setIsFinished(true);
             } else {
                 setSteps(data.steps);
+                if (!data.nextStepUrl) {
+                    throw new Error('Нет URL следующего шага миграции');
+                }
                 await runNextStep(data.nextStepUrl, 0, data.steps);
             }
 
@@ -88,6 +88,7 @@ const RunMigrationsForm = () => {
             setIsProcessing(false);
             setSteps([]);
             setExecutedSteps([]);
+            toast.error(error instanceof Error ? error.message : 'Произошла неизвестная ошибка');
         }
     };
 
@@ -106,6 +107,8 @@ const RunMigrationsForm = () => {
                     type="submit"
                     variant="primary"
                     className="w-100__percent"
+                    disabled={isSubmitting}
+                    isLoading={isSubmitting}
                 >
                     Запустить миграции
                 </Button>

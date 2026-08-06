@@ -5,7 +5,7 @@ export interface DbCheckResponse {
 
 export interface MigrationsStepsResponse {
     steps: string[];
-    nextStepUrl: string;
+    nextStepUrl?: string;
 }
 
 export interface ApplyMigrationsStepResponse {
