@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react'
 import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
 import InstallLayout from './layouts/InstallLayout'
-import { BootstrapGate } from './guards/BootstrapGate'
+import { AppGate } from './guards/AppGate'
 
 // Ленивая загрузка страниц для оптимизации сборки
 const InstallPage = lazy(() => import('../../pages/install/installPage'))
@@ -22,7 +22,7 @@ const PageLoader = (component: React.ReactNode) => (
 
 export const router = createBrowserRouter([
   {
-    element: <BootstrapGate />, // Проверка статуса bootstrap перед рендерингом маршрутов
+    element: <AppGate />, // Проверка статуса bootstrap перед рендерингом маршрутов
     errorElement: PageLoader(<NotFoundPage />), // Глобальная обработка ошибок
     children: [
       {

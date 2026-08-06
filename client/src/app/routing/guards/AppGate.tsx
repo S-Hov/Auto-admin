@@ -4,7 +4,7 @@ import { Button } from "../../../shared/ui/Button/Button";
 import { useAuth } from "../../providers/auth/AuthContext";
 
 
-export const BootstrapGate = () => {
+export const AppGate = () => {
     const { state, refreshBootstrap } = useBootstrap();
     const location = useLocation();
     const { status, refreshAuth } = useAuth();
