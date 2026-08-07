@@ -7,7 +7,7 @@ export type MigrationDescriptor = {
     readonly sql: string;
 }
 
-export type MigrationStatus = 'running' | 'completed' | 'failed';
+export type MigrationStatus = 'running' | 'applied' | 'failed';
 
 export type MigrationHistoryRecord = {
     readonly version: string;
