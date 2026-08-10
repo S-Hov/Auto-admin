@@ -101,7 +101,7 @@ export const markMigrationApplied = async (connection: PoolConnection, version: 
         WHERE version = ?
         AND status = 'running'
     `, [executionMs, version])
-    if (result.affectedRows === 0) {
+    if (result.affectedRows !== 1) {
         throw new Error(`Migration ${version} not found or not in running state`);
     }
 }
@@ -116,7 +116,7 @@ export const markMigrationFailed = async (connection: PoolConnection, version: s
         WHERE version = ?
         AND status = 'running'
     `, [executionMs, errorMessage.slice(0, 4000), version])
-    if (result.affectedRows === 0) {
+    if (result.affectedRows !== 1) {
         throw new Error(`Migration ${version} not found or not in running state`);
     }
 }

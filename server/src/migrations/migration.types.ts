@@ -23,3 +23,10 @@ export type MigrationHistoryRecord = {
     readonly appVersion: string | null;
     readonly updatedAt: Date;
 }
+
+export type MigrationPlan = {
+    applied: ReadonlyArray<MigrationHistoryRecord>;
+    pending: ReadonlyArray<MigrationDescriptor>;
+    next: MigrationDescriptor | null;
+    isComplete: boolean;
+}
