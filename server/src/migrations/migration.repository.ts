@@ -1,4 +1,4 @@
-import type { RowDataPacket, PoolConnection } from "mysql2/promise";
+import type { RowDataPacket, PoolConnection, ResultSetHeader } from "mysql2/promise";
 import { MIGRATION_HISTORY_TABLE } from "./config";
 import type { MigrationDescriptor, MigrationHistoryRecord, MigrationStatus } from "./migration.types";
 
@@ -92,8 +92,8 @@ export const insertRunningMigration = async (connection: PoolConnection, descrip
 }
 
 export const markMigrationApplied = async (connection: PoolConnection, version: string, executionMs: number): Promise<void> => {
-    await connection.query(`
-        UPDATE \`\`${MIGRATION_HISTORY_TABLE}\`\`
+    const [result] = await connection.query<ResultSetHeader>(`
+        UPDATE \`${MIGRATION_HISTORY_TABLE}\`
         SET status = 'applied',
             finished_at = CURRENT_TIMESTAMP(3),
             execution_ms = ?,
@@ -101,16 +101,22 @@ export const markMigrationApplied = async (connection: PoolConnection, version: 
         WHERE version = ?
         AND status = 'running'
     `, [executionMs, version])
+    if (result.affectedRows === 0) {
+        throw new Error(`Migration ${version} not found or not in running state`);
+    }
 }
 
 export const markMigrationFailed = async (connection: PoolConnection, version: string, executionMs: number, errorMessage: string): Promise<void> => {
-    await connection.query(`
-        UPDATE \`\`${MIGRATION_HISTORY_TABLE}\`\`
+    const [result] = await connection.query<ResultSetHeader>(`
+        UPDATE \`${MIGRATION_HISTORY_TABLE}\`
         SET status = 'failed',
             finished_at = CURRENT_TIMESTAMP(3),
             execution_ms = ?,
             error_message = ?
         WHERE version = ?
         AND status = 'running'
-    `, [executionMs, errorMessage, version])
+    `, [executionMs, errorMessage.slice(0, 4000), version])
+    if (result.affectedRows === 0) {
+        throw new Error(`Migration ${version} not found or not in running state`);
+    }
 }
