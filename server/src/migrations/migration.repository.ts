@@ -1,6 +1,6 @@
 import type { RowDataPacket, PoolConnection } from "mysql2/promise";
 import { MIGRATION_HISTORY_TABLE } from "./config";
-import type { MigrationHistoryRecord, MigrationStatus } from "./migration.types";
+import type { MigrationDescriptor, MigrationHistoryRecord, MigrationStatus } from "./migration.types";
 
 interface MigrationHistoryRow extends RowDataPacket {
     version: string;
@@ -68,4 +68,25 @@ export const getMigrationHistory = async (connection: PoolConnection): Promise<R
         appVersion: row.app_version,
         updatedAt: row.updated_at,
     }));
+}
+
+export const insertRunningMigration = async (connection: PoolConnection, descriptor: MigrationDescriptor, appVersion: string | null): Promise<void> => {
+    await connection.query(`
+            INSERT INTO \`${MIGRATION_HISTORY_TABLE}\` (
+            version,
+            name,
+            file_name,
+            checksum,
+            status,
+            app_version
+        ) VALUES (
+            ?, ?, ?, ?, 'running', ?
+        )
+    `, [
+        descriptor.version,
+        descriptor.name,
+        descriptor.fileName,
+        descriptor.checksum,
+        appVersion,
+    ])
 }
