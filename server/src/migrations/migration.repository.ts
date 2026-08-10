@@ -90,3 +90,27 @@ export const insertRunningMigration = async (connection: PoolConnection, descrip
         appVersion,
     ])
 }
+
+export const markMigrationApplied = async (connection: PoolConnection, version: string, executionMs: number): Promise<void> => {
+    await connection.query(`
+        UPDATE \`\`${MIGRATION_HISTORY_TABLE}\`\`
+        SET status = 'applied',
+            finished_at = CURRENT_TIMESTAMP(3),
+            execution_ms = ?,
+            error_message = NULL
+        WHERE version = ?
+        AND status = 'running'
+    `, [executionMs, version])
+}
+
+export const markMigrationFailed = async (connection: PoolConnection, version: string, executionMs: number, errorMessage: string): Promise<void> => {
+    await connection.query(`
+        UPDATE \`\`${MIGRATION_HISTORY_TABLE}\`\`
+        SET status = 'failed',
+            finished_at = CURRENT_TIMESTAMP(3),
+            execution_ms = ?,
+            error_message = ?
+        WHERE version = ?
+        AND status = 'running'
+    `, [executionMs, errorMessage, version])
+}
