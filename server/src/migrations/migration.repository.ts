@@ -1,5 +1,21 @@
-import { type PoolConnection } from "mysql2/promise";
+import type { RowDataPacket, PoolConnection } from "mysql2/promise";
 import { MIGRATION_HISTORY_TABLE } from "./config";
+import type { MigrationHistoryRecord, MigrationStatus } from "./migration.types";
+
+interface MigrationHistoryRow extends RowDataPacket {
+    version: string;
+    name: string;
+    file_name: string;
+    checksum: string;
+    status: MigrationStatus;
+    started_at: Date;
+    finished_at: Date | null;
+    execution_ms: number | null;
+    error_message: string | null;
+    attempt_count: number;
+    app_version: string | null;
+    updated_at: Date;
+}
 
 export const ensureMigrationHistoryTable = async (connection: PoolConnection): Promise<void> => {
     await connection.query(`
@@ -17,5 +33,39 @@ export const ensureMigrationHistoryTable = async (connection: PoolConnection): P
             app_version VARCHAR(64) NULL,
             updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    `)
+    `);
+}
+
+export const getMigrationHistory = async (connection: PoolConnection): Promise<ReadonlyArray<MigrationHistoryRecord>> => {
+    const [rows] = await connection.query<MigrationHistoryRow[]>(`
+        SELECT 
+            version,
+            name,
+            file_name,
+            checksum,
+            status,
+            started_at,
+            finished_at,
+            execution_ms,
+            error_message,
+            attempt_count,
+            app_version,
+            updated_at
+        FROM \`${MIGRATION_HISTORY_TABLE}\` ORDER BY version ASC
+    `);
+
+    return rows.map((row) => ({
+        version: row.version,
+        name: row.name,
+        fileName: row.file_name,
+        checksum: row.checksum,
+        status: row.status,
+        startedAt: row.started_at,
+        finishedAt: row.finished_at,
+        executionMs: row.execution_ms,
+        errorMessage: row.error_message,
+        attemptCount: row.attempt_count,
+        appVersion: row.app_version,
+        updatedAt: row.updated_at,
+    }));
 }

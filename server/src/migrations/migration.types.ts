@@ -21,4 +21,5 @@ export type MigrationHistoryRecord = {
     readonly errorMessage: string | null;
     readonly attemptCount: number;
     readonly appVersion: string | null;
-} 
+    readonly updatedAt: Date;
+}
