@@ -44,6 +44,10 @@ export async function loadMigrationCatalog(): Promise<ReadonlyArray<MigrationDes
         validFiles.push({ version, name, fileName: file });
     }
 
+    if (validFiles.length === 0) {
+        throw new Error('No migration files found');
+    }
+
     validFiles.sort((a, b) => a.version.localeCompare(b.version, undefined, { numeric: true }));
 
     const catalog: MigrationDescriptor[] = [];
