@@ -4,11 +4,10 @@ import path from 'path';
 import { markMigrationsCompleted } from "./install.repository";
 import { getPool, resetPool } from "../../db";
 import { badRequest, internal } from "../../shared/api/errors/error-helpers";
-import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
-import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
+import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps } from "../../migrations/utils";
+import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationPlanResponse, MigrationsStepsResponse } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
 import { checkConnection, DbConnectionData } from "../../db/checkConnection";
-import { MigrationPlanResponse } from "../../migrations/migration.types";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 
 const envPath = path.join(process.cwd(), '.env');
@@ -85,22 +84,17 @@ export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMig
     return { nextStepUrl };
 }
 
-export const getMigrationPlanService = async(): Promise<MigrationPlanResponse> => {
-    try {
-        const plan = await getCurrentMigrationPlan();
-        return {
-            pending: plan.pending.map((migration) => {
-                return {
-                    version: migration.version,
-                    name: migration.name,
-                    fileName: migration.fileName
-                }
-            }),
-            nextVersion: plan.next?.version ?? null,
-            isComplete: plan.isComplete
-        }
-    }
-    catch (error) {
-        throw internal('Ошибка при получении плана миграции');
+export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> => {
+    const plan = await getCurrentMigrationPlan();
+    return {
+        pending: plan.pending.map((migration) => {
+            return {
+                version: migration.version,
+                name: migration.name,
+                fileName: migration.fileName
+            }
+        }),
+        nextVersion: plan.next?.version ?? null,
+        isComplete: plan.isComplete
     }
 }

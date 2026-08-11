@@ -24,3 +24,15 @@ export type InstallationStatus = RowDataPacket &
 
 export type InstallationStatusValue =
     AutoAdmin.Installation['status'];
+
+export interface MigrationStepResponse {
+    version: string;
+    name: string;
+    fileName: string;
+}
+
+export interface MigrationPlanResponse {
+    pending: MigrationStepResponse[];
+    nextVersion: string | null;
+    isComplete: boolean;
+}
