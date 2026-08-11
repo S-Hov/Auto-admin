@@ -25,8 +25,8 @@ export type MigrationHistoryRecord = {
 }
 
 export type MigrationPlan = {
-    applied: ReadonlyArray<MigrationHistoryRecord>;
-    pending: ReadonlyArray<MigrationDescriptor>;
-    next: MigrationDescriptor | null;
-    isComplete: boolean;
+    readonly applied: ReadonlyArray<MigrationHistoryRecord>;
+    readonly pending: ReadonlyArray<MigrationDescriptor>;
+    readonly next: MigrationDescriptor | null;
+    readonly isComplete: boolean;
 }
