@@ -35,11 +35,19 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
             await markMigrationApplied(connection, next.version, executionMs);
             return next;
         }
-        catch (error) {
+        catch (migrationError) {
             const executionMs = Date.now() - startedAt;
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            await markMigrationFailed(connection, next.version, executionMs, errorMessage);
-            throw error;
+            const errorMessage = migrationError instanceof Error ? migrationError.message : String(migrationError);
+            try {
+                await markMigrationFailed(connection, next.version, executionMs, errorMessage);
+            }
+            catch (historyError) {
+                throw new AggregateError(
+                    [migrationError, historyError],
+                    'Миграция завершилась с ошибкой, и ошибка не была записана в историю'
+                );
+            }
+            throw migrationError;
         }
     }
     finally {
