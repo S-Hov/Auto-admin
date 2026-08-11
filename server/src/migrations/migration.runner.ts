@@ -1,0 +1,54 @@
+import { getPool } from "../db";
+import { loadMigrationCatalog } from "./migration.catalog";
+import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
+import { buildMigrationPlan } from "./migration.plan";
+import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
+import type { MigrationDescriptor } from "./migration.types";
+
+export const applyNextMigration = async (expectedVersion: string): Promise<MigrationDescriptor | null> => {
+    const connection = await getPool().getConnection();
+    let lockAcquired = false;
+
+    try {
+        await acquireMigrationLock(connection);
+        lockAcquired = true;
+
+        await ensureMigrationHistoryTable(connection);
+
+        const catalog = await loadMigrationCatalog();
+        const history = await getMigrationHistory(connection);
+
+        const plan = buildMigrationPlan(catalog, history);
+
+        const next = plan.next;
+        if (next === null) return null;
+        if (next.version !== expectedVersion) {
+            throw new Error(`Версия миграции ${next.version} не совпадает с ожидаемой ${expectedVersion}`);
+        }
+        const startedAt = Date.now();
+
+        await insertRunningMigration(connection, next, null);
+
+        try {
+            await connection.query(next.sql);
+            const executionMs = Date.now() - startedAt;
+            await markMigrationApplied(connection, next.version, executionMs);
+            return next;
+        }
+        catch (error) {
+            const executionMs = Date.now() - startedAt;
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            await markMigrationFailed(connection, next.version, executionMs, errorMessage);
+            throw error;
+        }
+    }
+    finally {
+        try {
+            if (lockAcquired) {
+                await releaseMigrationLock(connection);
+            }
+        } finally {
+            connection.release();
+        }
+    }
+};

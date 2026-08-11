@@ -88,7 +88,7 @@ export const insertRunningMigration = async (connection: PoolConnection, descrip
         descriptor.fileName,
         descriptor.checksum,
         appVersion,
-    ])
+    ]);
 }
 
 export const markMigrationApplied = async (connection: PoolConnection, version: string, executionMs: number): Promise<void> => {
@@ -100,7 +100,7 @@ export const markMigrationApplied = async (connection: PoolConnection, version: 
             error_message = NULL
         WHERE version = ?
         AND status = 'running'
-    `, [executionMs, version])
+    `, [executionMs, version]);
     if (result.affectedRows !== 1) {
         throw new Error(`Migration ${version} not found or not in running state`);
     }
@@ -115,7 +115,7 @@ export const markMigrationFailed = async (connection: PoolConnection, version: s
             error_message = ?
         WHERE version = ?
         AND status = 'running'
-    `, [executionMs, errorMessage.slice(0, 4000), version])
+    `, [executionMs, errorMessage.slice(0, 4000), version]);
     if (result.affectedRows !== 1) {
         throw new Error(`Migration ${version} not found or not in running state`);
     }
