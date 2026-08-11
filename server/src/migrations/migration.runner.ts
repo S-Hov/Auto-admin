@@ -5,6 +5,7 @@ import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { buildMigrationPlan } from "./migration.plan";
 import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
 import type { MigrationDescriptor, MigrationPlan } from "./migration.types";
+import { MigrationVersionConflictError } from "./migration.errors";
 
 export const applyNextMigration = async (expectedVersion: string): Promise<MigrationDescriptor | null> => {
     const connection = await getPool().getConnection();
@@ -19,7 +20,7 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
         const next = plan.next;
         if (next === null) return null;
         if (next.version !== expectedVersion) {
-            throw new Error(`Версия миграции ${next.version} не совпадает с ожидаемой ${expectedVersion}`);
+            throw new MigrationVersionConflictError(expectedVersion, next.version);
         }
         const startedAt = Date.now();
 

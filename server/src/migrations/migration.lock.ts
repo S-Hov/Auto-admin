@@ -1,5 +1,6 @@
 import type { PoolConnection, RowDataPacket } from "mysql2/promise"
 import { MIGRATION_LOCK_NAME } from "./config";
+import { MigrationLockUnavailableError } from "./migration.errors";
 
 interface MigrationLockRow extends RowDataPacket {
     acquired: 0 | 1 | null;
@@ -16,7 +17,7 @@ export const acquireMigrationLock = async (connection: PoolConnection, timeoutSe
     const acquired = rows[0]?.acquired;
 
     if (acquired === 1) return;
-    else if (acquired === 0) throw new Error('Миграции уже выполняются');
+    else if (acquired === 0) throw new MigrationLockUnavailableError();
     else throw new Error('Ошибка при получении блокировки миграций');
 }
 
