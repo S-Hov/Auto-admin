@@ -1,9 +1,10 @@
+import type { PoolConnection } from "mysql2/promise";
 import { getPool } from "../db";
 import { loadMigrationCatalog } from "./migration.catalog";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { buildMigrationPlan } from "./migration.plan";
 import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
-import type { MigrationDescriptor } from "./migration.types";
+import type { MigrationDescriptor, MigrationPlan } from "./migration.types";
 
 export const applyNextMigration = async (expectedVersion: string): Promise<MigrationDescriptor | null> => {
     const connection = await getPool().getConnection();
@@ -13,12 +14,7 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
         await acquireMigrationLock(connection);
         lockAcquired = true;
 
-        await ensureMigrationHistoryTable(connection);
-
-        const catalog = await loadMigrationCatalog();
-        const history = await getMigrationHistory(connection);
-
-        const plan = buildMigrationPlan(catalog, history);
+        const plan = await loadCurrentMigrationPlan(connection);
 
         const next = plan.next;
         if (next === null) return null;
@@ -60,3 +56,26 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
         }
     }
 };
+
+const loadCurrentMigrationPlan = async (connection: PoolConnection): Promise<MigrationPlan> => {
+    try {
+        await ensureMigrationHistoryTable(connection);
+        const catalog = await loadMigrationCatalog();
+        const history = await getMigrationHistory(connection);
+
+        return buildMigrationPlan(catalog, history);
+    }
+    catch (error) {
+        throw new Error(`Не удалось загрузить план миграций: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+export const getCurrentMigrationPlan = async (): Promise<MigrationPlan> => {
+    const connection = await getPool().getConnection();
+    try {
+        return await loadCurrentMigrationPlan(connection);
+    } 
+    finally {
+        connection.release();
+    }
+}
