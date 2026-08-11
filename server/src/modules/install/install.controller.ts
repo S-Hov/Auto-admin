@@ -3,6 +3,7 @@ import { asyncHandler } from '../../utils/asyncHandler';
 import {
     ApplyMigrationsStepService,
     checkConnectionService,
+    getMigrationPlanService,
     getMigrationsStepsService
 } from './install.service';
 import type { 
@@ -13,6 +14,7 @@ import type {
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
 import { DbConnectionData } from '../../db/checkConnection';
+import type { MigrationPlanResponse } from '../../migrations/migration.types';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
@@ -39,4 +41,9 @@ export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Respon
     const data = await ApplyMigrationsStepService(step);
 
     return ok<ApplyMigrationsStepResponse>(res, 'Шаг миграции выполнен', data);
+})
+
+export const getMigrationPlanController = asyncHandler(async (req: Request, res: Response) => {
+    const data = await getMigrationPlanService();
+    return ok<MigrationPlanResponse>(res, 'План миграции получен', data);
 })

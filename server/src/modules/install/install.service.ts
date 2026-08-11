@@ -8,6 +8,8 @@ import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps, hasMigrat
 import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationsStepsResponse } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
 import { checkConnection, DbConnectionData } from "../../db/checkConnection";
+import { MigrationPlanResponse } from "../../migrations/migration.types";
+import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 
 const envPath = path.join(process.cwd(), '.env');
 
@@ -81,4 +83,24 @@ export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMig
     }
 
     return { nextStepUrl };
+}
+
+export const getMigrationPlanService = async(): Promise<MigrationPlanResponse> => {
+    try {
+        const plan = await getCurrentMigrationPlan();
+        return {
+            pending: plan.pending.map((migration) => {
+                return {
+                    version: migration.version,
+                    name: migration.name,
+                    fileName: migration.fileName
+                }
+            }),
+            nextVersion: plan.next?.version ?? null,
+            isComplete: plan.isComplete
+        }
+    }
+    catch (error) {
+        throw internal('Ошибка при получении плана миграции');
+    }
 }
