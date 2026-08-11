@@ -58,23 +58,18 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
 };
 
 const loadCurrentMigrationPlan = async (connection: PoolConnection): Promise<MigrationPlan> => {
-    try {
-        await ensureMigrationHistoryTable(connection);
-        const catalog = await loadMigrationCatalog();
-        const history = await getMigrationHistory(connection);
+    await ensureMigrationHistoryTable(connection);
+    const catalog = await loadMigrationCatalog();
+    const history = await getMigrationHistory(connection);
 
-        return buildMigrationPlan(catalog, history);
-    }
-    catch (error) {
-        throw new Error(`Не удалось загрузить план миграций: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    return buildMigrationPlan(catalog, history);
 }
 
 export const getCurrentMigrationPlan = async (): Promise<MigrationPlan> => {
     const connection = await getPool().getConnection();
     try {
         return await loadCurrentMigrationPlan(connection);
-    } 
+    }
     finally {
         connection.release();
     }
