@@ -30,3 +30,15 @@ export type MigrationPlan = {
     readonly next: MigrationDescriptor | null;
     readonly isComplete: boolean;
 }
+
+export interface MigrationStepResponse {
+    version: string;
+    name: string;
+    fileName: string;
+}
+
+export interface MigrationPlanResponse {
+    pending: MigrationStepResponse[];
+    nextVersion: string | null;
+    isComplete: boolean;
+}
