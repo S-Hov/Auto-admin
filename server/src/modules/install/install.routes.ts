@@ -19,9 +19,9 @@ installRouter.get("/migrations/getMigrationsSteps", getMigrationsSteps);
 
 installRouter.get("/migrations/plan", getMigrationPlanController);
 
-installRouter.post("/migrations/steps/:step", ApplyMigrationsStep);
-
 installRouter.post("/migrations/apply-next", validate(applyNextMigrationSchema), applyNextMigrationController);
+
+installRouter.post("/migrations/steps/:step", ApplyMigrationsStep);
 
 installRouter.use("/auth", statusMigrated, registerRouter);
 

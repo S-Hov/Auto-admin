@@ -114,6 +114,7 @@ export const applyNextMigrationService = async (expectedVersion: string): Promis
 
     try {
         result = await applyNextMigration(expectedVersion);
+        if (result.isComplete) await markMigrationsCompleted(getPool());
     }
     catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
