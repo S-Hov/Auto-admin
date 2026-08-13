@@ -18,13 +18,13 @@ const RunMigrationsForm = () => {
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const { refreshBootstrap } = useBootstrap();
 
-    const runNextStep = async (url: string, index: number, currentSteps: string[]): Promise<void> => {
+    const runNextStep = async (expectedVersion: string, index: number, currentSteps: string[]): Promise<void> => {
         console.log('index :', index);
 
         setCurrentStepIndex(index);
         setIsProcessing(true);
 
-        const response = await installDatabase.applyMigrationsStep(url);
+        const response = await installDatabase.applyNextMigration(expectedVersion);
 
         if (response.success) {
             if (!response.data) {
@@ -34,10 +34,10 @@ const RunMigrationsForm = () => {
             console.log('Выполнен шаг:', currentStepName);
 
             setExecutedSteps((prev) => [...prev, currentStepName]);
-            toast.success(`Миграция ${url} выполнена`);
+            toast.success(`Миграция ${currentStepName} выполнена`);
 
-            if (response.data.nextStepUrl) {
-                await runNextStep(response.data.nextStepUrl, index + 1, currentSteps);
+            if (response.data.nextVersion) {
+                await runNextStep(response.data.nextVersion, index + 1, currentSteps);
             } else {
                 setIsProcessing(false);
                 setCurrentStepIndex(-1);
@@ -52,7 +52,7 @@ const RunMigrationsForm = () => {
     const onSubmit = async () => {
         try {
             const migrationDataPromise = (async () => {
-                const response = await installDatabase.getMigrationsSteps();
+                const response = await installDatabase.getMigrationPlan();
 
                 if (!response.success) {
                     throw new Error(response.message || 'Ошибка при получении шагов миграции');
@@ -69,15 +69,15 @@ const RunMigrationsForm = () => {
                 success: 'Миграции успешно получены', 
             }).unwrap();
 
-            if (data.steps.length === 0) {
+            if (data.pending.length === 0) {
                 toast.success('Все миграции уже выполнены');
                 setIsFinished(true);
             } else {
-                setSteps(data.steps);
-                if (!data.nextStepUrl) {
-                    throw new Error('Нет URL следующего шага миграции');
+                setSteps(data.pending.map(step => step.name));
+                if (!data.nextVersion) {
+                    throw new Error('Нет следующей версии миграции');
                 }
-                await runNextStep(data.nextStepUrl, 0, data.steps);
+                await runNextStep(data.nextVersion, 0, data.pending.map(step => step.name));
             }
 
             await refreshBootstrap();
