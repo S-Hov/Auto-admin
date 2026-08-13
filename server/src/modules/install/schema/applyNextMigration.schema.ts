@@ -5,3 +5,5 @@ export const applyNextMigrationSchema = z.object({
     .string({message: 'Неверный формат версии'})
     .regex(/^\d{4}$/, {message: 'Версия должна состоять из 4 цифр'})
 })
+
+export type ApplyNextMigrationValues = z.infer<typeof applyNextMigrationSchema>
