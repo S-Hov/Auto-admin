@@ -8,14 +8,15 @@ import registerRouter from "./registerNewAdmin/register.routes";
 import { statusMigrated } from "../../shared/middleware/checkInstallationStatus";
 import { validate } from "../../shared/middleware/validate";
 import { applyNextMigrationSchema } from "./schema/applyNextMigration.schema";
+import { requirePendingMigrations } from "../../shared/middleware/requirePendingMigrations";
 
 const installRouter = express.Router();
 
 installRouter.post("/check-connection", checkConnectionController);
 
-installRouter.get("/migrations/plan", getMigrationPlanController);
+installRouter.get("/migrations/plan", requirePendingMigrations, getMigrationPlanController);
 
-installRouter.post("/migrations/apply-next", validate(applyNextMigrationSchema), applyNextMigrationController);
+installRouter.post("/migrations/apply-next", requirePendingMigrations, validate(applyNextMigrationSchema), applyNextMigrationController);
 
 installRouter.use("/auth", statusMigrated, registerRouter);
 
