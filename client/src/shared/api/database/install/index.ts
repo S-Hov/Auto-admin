@@ -2,6 +2,7 @@ import { apiClient, type UnifiedResponse } from '../../apiClient';
 import { type InstallDatabaseFormValues } from '../../../../features/install-database/model/installDatabase.schema';
 import {
     type ApplyMigrationsStepResponse,
+    type ApplyNextMigrationRequest,
     type ApplyNextMigrationResponse,
     type DbCheckResponse,
     type MigrationPlanResponse,
@@ -35,10 +36,10 @@ export const installDatabase = {
         })
     },
 
-    applyNextMigration(expectedVersion: string) {
+    applyNextMigration(expectedVersion: ApplyNextMigrationRequest['expectedVersion']) {
         return apiClient<UnifiedResponse<ApplyNextMigrationResponse>>('/install/migrations/apply-next', {
             method: 'POST',
-            body: expectedVersion
+            body: JSON.stringify({ expectedVersion })
         })
     }
 }

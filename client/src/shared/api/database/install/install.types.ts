@@ -29,3 +29,7 @@ export interface ApplyNextMigrationResponse {
     nextVersion: string | null;
     isComplete: boolean;
 }
+
+export interface ApplyNextMigrationRequest {
+    expectedVersion: string;
+}
