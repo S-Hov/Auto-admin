@@ -17,7 +17,7 @@ import type {
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
 import type { DbConnectionData } from '../../db/checkConnection';
-import type { ApplyNextMigrationValues } from './schema/applyNextMigration.schema';
+import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
@@ -54,7 +54,7 @@ export const getMigrationPlanController = asyncHandler(async (_req: Request, res
 export const applyNextMigrationController = asyncHandler(async (req: Request, res: Response) => {
     const {
         expectedVersion
-    }: ApplyNextMigrationValues = req.body;
+    }: ApplyNextMigrationData = req.body;
 
     const result = await applyNextMigrationService(expectedVersion);
 
