@@ -27,23 +27,29 @@ const RunMigrationsForm = () => {
 
         const response = await installDatabase.applyNextMigration(expectedVersion);
 
-        if (response.data.applied !== null) {
-            throw new Error('Миграция не была выполнена');
-        }
-
         if (response.success) {
             if (!response.data) {
                 throw new Error('Нет данных о следующем шаге миграции');
             }
-            const currentStep = response.data.applied;
-            console.log('Выполнен шаг:', currentStep);
 
-            setExecutedSteps((prev) => [...prev, `${currentStep?.version} - ${currentStep?.name}`]);
-            toast.success(`Миграция ${currentStep?.version} - ${currentStep?.name} выполнена`);
+            const data = response.data;
 
-            if (typeof response.data.nextVersion === 'string' && !response.data.isComplete) {
-                await runNextStep(response.data.nextVersion, index + 1, currentSteps);
-            } else if (response.data.isComplete && response.data.nextVersion === null) {
+            if (data.applied === null) {
+                throw new Error('Миграция не была выполнена');
+            }
+
+            if (data.applied.version !== expectedVersion) {
+                throw new Error(`Версия миграции ${data.applied.version} не совпадает с ожидаемой ${expectedVersion}`);
+            }
+
+            const currentStep = data.applied;
+
+            setExecutedSteps((prev) => [...prev, currentStep.version]);
+            toast.success(`Миграция ${currentStep.version} выполнена`);
+
+            if (typeof data.nextVersion === 'string' && !data.isComplete) {
+                await runNextStep(data.nextVersion, index + 1, currentSteps);
+            } else if (data.isComplete && data.nextVersion === null) {
                 setIsProcessing(false);
                 setCurrentStepIndex(-1);
                 setIsFinished(true);
