@@ -10,15 +10,6 @@ export interface RegisterResponse {
     redirectedTo?: string,
 }
 
-export interface MigrationsStepsResponse {
-    steps: string[];
-    nextStepUrl?: string;
-}
-
-export interface ApplyMigrationsStepResponse {
-    nextStepUrl?: string;
-}
-
 export type InstallationStatus = RowDataPacket &
     Pick<AutoAdmin.Installation, 'status'>
 

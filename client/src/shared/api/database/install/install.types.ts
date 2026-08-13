@@ -3,15 +3,6 @@ export interface DbCheckResponse {
     redirectedTo?: string;
 }
 
-export interface MigrationsStepsResponse {
-    steps: string[];
-    nextStepUrl?: string;
-}
-
-export interface ApplyMigrationsStepResponse {
-    nextStepUrl?: string;
-}
-
 export interface MigrationStepResponse {
     version: string;
     name: string;

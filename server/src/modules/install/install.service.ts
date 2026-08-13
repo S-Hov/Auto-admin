@@ -3,14 +3,11 @@ import fs from "fs/promises";
 import path from 'path';
 import { markMigrationsCompleted } from "./install.repository";
 import { getPool, resetPool } from "../../db";
-import { badRequest, conflict, internal } from "../../shared/api/errors/error-helpers";
-import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps } from "../../migrations/utils";
+import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
 import type { 
-    ApplyMigrationsStepResponse,
     ApplyNextMigrationResponse,
     DbCheckResponse,
     MigrationPlanResponse,
-    MigrationsStepsResponse,
     MigrationStepResponse
 } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
@@ -68,30 +65,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
     } catch (error) {
         throw badRequest('Ошибка при проверке подключения к базе данных');
     }
-}
-
-export const getMigrationsStepsService = async (): Promise<MigrationsStepsResponse> => {
-    try {
-        const steps = await getMigrationsSteps();
-        const nextStep = await getNextMigrationStep();
-        return { steps, nextStepUrl: nextStep };
-    }
-    catch (error) {
-        throw internal('Ошибка при получении шагов миграции');
-    }
-}
-
-export const ApplyMigrationsStepService = async (step: string): Promise<ApplyMigrationsStepResponse> => {
-    await applyMigrationStep(step);
-
-    const nextStepUrl = await getNextMigrationStep();
-
-    if (nextStepUrl === '') {
-        await markMigrationsCompleted(getPool());
-    }
-
-    return { nextStepUrl };
-}
+}   
 
 export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> => {
     const plan = await getCurrentMigrationPlan();
