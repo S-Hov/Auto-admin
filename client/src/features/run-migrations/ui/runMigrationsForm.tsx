@@ -19,7 +19,7 @@ const RunMigrationsForm = () => {
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const { refreshBootstrap } = useBootstrap();
 
-    const runNextStep = async (expectedVersion: string, index: number, currentSteps: MigrationStepResponse[]): Promise<void> => {
+    const runNextStep = async (expectedVersion: string, index: number): Promise<void> => {
         console.log('index :', index);
 
         setCurrentStepIndex(index);
@@ -32,7 +32,7 @@ const RunMigrationsForm = () => {
                 throw new Error('Нет данных о следующем шаге миграции');
             }
 
-            const data = response.data;
+            const data = response.data;   
 
             if (data.applied === null) {
                 throw new Error('Миграция не была выполнена');
@@ -48,7 +48,7 @@ const RunMigrationsForm = () => {
             toast.success(`Миграция ${currentStep.version} выполнена`);
 
             if (typeof data.nextVersion === 'string' && !data.isComplete) {
-                await runNextStep(data.nextVersion, index + 1, currentSteps);
+                await runNextStep(data.nextVersion, index + 1);
             } else if (data.isComplete && data.nextVersion === null) {
                 setIsProcessing(false);
                 setCurrentStepIndex(-1);
@@ -91,7 +91,7 @@ const RunMigrationsForm = () => {
                 if (!data.nextVersion) {
                     throw new Error('Нет следующей версии миграции');
                 }
-                await runNextStep(data.nextVersion, 0, data.pending);
+                await runNextStep(data.nextVersion, 0);
             }
 
             await refreshBootstrap();
