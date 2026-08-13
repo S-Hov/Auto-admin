@@ -4,10 +4,10 @@ import { loadMigrationCatalog } from "./migration.catalog";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { buildMigrationPlan } from "./migration.plan";
 import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
-import type { MigrationDescriptor, MigrationPlan } from "./migration.types";
+import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
 import { MigrationVersionConflictError } from "./migration.errors";
 
-export const applyNextMigration = async (expectedVersion: string): Promise<MigrationDescriptor | null> => {
+export const applyNextMigration = async (expectedVersion: string): Promise<MigrationExecutionResult> => {
     const connection = await getPool().getConnection();
     let lockAcquired = false;
 
@@ -18,7 +18,7 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
         const plan = await loadCurrentMigrationPlan(connection);
 
         const next = plan.next;
-        if (next === null) return null;
+        if (next === null) return {applied: null, next: null, isComplete: true};
         if (next.version !== expectedVersion) {
             throw new MigrationVersionConflictError(expectedVersion, next.version);
         }
@@ -30,7 +30,12 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
             await connection.query(next.sql);
             const executionMs = Date.now() - startedAt;
             await markMigrationApplied(connection, next.version, executionMs);
-            return next;
+            const followingMigration = plan.pending[1] ?? null;
+            return {
+                applied: next,
+                next: followingMigration,
+                isComplete: followingMigration === null
+            };
         }
         catch (migrationError) {
             const executionMs = Date.now() - startedAt;

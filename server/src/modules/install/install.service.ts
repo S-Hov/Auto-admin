@@ -3,12 +3,21 @@ import fs from "fs/promises";
 import path from 'path';
 import { markMigrationsCompleted } from "./install.repository";
 import { getPool, resetPool } from "../../db";
-import { badRequest, internal } from "../../shared/api/errors/error-helpers";
+import { badRequest, conflict, internal } from "../../shared/api/errors/error-helpers";
 import { applyMigrationStep, getNextMigrationStep, getMigrationsSteps } from "../../migrations/utils";
-import type { ApplyMigrationsStepResponse, DbCheckResponse, MigrationPlanResponse, MigrationsStepsResponse } from "./install.types";
+import type { 
+    ApplyMigrationsStepResponse,
+    ApplyNextMigrationResponse,
+    DbCheckResponse,
+    MigrationPlanResponse,
+    MigrationsStepsResponse,
+    MigrationStepResponse
+} from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
-import { checkConnection, DbConnectionData } from "../../db/checkConnection";
-import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
+import { checkConnection, type DbConnectionData } from "../../db/checkConnection";
+import { applyNextMigration, getCurrentMigrationPlan } from "../../migrations/migration.runner";
+import { MigrationLockUnavailableError, MigrationVersionConflictError } from "../../migrations/migration.errors";
+import type { MigrationExecutionResult } from "../../migrations/migration.types";
 
 const envPath = path.join(process.cwd(), '.env');
 
@@ -97,4 +106,43 @@ export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> 
         nextVersion: plan.next?.version ?? null,
         isComplete: plan.isComplete
     }
+}
+
+export const applyNextMigrationService = async (expectedVersion: string): Promise<ApplyNextMigrationResponse> => {
+    let applied: MigrationStepResponse | null = null;
+    let result: MigrationExecutionResult;
+
+    try {
+        result = await applyNextMigration(expectedVersion);
+    }
+    catch (error) {
+        if (error instanceof MigrationLockUnavailableError) {
+            throw conflict(error.message, undefined, 'INSTALL.MIGRATIONS_ALREADY_RUNNING');
+        }
+        if (error instanceof MigrationVersionConflictError) {
+            throw conflict(
+                error.message,
+                {
+                    expectedVersion: error.expectedVersion,
+                    actualVersion: error.actualVersion
+                },
+                'INSTALL.MIGRATION_VERSION_CONFLICT'
+            );
+        }
+        throw error;
+    }
+
+    if (result.applied !== null) {
+        applied = {
+            version: result.applied.version,
+            name: result.applied.name,
+            fileName: result.applied.fileName
+        };
+    }
+
+    return {
+        applied,
+        nextVersion: result.next?.version ?? null,
+        isComplete: result.isComplete
+    };
 }

@@ -30,3 +30,9 @@ export type MigrationPlan = {
     readonly next: MigrationDescriptor | null;
     readonly isComplete: boolean;
 }
+
+export type MigrationExecutionResult = {
+    readonly applied: MigrationDescriptor | null;
+    readonly next: MigrationDescriptor | null;
+    readonly isComplete: boolean;
+}

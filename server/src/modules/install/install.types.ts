@@ -36,3 +36,13 @@ export interface MigrationPlanResponse {
     nextVersion: string | null;
     isComplete: boolean;
 }
+
+export interface ApplyNextMigrationRequest {
+    expectedVersion: string;
+}
+
+export interface ApplyNextMigrationResponse {
+    applied: MigrationStepResponse | null;
+    nextVersion: string | null;
+    isComplete: boolean;
+}
