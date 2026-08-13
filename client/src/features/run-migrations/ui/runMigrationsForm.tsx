@@ -8,17 +8,18 @@ import { useState } from "react";
 import './runMigrationsForm.css'
 import Loader from "../../../shared/ui/Loader/Loader";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
+import type { MigrationStepResponse } from "../../../shared/api/database/install/install.types";
 
 const RunMigrationsForm = () => {
     const { handleSubmit, formState: { isSubmitting }, } = useForm();
-    const [steps, setSteps] = useState<string[]>([]);
+    const [steps, setSteps] = useState<MigrationStepResponse[]>([]);
     const [isFinished, setIsFinished] = useState<boolean>(false);
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
     const [executedSteps, setExecutedSteps] = useState<string[]>([]);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const { refreshBootstrap } = useBootstrap();
 
-    const runNextStep = async (expectedVersion: string, index: number, currentSteps: string[]): Promise<void> => {
+    const runNextStep = async (expectedVersion: string, index: number, currentSteps: MigrationStepResponse[]): Promise<void> => {
         console.log('index :', index);
 
         setCurrentStepIndex(index);
@@ -26,27 +27,34 @@ const RunMigrationsForm = () => {
 
         const response = await installDatabase.applyNextMigration(expectedVersion);
 
+        if (response.data.applied !== null) {
+            throw new Error('Миграция не была выполнена');
+        }
+
         if (response.success) {
             if (!response.data) {
                 throw new Error('Нет данных о следующем шаге миграции');
             }
-            const currentStepName = currentSteps[index];
-            console.log('Выполнен шаг:', currentStepName);
+            const currentStep = response.data.applied;
+            console.log('Выполнен шаг:', currentStep);
 
-            setExecutedSteps((prev) => [...prev, currentStepName]);
-            toast.success(`Миграция ${currentStepName} выполнена`);
+            setExecutedSteps((prev) => [...prev, `${currentStep?.version} - ${currentStep?.name}`]);
+            toast.success(`Миграция ${currentStep?.version} - ${currentStep?.name} выполнена`);
 
-            if (response.data.nextVersion) {
+            if (typeof response.data.nextVersion === 'string' && !response.data.isComplete) {
                 await runNextStep(response.data.nextVersion, index + 1, currentSteps);
-            } else {
+            } else if (response.data.isComplete && response.data.nextVersion === null) {
                 setIsProcessing(false);
                 setCurrentStepIndex(-1);
                 setIsFinished(true);
                 toast.success('Миграции завершены');
+            } else {
+                throw new Error('Некорректный ответ от сервера');
             }
         } else {
             throw new Error(response.message || 'Ошибка при выполнении миграции');
         }
+
     };
 
     const onSubmit = async () => {
@@ -73,11 +81,11 @@ const RunMigrationsForm = () => {
                 toast.success('Все миграции уже выполнены');
                 setIsFinished(true);
             } else {
-                setSteps(data.pending.map(step => step.name));
+                setSteps(data.pending);
                 if (!data.nextVersion) {
                     throw new Error('Нет следующей версии миграции');
                 }
-                await runNextStep(data.nextVersion, 0, data.pending.map(step => step.name));
+                await runNextStep(data.nextVersion, 0, data.pending);
             }
 
             await refreshBootstrap();
@@ -122,17 +130,17 @@ const RunMigrationsForm = () => {
 
             {steps.length > 0 && !isFinished && (
                 <div className="migrations-list">
-                    {steps.map((stepName, index) => {
-                        const isExecuted = executedSteps.includes(stepName);
+                    {steps.map((step, index) => {
+                        const isExecuted = executedSteps.includes(step.version);
                         const isCurrent = currentStepIndex === index;
 
                         return (
                             <div
-                                key={stepName}
+                                key={step.version}
                                 className={`step-item ${isExecuted ? 'executed' : ''} ${isCurrent ? 'current' : ''}`}
                             >
                                 <span style={{ fontWeight: isCurrent ? '600' : 'normal' }}>
-                                    {index + 1}. {stepName}
+                                    {index + 1}. {step.name}
                                 </span>
 
                                 <span className="step-status">
