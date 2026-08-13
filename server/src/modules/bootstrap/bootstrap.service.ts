@@ -1,6 +1,6 @@
 import { checkConnection } from "../../db/checkConnection";
 import { hasCompleteConfig } from "../../db/databaseConfig";
-import { getMigrationsSteps, hasMigrationTable } from "../../migrations/utils";
+import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus } from '../install';
 import type { BootstrapStage } from "./bootstrap.types";
 
@@ -22,11 +22,8 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
             return 'database_unavailable';
         }
 
-        if (!await hasMigrationTable()) {
-            return 'migrations_required';
-        }
-
-        if ((await getMigrationsSteps()).length > 0) {
+        const plan = await getCurrentMigrationPlan();
+        if (!plan.isComplete) {
             return 'migrations_required';
         }
 
