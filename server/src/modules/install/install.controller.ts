@@ -2,19 +2,22 @@ import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
 import {
     ApplyMigrationsStepService,
+    applyNextMigrationService,
     checkConnectionService,
     getMigrationPlanService,
     getMigrationsStepsService
 } from './install.service';
-import type { 
-    DbCheckResponse, 
-    MigrationsStepsResponse, 
-    ApplyMigrationsStepResponse, 
-    MigrationPlanResponse
+import type {
+    DbCheckResponse,
+    MigrationsStepsResponse,
+    ApplyMigrationsStepResponse,
+    MigrationPlanResponse,
+    ApplyNextMigrationResponse
 } from './install.types';
 import { ok } from '../../shared/api/success';
 import { badRequest } from '../../shared/api/errors/error-helpers';
 import type { DbConnectionData } from '../../db/checkConnection';
+import type { ApplyNextMigrationValues } from './schema/applyNextMigration.schema';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
@@ -46,4 +49,18 @@ export const ApplyMigrationsStep = asyncHandler(async (req: Request, res: Respon
 export const getMigrationPlanController = asyncHandler(async (_req: Request, res: Response) => {
     const data = await getMigrationPlanService();
     return ok<MigrationPlanResponse>(res, 'План миграции получен', data);
+})
+
+export const applyNextMigrationController = asyncHandler(async (req: Request, res: Response) => {
+    const {
+        expectedVersion
+    }: ApplyNextMigrationValues = req.body;
+
+    const result = await applyNextMigrationService(expectedVersion);
+
+    return ok<ApplyNextMigrationResponse>(
+        res,
+        "Миграция выполнена",
+        result
+    );
 })

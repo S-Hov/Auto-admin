@@ -1,6 +1,7 @@
 import express from "express";
 import { 
     ApplyMigrationsStep,
+    applyNextMigrationController,
     checkConnectionController, 
     getMigrationPlanController, 
     getMigrationsSteps, 
@@ -20,7 +21,7 @@ installRouter.get("/migrations/plan", getMigrationPlanController);
 
 installRouter.post("/migrations/steps/:step", ApplyMigrationsStep);
 
-installRouter.post("/migrations/apply-next", validate(applyNextMigrationSchema));
+installRouter.post("/migrations/apply-next", validate(applyNextMigrationSchema), applyNextMigrationController);
 
 installRouter.use("/auth", statusMigrated, registerRouter);
 
