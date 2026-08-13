@@ -1,9 +1,11 @@
 import { apiClient, type UnifiedResponse } from '../../apiClient';
 import { type InstallDatabaseFormValues } from '../../../../features/install-database/model/installDatabase.schema';
-import { 
-    type ApplyMigrationsStepResponse, 
-    type DbCheckResponse, 
-    type MigrationsStepsResponse 
+import {
+    type ApplyMigrationsStepResponse,
+    type ApplyNextMigrationResponse,
+    type DbCheckResponse,
+    type MigrationPlanResponse,
+    type MigrationsStepsResponse
 } from './install.types';
 
 export const installDatabase = {
@@ -26,4 +28,17 @@ export const installDatabase = {
             body: JSON.stringify({ url })
         })
     },
+
+    getMigrationPlan() {
+        return apiClient<UnifiedResponse<MigrationPlanResponse>>('/install/migrations/plan', {
+            method: 'GET'
+        })
+    },
+
+    applyNextMigration(expectedVersion: string) {
+        return apiClient<UnifiedResponse<ApplyNextMigrationResponse>>('/install/migrations/apply-next', {
+            method: 'POST',
+            body: expectedVersion
+        })
+    }
 }
