@@ -1,7 +1,10 @@
 import type { MigrationDescriptor, MigrationHistoryRecord, MigrationPlan } from "./migration.types";
 
 export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, history: ReadonlyArray<MigrationHistoryRecord>): MigrationPlan => {
-    for (let i = 0; i < history.length; i++) {
+    const isLastRecordFailed = history.length > 0 &&
+        (history[history.length - 1].status === 'failed' || history[history.length - 1].status === 'running');
+
+    for (let i = 0; i < (isLastRecordFailed ? history.length - 1 : history.length); i++) {
         const record = history[i];
         const descriptor = catalog[i];
 
@@ -36,11 +39,23 @@ export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, 
         }
     }
 
-    const pending = catalog.slice(history.length);
+    if (isLastRecordFailed) {
+        const lastFailedRecord = history[history.length - 1];
+        const descriptor = catalog[history.length - 1];
+
+        if (lastFailedRecord.version !== descriptor.version) {
+            throw new Error(
+                `Migration order mismatch: expected version "${descriptor.version}", found "${lastFailedRecord.version}"`
+            );
+        }
+    }
+
+    const applied = isLastRecordFailed ? history.slice(0, -1) : history;
+    const pending = catalog.slice(applied.length);
     const next = pending[0] ?? null;
 
     return {
-        applied: history,
+        applied,
         pending,
         next,
         isComplete: pending.length === 0
