@@ -1,4 +1,4 @@
-import type { Connection, PoolConnection } from "mysql2/promise";
+import type { Connection } from "mysql2/promise";
 import { loadMigrationCatalog } from "./migration.catalog";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { buildMigrationPlan } from "./migration.plan";

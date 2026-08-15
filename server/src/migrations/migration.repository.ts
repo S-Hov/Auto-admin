@@ -82,6 +82,7 @@ export const insertRunningMigration = async (connection: Connection, descriptor:
         ) VALUES (
             ?, ?, ?, ?, 'running', ?
         )
+        ON DUPLICATE KEY UPDATE status = 'running', attempt_count = attempt_count + 1, checksum = VALUES(checksum), error_message = NULL, started_at = CURRENT_TIMESTAMP(3)
     `, [
         descriptor.version,
         descriptor.name,

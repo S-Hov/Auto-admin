@@ -29,6 +29,6 @@ export const releaseMigrationLock = async (connection: Connection): Promise<void
     const released = rows[0]?.released;
 
     if (released === 1) return;
-    else if (released === 0) throw new Error('Блокировка существует, но принадлежит другому соединению');
-    else throw new Error('Блокировки с таким именем не существует');
+    else if (released === 0) console.warn('Блокировка существует, но принадлежит другому соединению');
+    else console.warn('Блокировки с таким именем не существует');
 }
