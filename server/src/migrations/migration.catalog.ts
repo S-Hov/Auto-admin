@@ -55,13 +55,13 @@ export async function loadMigrationCatalog(): Promise<ReadonlyArray<MigrationDes
     for (const file of validFiles) {
         const absolutePath = path.resolve(__dirname, 'sql', file.fileName);
         const sqlBuffer = await fs.readFile(absolutePath);
-        const sqlString = sqlBuffer.toString('utf-8');
+        let normalizedSql = sqlBuffer.toString('utf-8').replace(/\r\n/g, '\n').trim();
 
-        if (!sqlString.trim()) {
+        if (!normalizedSql) {
             throw new Error(`Migration file is empty: ${file.fileName}`);
         }
 
-        const checksum = createHash('sha256').update(sqlBuffer).digest('hex');
+        const checksum = createHash('sha256').update(normalizedSql).digest('hex');
 
         catalog.push({
             version: file.version,
@@ -69,7 +69,7 @@ export async function loadMigrationCatalog(): Promise<ReadonlyArray<MigrationDes
             fileName: file.fileName,
             filePath: absolutePath,
             checksum,
-            sql: sqlString,
+            sql: normalizedSql,
         })
     }
 
