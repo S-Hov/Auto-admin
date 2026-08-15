@@ -1,4 +1,4 @@
-import type { RowDataPacket, PoolConnection, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket, ResultSetHeader, Connection } from "mysql2/promise";
 import { MIGRATION_HISTORY_TABLE } from "./config";
 import type { MigrationDescriptor, MigrationHistoryRecord, MigrationStatus } from "./migration.types";
 
@@ -17,7 +17,7 @@ interface MigrationHistoryRow extends RowDataPacket {
     updated_at: Date;
 }
 
-export const ensureMigrationHistoryTable = async (connection: PoolConnection): Promise<void> => {
+export const ensureMigrationHistoryTable = async (connection: Connection): Promise<void> => {
     await connection.query(`
         CREATE TABLE IF NOT EXISTS \`${MIGRATION_HISTORY_TABLE}\` (
             version VARCHAR(32) PRIMARY KEY,
@@ -36,7 +36,7 @@ export const ensureMigrationHistoryTable = async (connection: PoolConnection): P
     `);
 }
 
-export const getMigrationHistory = async (connection: PoolConnection): Promise<ReadonlyArray<MigrationHistoryRecord>> => {
+export const getMigrationHistory = async (connection: Connection): Promise<ReadonlyArray<MigrationHistoryRecord>> => {
     const [rows] = await connection.query<MigrationHistoryRow[]>(`
         SELECT 
             version,
@@ -70,7 +70,7 @@ export const getMigrationHistory = async (connection: PoolConnection): Promise<R
     }));
 }
 
-export const insertRunningMigration = async (connection: PoolConnection, descriptor: MigrationDescriptor, appVersion: string | null): Promise<void> => {
+export const insertRunningMigration = async (connection: Connection, descriptor: MigrationDescriptor, appVersion: string | null): Promise<void> => {
     await connection.query(`
             INSERT INTO \`${MIGRATION_HISTORY_TABLE}\` (
             version,
@@ -91,7 +91,7 @@ export const insertRunningMigration = async (connection: PoolConnection, descrip
     ]);
 }
 
-export const markMigrationApplied = async (connection: PoolConnection, version: string, executionMs: number): Promise<void> => {
+export const markMigrationApplied = async (connection: Connection, version: string, executionMs: number): Promise<void> => {
     const [result] = await connection.query<ResultSetHeader>(`
         UPDATE \`${MIGRATION_HISTORY_TABLE}\`
         SET status = 'applied',
@@ -106,7 +106,7 @@ export const markMigrationApplied = async (connection: PoolConnection, version: 
     }
 }
 
-export const markMigrationFailed = async (connection: PoolConnection, version: string, executionMs: number, errorMessage: string): Promise<void> => {
+export const markMigrationFailed = async (connection: Connection, version: string, executionMs: number, errorMessage: string): Promise<void> => {
     const [result] = await connection.query<ResultSetHeader>(`
         UPDATE \`${MIGRATION_HISTORY_TABLE}\`
         SET status = 'failed',

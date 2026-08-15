@@ -1,14 +1,14 @@
-import type { PoolConnection } from "mysql2/promise";
-import { getPool } from "../db";
+import type { Connection, PoolConnection } from "mysql2/promise";
 import { loadMigrationCatalog } from "./migration.catalog";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { buildMigrationPlan } from "./migration.plan";
 import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
 import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
 import { MigrationVersionConflictError } from "./migration.errors";
+import { createMigrationConnection } from "./migration.db";
 
 export const applyNextMigration = async (expectedVersion: string): Promise<MigrationExecutionResult> => {
-    const connection = await getPool().getConnection();
+    const connection = await createMigrationConnection();
     let lockAcquired = false;
 
     try {
@@ -58,12 +58,12 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
                 await releaseMigrationLock(connection);
             }
         } finally {
-            connection.release();
+            await connection.end();
         }
     }
 };
 
-const loadCurrentMigrationPlan = async (connection: PoolConnection): Promise<MigrationPlan> => {
+const loadCurrentMigrationPlan = async (connection: Connection): Promise<MigrationPlan> => {
     await ensureMigrationHistoryTable(connection);
     const catalog = await loadMigrationCatalog();
     const history = await getMigrationHistory(connection);
@@ -72,11 +72,11 @@ const loadCurrentMigrationPlan = async (connection: PoolConnection): Promise<Mig
 }
 
 export const getCurrentMigrationPlan = async (): Promise<MigrationPlan> => {
-    const connection = await getPool().getConnection();
+    const connection = await createMigrationConnection();
     try {
         return await loadCurrentMigrationPlan(connection);
     }
     finally {
-        connection.release();
+        await connection.end();
     }
 }

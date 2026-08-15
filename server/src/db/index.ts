@@ -9,13 +9,15 @@ export function getPool() {
         return pool;
     }
 
+    const { host, port, user, password, database } = getEnvConnectionParams();
+
     try {
         pool = mysql.createPool({
-            host: process.env.Auto_Admin__DB_HOST,
-            port: Number(process.env.Auto_Admin__DB_PORT),
-            user: process.env.Auto_Admin__DB_USERNAME,
-            password: process.env.Auto_Admin__DB_PASSWORD,
-            database: process.env.Auto_Admin__DB_DATABASE,
+            host,
+            port,
+            user,
+            password,
+            database,
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
@@ -58,5 +60,31 @@ export async function withTransaction<T>(
         throw error;
     } finally {
         connection.release();
+    }
+}
+
+export function getEnvConnectionParams(): {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+} {
+    const host = process.env.Auto_Admin__DB_HOST;
+    const port = process.env.Auto_Admin__DB_PORT;
+    const user = process.env.Auto_Admin__DB_USERNAME;
+    const password = process.env.Auto_Admin__DB_PASSWORD;
+    const database = process.env.Auto_Admin__DB_DATABASE;
+
+    if (!host || !port || !user || !database) {
+        throw new Error('Missing database connection data');
+    }
+
+    return {
+        host,
+        port: Number(port),
+        user,
+        password: password || '',
+        database,
     }
 }
