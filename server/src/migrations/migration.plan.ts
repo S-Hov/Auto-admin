@@ -1,3 +1,4 @@
+import { MigrationRecoveryRequiredError } from "./migration.errors";
 import type { MigrationDescriptor, MigrationHistoryRecord, MigrationPlan } from "./migration.types";
 
 export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, history: ReadonlyArray<MigrationHistoryRecord>): MigrationPlan => {
@@ -33,24 +34,23 @@ export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, 
             );
         }
         if (record.status !== 'applied') {
-            throw new Error(
-                `Migration version "${record.version}" is in "${record.status}" state; recovery is required before continuing`
-            );
+            throw new MigrationRecoveryRequiredError(record.version, record.status, 'Статус миграции отличается от applied');
         }
     }
 
-    if (isLastRecordFailed) {
-        const lastFailedRecord = history[history.length - 1];
-        const descriptor = catalog[history.length - 1];
+    // if (isLastRecordFailed) {
+    //     const lastFailedRecord = history[history.length - 1];
+    //     const descriptor = catalog[history.length - 1];
 
-        if (lastFailedRecord.version !== descriptor.version) {
-            throw new Error(
-                `Migration order mismatch: expected version "${descriptor.version}", found "${lastFailedRecord.version}"`
-            );
-        }
-    }
+    //     if (lastFailedRecord.version !== descriptor.version) {
+    //         throw new Error(
+    //             `Migration order mismatch: expected version "${descriptor.version}", found "${lastFailedRecord.version}"`
+    //         );
+    //     }
+    // }
 
-    const applied = isLastRecordFailed ? history.slice(0, -1) : history;
+    // const applied = isLastRecordFailed ? history.slice(0, -1) : history;
+    const applied = history;
     const pending = catalog.slice(applied.length);
     const next = pending[0] ?? null;
 

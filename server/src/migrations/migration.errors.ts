@@ -14,3 +14,14 @@ export class MigrationVersionConflictError extends Error {
         this.name = 'MigrationVersionConflictError';
     }
 }
+
+export class MigrationRecoveryRequiredError extends Error {
+    constructor(
+        public readonly version: string,
+        public readonly status: 'running' | 'failed',
+        public readonly errorMessage: string | null
+    ) {
+        super(`Миграция ${version} находится в состоянии ${status}.`);
+        this.name = 'MigrationRecoveryRequiredError';
+    }
+}

@@ -12,6 +12,6 @@ export async function createMigrationConnection(): Promise<Connection> {
         database,
         supportBigNumbers: true,
         bigNumberStrings: false,
-        multipleStatements: true,
+        // multipleStatements: true,
     });
 }

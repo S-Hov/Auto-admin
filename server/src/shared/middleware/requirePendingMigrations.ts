@@ -7,7 +7,7 @@ export const requirePendingMigrations = async (_req: Request, _res: Response, ne
         const plan = await getCurrentMigrationPlan();
     
         if (!plan.isComplete) return next();
-    
+
         return next(conflict('Миграции уже установлены', undefined, 'INSTALL.MIGRATIONS_ALREADY_COMPLETED'));
     }
     catch (error) {
