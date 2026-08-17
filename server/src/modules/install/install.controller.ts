@@ -17,7 +17,6 @@ import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema'
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
     const data = await checkConnectionService({ host, port, database, user, password });
-    console.log('data :', data);
 
     return ok<DbCheckResponse>(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
 })
