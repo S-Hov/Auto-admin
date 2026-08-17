@@ -2,10 +2,11 @@ import { MigrationRecoveryRequiredError } from "./migration.errors";
 import type { MigrationDescriptor, MigrationHistoryRecord, MigrationPlan } from "./migration.types";
 
 export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, history: ReadonlyArray<MigrationHistoryRecord>): MigrationPlan => {
-    const isLastRecordFailed = history.length > 0 &&
-        (history[history.length - 1].status === 'failed' || history[history.length - 1].status === 'running');
+    // const isLastRecordFailed = history.length > 0 &&
+    //     (history[history.length - 1].status === 'failed' || history[history.length - 1].status === 'running');
 
-    for (let i = 0; i < (isLastRecordFailed ? history.length - 1 : history.length); i++) {
+    // for (let i = 0; i < (isLastRecordFailed ? history.length - 1 : history.length); i++) {
+    for (let i = 0; i < history.length; i++) {
         const record = history[i];
         const descriptor = catalog[i];
 
@@ -34,7 +35,7 @@ export const buildMigrationPlan = (catalog: ReadonlyArray<MigrationDescriptor>, 
             );
         }
         if (record.status !== 'applied') {
-            throw new MigrationRecoveryRequiredError(record.version, record.status, 'Статус миграции отличается от applied');
+            throw new MigrationRecoveryRequiredError(record.version, record.status, record.errorMessage);
         }
     }
 
