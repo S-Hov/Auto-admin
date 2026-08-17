@@ -51,15 +51,27 @@ export const revokeSessionByTokenHash = async (tokenHash: string): Promise<void>
 export const getLoginAttempts = async (username: string, ipAddress: string | null): Promise<LoginAttemptsRow> => {
     const [attempts] = await getPool().query<LoginAttemptsRow[]>(`
         SELECT 
-            COALESCE(SUM(CASE WHEN username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS count15m,
-            COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL 1 DAY THEN 1 ELSE 0 END), 0) AS count1d
+            -- 1. Попытки пользователя со ВСЕХ IP (за последние 15 минут)
+            COALESCE(SUM(CASE WHEN username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS userCount15m,
+            
+            -- 2. Все попытки с текущего IP адреса (за последние 24 часа)
+            COALESCE(SUM(CASE WHEN ip_address <=> ? AND created_at >= NOW() - INTERVAL 1 DAY THEN 1 ELSE 0 END), 0) AS ipCount1d,
+            
+            -- 3. (Опционально) Попытки этого пользователя с этого конкретного IP (за 15 минут)
+            COALESCE(SUM(CASE WHEN ip_address <=> ? AND username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS ipUserCount15m
         FROM Auto_Admin__login_attempts 
-        WHERE ip_address = ? 
+        WHERE (ip_address <=> ? OR username = ?) 
         AND created_at >= NOW() - INTERVAL 1 DAY;
-    `, [username, ipAddress]);
+    `, [
+        username,              // для userCount15m
+        ipAddress,             // для ipCount1d
+        ipAddress, username,   // для ipUserCount15m
+        ipAddress, username    // для WHERE
+    ]);
 
     return attempts[0];
-}
+};
+
 
 export const createLoginAttempts = async (username: string, ipAddress: string | null) => {
     await getPool().query(`

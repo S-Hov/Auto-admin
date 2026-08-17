@@ -25,7 +25,7 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
         throw unauthorized('Пользователь с таким именем и паролем не найден');
     }
     
-    if (attempts.count15m >= 5 || attempts.count1d >= 100) throw tooManyRequests();
+    if (attempts.userCount15m >= 10 || attempts.ipCount1d >= 100 || attempts.ipUserCount15m >= 5) throw tooManyRequests();
     
     const user = await getUserByUserName(userName);
     if (!user) return await handleLoginFailure();

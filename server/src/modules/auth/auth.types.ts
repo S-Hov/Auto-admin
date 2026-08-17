@@ -28,8 +28,9 @@ export interface ActiveSessionRow extends RowDataPacket {
 }
 
 export interface LoginAttemptsRow extends RowDataPacket {
-    count15m: number,
-    count1d: number,
+    userCount15m: number;
+    ipCount1d: number;
+    ipUserCount15m: number;
 }
 
 export interface LoginServiceResult {
