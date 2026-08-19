@@ -9,6 +9,7 @@ declare global {
             Auto_Admin__DB_USERNAME?: string;
             Auto_Admin__DB_PASSWORD?: string;
             Auto_Admin__DB_DATABASE?: string;
+            Auto_Admin__INSTALL_TOKEN?: string;
         }
     }
 }
