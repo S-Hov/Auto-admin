@@ -4,7 +4,7 @@ import path from 'path';
 import { markMigrationsCompleted } from "./install.repository";
 import { getPool, resetPool } from "../../db";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
-import type { 
+import type {
     ApplyNextMigrationResponse,
     DbCheckResponse,
     MigrationPlanResponse,
@@ -20,53 +20,54 @@ import { randomUUID } from "crypto";
 const envPath = path.join(process.cwd(), '.env');
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
+    let versionInfo: { version?: string };
+
     try {
-        const version = await checkConnection(data);
-
-        const databaseEnv = {
-            Auto_Admin__DB_HOST: data.host,
-            Auto_Admin__DB_PORT: String(data.port),
-            Auto_Admin__DB_DATABASE: data.database,
-            Auto_Admin__DB_USERNAME: data.user,
-            Auto_Admin__DB_PASSWORD: data.password,
-        };
-
-        let currentContent = '';
-
-        try {
-            currentContent = await fs.readFile(envPath, 'utf8');
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-                throw error;
-            }
-        }
-
-        const currentEnv = dotenv.parse(currentContent);
-        const updatedEnv = { ...currentEnv, ...databaseEnv };
-
-        const updatedContent = Object.entries(updatedEnv)
-            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-            .join('\n') + '\n';
-
-        const temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
-
-        await fs.writeFile(temporaryPath, updatedContent, {
-            encoding: 'utf8',
-            mode: 0o600,
-        });
-
-        await fs.rename(temporaryPath, envPath);
-
-        Object.assign(process.env, databaseEnv);
-
-        await resetPool();
-
-        return { ...version, redirectedTo: PagePaths.login };
-
+        versionInfo = await checkConnection(data);
     } catch (error) {
         throw badRequest('Ошибка при проверке подключения к базе данных');
     }
-}   
+    
+    const databaseEnv = {
+        Auto_Admin__DB_HOST: data.host,
+        Auto_Admin__DB_PORT: String(data.port),
+        Auto_Admin__DB_DATABASE: data.database,
+        Auto_Admin__DB_USERNAME: data.user,
+        Auto_Admin__DB_PASSWORD: data.password,
+    };
+
+    let currentContent = '';
+
+    try {
+        currentContent = await fs.readFile(envPath, 'utf8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw error;
+        }
+    }
+
+    const currentEnv = dotenv.parse(currentContent);
+    const updatedEnv = { ...currentEnv, ...databaseEnv };
+
+    const updatedContent = Object.entries(updatedEnv)
+        .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+        .join('\n') + '\n';
+
+    const temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
+
+    await fs.writeFile(temporaryPath, updatedContent, {
+        encoding: 'utf8',
+        mode: 0o600,
+    });
+
+    await fs.rename(temporaryPath, envPath);
+
+    Object.assign(process.env, databaseEnv);
+
+    await resetPool();
+
+    return { ...versionInfo, redirectedTo: PagePaths.login };
+}
 
 export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> => {
     const plan = await getCurrentMigrationPlan();
