@@ -5,8 +5,7 @@ export const checkConnectionSchema = z.object({
         .string({message: 'Неверный хост'})
         .trim()
         .min(1, {message: 'Хост не может быть пустым'})
-        .max(255, {message: 'Слишком длинное значение хоста'})
-        .optional(),
+        .max(255, {message: 'Слишком длинное значение хоста'}),
     port: z
         .number({message: 'Неверный порт'})
         .min(1, {message: 'Слишком маленькое значение порта'})
@@ -20,6 +19,5 @@ export const checkConnectionSchema = z.object({
         .trim()
         .min(1, {message: 'Имя пользователя не может быть пустым'}),
     password: z
-        .string({message: 'Неверный пароль'})
-        .optional(),
+        .string(),
 })
