@@ -15,7 +15,7 @@ export const checkConnectionSchema = z.object({
         .string({message: 'Неверная база данных'})
         .trim()
         .min(1, {message: 'База не должна быть пустой'}),
-    username: z
+    user: z
         .string({message: 'Неверное имя пользователя'})
         .trim()
         .min(1, {message: 'Имя пользователя не может быть пустым'}),
