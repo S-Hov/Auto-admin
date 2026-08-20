@@ -19,6 +19,7 @@ export const checkConnection = async ({ host, port, database, user, password }: 
             user,
             password,
             database,
+            connectTimeout: 5000,
         });
 
         const [rows] = await connection.query("SELECT VERSION() AS version");
