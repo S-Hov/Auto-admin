@@ -15,6 +15,7 @@ import { checkConnection, type DbConnectionData } from "../../db/checkConnection
 import { applyNextMigration, getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { MigrationLockUnavailableError, MigrationVersionConflictError } from "../../migrations/migration.errors";
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
+import { randomUUID } from "crypto";
 
 const envPath = path.join(process.cwd(), '.env');
 
@@ -47,7 +48,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
             .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
             .join('\n') + '\n';
 
-        const temporaryPath = `${envPath}.tmp`;
+        const temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
 
         await fs.writeFile(temporaryPath, updatedContent, {
             encoding: 'utf8',
