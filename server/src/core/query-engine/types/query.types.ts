@@ -1,7 +1,7 @@
-// 1. Возможные действия
+// Возможные действия
 export type QueryAction = 'read' | 'create' | 'update' | 'delete' | 'aggregate';
 
-// 2. Общие части (фильтры, сортировка и т.д.)
+// Общие части (фильтры, сортировка и т.д.)
 export type ComparisonOperator =
     | '_eq'           // =
     | '_neq'          // !=
@@ -33,16 +33,16 @@ export type WhereClause = LogicalOperators & {
     [field: string]: FieldCondition | WhereClause[] | WhereClause | unknown;
 };
 
-// 3. Сортировка: массив объектов с полем и направлением
+// Сортировка: массив объектов с полем и направлением
 export type SortClause = {
     field: string;
     direction: 'asc' | 'desc';
 };
 
-// 4. Операции JOIN
+// Операции JOIN
 export type JoinAction = 'LEFT' | 'RIGHT' | 'INNER' | 'OUTER';
 
-// 4.1 Структура JOIN
+// Структура JOIN
 export type JoinClause = {
     table: string;
     alias?: string; // как мы будем называть эту таблицу в результатах
@@ -50,7 +50,7 @@ export type JoinClause = {
     on: Record<string, string>; // условие соединения (объект, где ключ — поле таблицы, а значение — оператор сравнения)
 };
 
-// 5. Объект запроса
+// Объект запроса
 export interface ReadQuery {
     action: Extract<QueryAction, 'read'>;
     table: string;
@@ -63,7 +63,7 @@ export interface ReadQuery {
     connection?: string;    //ID подключения - опционально
 }
 
-// 6. Запрос на создание
+// Запрос на создание
 export interface CreateQuery {
     action: Extract<QueryAction, 'create'>;
     table: string;
@@ -72,7 +72,7 @@ export interface CreateQuery {
     connection?: string;    // ID подключения - опционально
 }
 
-// 7. Запрос на изменение
+// Запрос на изменение
 export interface UpdateQuery {
     action: Extract<QueryAction, 'update'>;
     table: string;
@@ -82,7 +82,7 @@ export interface UpdateQuery {
     connection?: string;    // ID подключения - опционально
 }
 
-// 8. Запрос на удаление
+// Запрос на удаление
 export interface DeleteQuery {
     action: Extract<QueryAction, 'delete'>;
     table: string;
@@ -91,5 +91,5 @@ export interface DeleteQuery {
     connection?: string;    // ID подключения - опционально
 }
 
-// 9. Универсальный тип запроса
+// Универсальный тип запроса
 export type UnifiedQuery = ReadQuery | CreateQuery | UpdateQuery | DeleteQuery;
