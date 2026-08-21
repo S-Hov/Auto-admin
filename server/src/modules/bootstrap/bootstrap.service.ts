@@ -1,5 +1,6 @@
 import { checkConnection } from "../../db/checkConnection";
 import { hasCompleteConfig } from "../../db/databaseConfig";
+import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus } from '../install';
 import type { BootstrapStage } from "./bootstrap.types";
@@ -22,7 +23,18 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
             return 'database_unavailable';
         }
 
-        const plan = await getCurrentMigrationPlan();
+        let plan: Awaited<ReturnType<typeof getCurrentMigrationPlan>>;
+
+        try {
+            plan = await getCurrentMigrationPlan();
+        }
+        catch (error) {
+            if (error instanceof MigrationRecoveryRequiredError) {
+                return 'migration_recovery_required';
+            }
+            throw error;
+        }
+        
         if (!plan.isComplete) {
             return 'migrations_required';
         }
