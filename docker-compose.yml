@@ -6,7 +6,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auto_admin_test
-      # MYSQL_ONETIME_PASSWORD: "yes"
     ports:
       - "3307:3306"
     volumes:
@@ -22,37 +21,38 @@ services:
       - mysql
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
     container_name: auto_admin_client
     restart: unless-stopped
     ports:
-      - "5177:5173" # Пробрасываем порт React наружу в Windows
+      - "5177:5173"
     volumes:
-      - ./client:/app # Монтируем код, чтобы изменения в файлах сразу отражались в браузере (Hot Reload)
-      - /app/node_modules # Изолируем node_modules внутри контейнера, чтобы не было конфликтов с Windows/WSL
+      - ./client:/app
+      - client_node_modules:/app/node_modules
     environment:
-      - WATCHPACK_POLLING=true # Помогает Hot Reload стабильно работать внутри WSL/Docker
-    depends_on:
-      - mysql
-  
+      - NODE_ENV=development
+
   server:
-    user: "1000:1000"
-    build: ./server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
     container_name: auto_admin_server 
     restart: unless-stopped
     ports:
-      - "5180:5174" # Пробрасываем порт Node.js наружу в Windows
+      - "5180:5174"
     volumes:
-      - ./server:/app # Монтируем код для Hot Reload
-      - /app/node_modules # Изолируем зависимости
+      - ./server:/app
+      - server_node_modules:/app/node_modules
     environment:
-      - WATCHPACK_POLLING=true # Помогает Hot Reload в WSL
-      - Auto_Admin__PORT=5174              # <-- Указываем серверу слушать нужный порт!
-      - Auto_Admin__HOST=0.0.0.0           # <-- Разрешаем запросы снаружи контейнера!
+      - Auto_Admin__PORT=5174
+      - Auto_Admin__HOST=0.0.0.0
       - Auto_Admin__NODE_ENV=development
     depends_on:
       - mysql
 
-
 volumes:
   mysql_data:
+  client_node_modules:
+  server_node_modules:
