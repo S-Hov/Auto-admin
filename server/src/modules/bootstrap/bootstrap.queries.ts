@@ -1,6 +1,4 @@
-import { getBootstrapStatusService as getBootstrapStatus } from "./bootstrap.service";
-import { BootstrapStage } from "./bootstrap.types";
+import { getBootstrapStatusService } from "./bootstrap.service";
+import type { BootstrapStage } from "./bootstrap.types";
 
-export const readBootstrapStatus = async (): Promise<BootstrapStage> => {
-    return await getBootstrapStatus();
-}
+export const readBootstrapStatus = (): Promise<BootstrapStage> => getBootstrapStatusService();
