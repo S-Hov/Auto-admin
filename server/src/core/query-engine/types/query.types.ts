@@ -36,7 +36,7 @@ export type WhereClause = LogicalOperators & {
 // Сортировка: массив объектов с полем и направлением
 export type SortClause = {
     field: string;
-    direction: 'asc' | 'desc';
+    direction: 'asc' | 'desc' | 'ASC' | 'DESC';
 };
 
 // Операции JOIN
@@ -77,7 +77,7 @@ export interface UpdateQuery {
     action: Extract<QueryAction, 'update'>;
     table: string;
     data: Record<string, unknown>;  // поля для изменения
-    where?: WhereClause;    // условия обновления
+    where: WhereClause;    // условия обновления, обязательное поле
     returning?: string[];   // какие поля вернуть
     connection?: string;    // ID подключения - опционально
 }
