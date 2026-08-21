@@ -1,3 +1,4 @@
+import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../db"
 import { ActiveSessionRow, CreateSessionData, LoginAttemptsRow, LoginUserRow } from "./auth.types";
 
@@ -72,11 +73,18 @@ export const getLoginAttempts = async (username: string, ipAddress: string | nul
     return attempts[0];
 };
 
+export const createLoginAttempt = async (username: string, ipAddress: string | null): Promise<number> => {
+    const [result] = await getPool().query<ResultSetHeader>(`
+        INSERT INTO Auto_Admin__login_attempts (username, ip_address)
+        VALUES (?, ?)
+    `, [username, ipAddress]);
 
-export const createLoginAttempts = async (username: string, ipAddress: string | null) => {
+    return result.insertId;
+};
+
+export const deleteLoginAttemptById = async (attemptId: number): Promise<void> => {
     await getPool().query(`
-        INSERT INTO Auto_Admin__login_attempts
-        (username, ip_address)
-        VALUES(?, ?)
-    `, [username, ipAddress])
-}
+        DELETE FROM Auto_Admin__login_attempts
+        WHERE id = ?
+    `, [attemptId]);
+};
