@@ -6,12 +6,11 @@ import { errorHandler } from './shared/middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import ApiRouter from './routes/ApiRouter';
 import { resetPool } from './db';
-
-dotenv.config();
+import { envConfig } from './config/env';
 
 const app = express();
 
-const defaultAllowedOrigins = process.env.Auto_admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
+const defaultAllowedOrigins = envConfig.Auto_admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
 const nodeEnv = process.env.Auto_Admin__NODE_ENV;
 
 if (nodeEnv === 'development') {
@@ -42,8 +41,8 @@ app.use('/api', ApiRouter)
 
 app.use(errorHandler);
 
-const PORT = Number(process.env.Auto_Admin__PORT) || 3000;
-const HOST = process.env.Auto_Admin__HOST || 'localhost';
+const PORT = envConfig.Auto_Admin__PORT;
+const HOST = envConfig.Auto_Admin__HOST;
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`Server started on http://${HOST}:${PORT}`);
