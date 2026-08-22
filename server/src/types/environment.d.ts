@@ -10,6 +10,7 @@ declare global {
             Auto_Admin__DB_PASSWORD?: string;
             Auto_Admin__DB_DATABASE?: string;
             Auto_Admin__INSTALL_TOKEN?: string;
+            Auto_admin__CORS_ALLOWED_ORIGINS?: string;
         }
     }
 }
