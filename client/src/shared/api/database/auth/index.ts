@@ -1,3 +1,5 @@
+import { HTTP_HEADERS } from '../../../../constants/headers';
+import { STORAGE_KEYS } from '../../../../constants/storage';
 import type { CreateAdminFormValues } from '../../../../features/create-admin/model/CreateAdmin.schema';
 import { apiClient, type UnifiedResponse } from '../../apiClient';
 import type { CreateAdmin } from './auth.types';
@@ -8,7 +10,7 @@ export const auth = {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
-                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+                [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
             }
         })
     }

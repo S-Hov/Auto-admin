@@ -9,6 +9,7 @@ import { type ApiError } from '../../../shared/api/apiClient';
 
 import CardForm from '../../../shared/form/CardForm/CardForm';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
+import { STORAGE_KEYS } from '../../../constants/storage';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -55,7 +56,7 @@ const InstallDatabaseForm = () => {
                 success:(response) => {
     
                     if (response.success) {
-                        sessionStorage.setItem('x-install-token', installToken);
+                        sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, installToken);
                         return `${response.message}`;
                     }
                     throw new Error('Сервер отклонил параметры подключения');

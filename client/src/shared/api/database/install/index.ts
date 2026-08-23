@@ -6,6 +6,8 @@ import {
     type DbCheckResponse,
     type MigrationPlanResponse,
 } from './install.types';
+import { HTTP_HEADERS } from '../../../../constants/headers';
+import { STORAGE_KEYS } from '../../../../constants/storage';
 
 export const installDatabase = {
     checkTheConnection(data: InstallDatabaseFormValues, token: string) {
@@ -13,7 +15,7 @@ export const installDatabase = {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
-                'x-auto-admin-install-token': token
+                [HTTP_HEADERS.INSTALL_TOKEN]: token
             }
         })
     },
@@ -22,7 +24,7 @@ export const installDatabase = {
         return apiClient<UnifiedResponse<MigrationPlanResponse>>('/install/migrations/plan', {
             method: 'GET',
             headers: {
-                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+                [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
             }
         })
     },
@@ -32,7 +34,7 @@ export const installDatabase = {
             method: 'POST',
             body: JSON.stringify({ expectedVersion }),
             headers: {
-                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+                [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
             }
         })
     }

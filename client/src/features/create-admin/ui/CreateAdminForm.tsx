@@ -8,6 +8,7 @@ import { auth } from '../../../shared/api/database/auth';
 import { toast } from 'sonner';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
 import type { ApiError } from '../../../shared/api/apiClient';
+import { STORAGE_KEYS } from '../../../constants/storage';
 
 interface FieldConfig {
     name: keyof CreateAdminFormValues;
@@ -47,7 +48,7 @@ const CreateAdminForm = () => {
     
                 success: (response) => {
                     if (response.success) {
-                        sessionStorage.removeItem('x-install-token');
+                        sessionStorage.removeItem(STORAGE_KEYS.INSTALL_TOKEN);
                         return `${response.message}`;
                     }
                     throw new Error('Сервер отклонил параметры подключения');
