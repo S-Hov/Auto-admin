@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
 import cookieParser from 'cookie-parser';
