@@ -36,8 +36,8 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 
     const response = await fetch(getBaseUrl() + '/api' + url, {
         credentials: 'include',
-        headers,
-        ...options
+        ...options,
+        headers
     })
 
     const text = await response.text()

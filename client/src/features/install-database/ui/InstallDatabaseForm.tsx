@@ -21,6 +21,7 @@ const SINGLE_FIELDS: FieldConfig[] = [
     { name: 'database', label: 'База данных', placeholder: 'my_database' },
     { name: 'user', label: 'Пользователь', placeholder: 'admin' },
     { name: 'password', label: 'Пароль', type: 'password', placeholder: '••••••••' },
+    { name: 'install_token', label: 'Токен установки', type: 'text', placeholder: '********-****-****-****-************' },
 ];
 
 const InstallDatabaseForm = () => {
@@ -36,6 +37,7 @@ const InstallDatabaseForm = () => {
             database: 'auto_admin_test',
             user: 'root',
             password: '',
+            install_token: '',
         },
     });
 
@@ -43,7 +45,9 @@ const InstallDatabaseForm = () => {
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
         try {
-            const connectionPromise = installDatabase.checkTheConnection(data);
+            const installToken = data.install_token;
+            delete data.install_token;
+            const connectionPromise = installDatabase.checkTheConnection(data, installToken);
     
             await toast.promise(connectionPromise, {
                 loading: 'Проверяем подключение к MySQL...',
@@ -51,6 +55,7 @@ const InstallDatabaseForm = () => {
                 success:(response) => {
     
                     if (response.success) {
+                        sessionStorage.setItem('x-install-token', installToken);
                         return `${response.message}`;
                     }
                     throw new Error('Сервер отклонил параметры подключения');

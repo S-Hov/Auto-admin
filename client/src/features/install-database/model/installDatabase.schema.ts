@@ -11,6 +11,7 @@ export const installDatabaseSchema = z.object({
     database: z.string().min(1, { message: "Укажи имя базы данных" }),
     user: z.string().min(1, 'Укажи пользователя'),
     password: z.string(),
+    install_token: z.string().min(32, 'Минимальная длина токена - 32 символа'),
 });
 
 export type InstallDatabaseFormValues = z.infer<typeof installDatabaseSchema>;

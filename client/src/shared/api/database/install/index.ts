@@ -8,23 +8,32 @@ import {
 } from './install.types';
 
 export const installDatabase = {
-    checkTheConnection(data: InstallDatabaseFormValues) {
+    checkTheConnection(data: InstallDatabaseFormValues, token: string) {
         return apiClient<UnifiedResponse<DbCheckResponse>>('/install/check-connection', {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            headers: {
+                'x-auto-admin-install-token': token
+            }
         })
     },
 
     getMigrationPlan() {
         return apiClient<UnifiedResponse<MigrationPlanResponse>>('/install/migrations/plan', {
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+            }
         })
     },
 
     applyNextMigration(expectedVersion: ApplyNextMigrationRequest['expectedVersion']) {
         return apiClient<UnifiedResponse<ApplyNextMigrationResponse>>('/install/migrations/apply-next', {
             method: 'POST',
-            body: JSON.stringify({ expectedVersion })
+            body: JSON.stringify({ expectedVersion }),
+            headers: {
+                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+            }
         })
     }
 }
