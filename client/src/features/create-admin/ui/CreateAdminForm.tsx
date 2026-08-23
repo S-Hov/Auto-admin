@@ -47,6 +47,7 @@ const CreateAdminForm = () => {
     
                 success: (response) => {
                     if (response.success) {
+                        sessionStorage.removeItem('x-install-token');
                         return `${response.message}`;
                     }
                     throw new Error('Сервер отклонил параметры подключения');
