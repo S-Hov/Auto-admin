@@ -6,7 +6,10 @@ export const auth = {
     register(data: CreateAdminFormValues){
         return apiClient<UnifiedResponse<CreateAdmin>>('/install/auth/register', {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            headers: {
+                'x-auto-admin-install-token': sessionStorage.getItem('x-install-token') || ''
+            }
         })
     }
 };
