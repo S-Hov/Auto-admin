@@ -51,6 +51,7 @@ services:
       - Auto_Admin__NODE_ENV=development
     depends_on:
       - mysql
+    env_file: ./server/.env
 
 volumes:
   mysql_data:
