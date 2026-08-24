@@ -31,24 +31,24 @@ export class MySqlCompiler {
         }
 
         const selectSql = Array.isArray(select) ? select.join(', ') : select;
-        
+
         sql += `SELECT ${selectSql} FROM ${table} `;
-        
+
         if (query.joins) {
             const joinsSql = MySqlCompiler.compileJoins(query.joins);
             if (joinsSql) {
                 sql += ' ' + joinsSql;
             }
         }
-        
+
         if (query.where) {
             const whereRes = MySqlCompiler.compileWhere(query.where);
-            if (whereRes) {
-                sql += ' ' + whereRes.sql;
+            if (whereRes && whereRes.sql) {
+                sql += ' WHERE ' + whereRes.sql;
                 params.push(...whereRes.params);
             }
         }
-        
+
         if (query.sort) {
             const sortSql = MySqlCompiler.compileSort(query.sort);
             if (sortSql) {
@@ -216,7 +216,7 @@ export class MySqlCompiler {
             const onConditions = Object.entries(join.on).map(([leftCol, rightCol]) => {
                 return `${MySqlCompiler.escapeIdentifier(leftCol)} = ${MySqlCompiler.escapeIdentifier(rightCol)}`;
             }).join(' AND ');
-            
+
             sql += `${joinType} JOIN ${table}${aliasSql} ON ${onConditions}`;
         }
 
