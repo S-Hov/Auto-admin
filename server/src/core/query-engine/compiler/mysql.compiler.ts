@@ -1,4 +1,4 @@
-import type { ComparisonOperator, CreateQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
+import type { ComparisonOperator, CreateQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UpdateQuery, WhereClause } from "../types/query.types";
 
 export type LogicalKey = keyof LogicalOperators;
 
@@ -222,6 +222,7 @@ export class MySqlCompiler {
         return sql;
     }
 
+    // Создание
     static compileCreate(query: CreateQuery): CompiledQuery {
         const table = MySqlCompiler.escapeIdentifier(query.table);
         let sql = `INSERT INTO ${table}`;
@@ -246,6 +247,29 @@ export class MySqlCompiler {
             sql,
             params
         };
+    }
+
+    // Обновление
+    static compileUpdate(query: UpdateQuery): CompiledQuery {
+        let sql = '';
+        const params: unknown[] = [];
+        const table = MySqlCompiler.escapeIdentifier(query.table);
+        sql += `UPDATE ${table} SET `
+
+        const setColumns = Object.entries(query.data).map(([key, value]) => {
+            params.push(value)
+            return `${MySqlCompiler.escapeIdentifier(key)} = ?`
+        }).join(', ');
+
+        sql += setColumns;
+
+        const whereResult = MySqlCompiler.compileWhere(query.where);
+        if (whereResult.sql) {
+            sql += ` WHERE ${whereResult.sql}`;
+            params.push(...whereResult.params);
+        }
+
+        return { sql, params };
     }
 }
 
