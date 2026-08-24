@@ -21,7 +21,7 @@ export type FieldCondition = {
     [op in ComparisonOperator]?: unknown;
 };
 
-// Логические операторы
+// Логические операторы 
 export type LogicalOperators = {
     _and?: WhereClause[];
     _or?: WhereClause[];
