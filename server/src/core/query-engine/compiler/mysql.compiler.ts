@@ -1,4 +1,4 @@
-import type { ComparisonOperator, FieldCondition, LogicalOperators, ReadQuery, WhereClause } from "../types/query.types";
+import type { ComparisonOperator, FieldCondition, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
 // 
 export type LogicalKey = keyof LogicalOperators;
 // todo
@@ -15,6 +15,7 @@ export class MySqlCompiler {
         return identifier.split('.').map((part) => `\`${part.replace(/`/g, '')}\``).join('.');
     }
 
+    // Запрос на чтение
     static compileRead(query: ReadQuery): CompiledQuery {
         let sql = '';
         const table = MySqlCompiler.escapeIdentifier(query.table);
@@ -36,7 +37,8 @@ export class MySqlCompiler {
             params: [],
         }
     }
-
+    
+    // Условия
     static compileWhere(where?: WhereClause): CompiledQuery {
         if (!where || Object.keys(where).length === 0) {
             return {
@@ -139,7 +141,28 @@ export class MySqlCompiler {
         }
     }
 
+    // Проверка является ли ключ логическим оператором
     static isLogicalOperator(key: string): key is LogicalKey {
         return key === '_and' || key === '_or' || key === '_not';
+    }
+
+    // Сортировка
+    static compileSort(sort?: SortClause[]): string {
+        if (!sort || sort.length === 0) {
+            return '';
+        }
+        let sql = 'ORDER BY ';
+
+        for (let i = 0; i <= sort.length - 1; i++) {
+            const field = MySqlCompiler.escapeIdentifier(sort[i].field);
+            const direction = sort[i].direction.toUpperCase() as 'ASC' | 'DESC';
+
+            sql += `${field} ${direction}`;
+            if (i !== sort.length - 1) {
+                sql += ', ';
+            }
+        }
+
+        return sql;
     }
 }
