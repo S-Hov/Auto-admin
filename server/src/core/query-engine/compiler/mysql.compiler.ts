@@ -1,5 +1,5 @@
 import type { ComparisonOperator, CreateQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
- 
+
 export type LogicalKey = keyof LogicalOperators;
 
 export interface CompiledQuery {
@@ -228,21 +228,20 @@ export class MySqlCompiler {
         const params: unknown[] = [];
         const rows = Array.isArray(query.data) ? query.data : [query.data];
 
-        sql += ` (`
-        for (let i = 0; i < rows.length; i++) {
-            const keys = Object.keys(rows[i]).map((key) => MySqlCompiler.escapeIdentifier(key));
-            const values = Object.values(rows[i]);
-            sql += `${keys.join(', ')}`;
-            params.push(...values);
-        }
-        sql += `) VALUES `;
+        const columns = Object.keys(rows[0]);
+        const escapedColumns = columns.map((key) => MySqlCompiler.escapeIdentifier(key)).join(', ');
+        sql += ` (${escapedColumns}) VALUES `;
 
-        const placeholders = [];
-        for (let i = 0; i < rows.length; i++) {
-            placeholders.push(`(${`?`.repeat(Object.keys(rows[i]).length).split('').join(', ')})`);
+        for (const row of rows) {
+            for (const col of columns) {
+                params.push(row[col] !== undefined ? row[col] : null);
+            }
         }
-        sql += placeholders.join(', ');
-        
+
+        const rowPlaceholder = `(${Array(columns.length).fill('?').join(', ')})`;
+        const placeholders = Array(rows.length).fill(rowPlaceholder).join(', ');
+        sql += placeholders;
+
         return {
             sql,
             params
