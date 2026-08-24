@@ -1,4 +1,4 @@
-import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UpdateQuery, WhereClause } from "../types/query.types";
+import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UnifiedQuery, UpdateQuery, WhereClause } from "../types/query.types";
 
 export type LogicalKey = keyof LogicalOperators;
 
@@ -8,6 +8,17 @@ export interface CompiledQuery {
 }
 
 export class MySqlCompiler {
+    // Универсальный метод
+    static compile(query: UnifiedQuery): CompiledQuery {
+        switch (query.action) {
+            case 'read': return MySqlCompiler.compileRead(query);
+            case 'create': return MySqlCompiler.compileCreate(query);
+            case 'update': return MySqlCompiler.compileUpdate(query);
+            case 'delete': return MySqlCompiler.compileDelete(query);
+            default: throw new Error(`Unsupported action: ${(query as any).action}`);
+        }
+    }
+
     // Экранируем идентификаторы (таблицы, колонки) для MySQL
     static escapeIdentifier(identifier: string): string {
         if (identifier === '*') return '*';
