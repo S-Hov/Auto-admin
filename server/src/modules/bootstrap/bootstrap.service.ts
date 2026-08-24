@@ -1,8 +1,10 @@
+import { getPool } from "../../db";
 import { checkConnection } from "../../db/checkConnection";
 import { hasCompleteConfig } from "../../db/databaseConfig";
 import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus } from '../install';
+import { markMigrationsCompleted } from "../install/install.repository";
 import type { BootstrapStage } from "./bootstrap.types";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
@@ -41,9 +43,12 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
 
         const installationStatus = await readInstallationStatus();
 
+        if (installationStatus === 'new') {
+            await markMigrationsCompleted(getPool());
+            return 'admin_required';
+        }
+
         switch (installationStatus) {
-            case 'new':
-                return 'system_error';
             case 'migrated':
                 return 'admin_required';
             case 'ready':
