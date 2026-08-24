@@ -19,6 +19,8 @@ export class MySqlCompiler {
     // Запрос на чтение
     static compileRead(query: ReadQuery): CompiledQuery {
         let sql = '';
+        const params: unknown[] = [];
+
         const table = MySqlCompiler.escapeIdentifier(query.table);
         let select: string[] | '*' = [];
 
@@ -29,19 +31,47 @@ export class MySqlCompiler {
         }
 
         const selectSql = Array.isArray(select) ? select.join(', ') : select;
-        const join = query.joins;
-        const where = query.where;
-        const sort = query.sort;
+        
+        sql += `SELECT ${selectSql} FROM ${table} `;
+        
+        if (query.joins) {
+            const joinsSql = MySqlCompiler.compileJoins(query.joins);
+            if (joinsSql) {
+                sql += ' ' + joinsSql;
+            }
+        }
+        
+        if (query.where) {
+            const whereRes = MySqlCompiler.compileWhere(query.where);
+            if (whereRes) {
+                sql += ' ' + whereRes.sql;
+                params.push(...whereRes.params);
+            }
+        }
+        
+        if (query.sort) {
+            const sortSql = MySqlCompiler.compileSort(query.sort);
+            if (sortSql) {
+                sql += ' ' + sortSql;
+            }
+        }
 
-        sql += `SELECT ${selectSql} FROM ${table} ${MySqlCompiler.compileJoins(join)} ${MySqlCompiler.compileWhere(where)} ${MySqlCompiler.compileSort(sort)}`;
+        if (query.limit !== undefined) {
+            sql += ` LIMIT ?`;
+            params.push(query.limit);
+        }
 
-        // чтобы компилятор не ругался, что параметров нет, вернем пустой массив
+        if (query.offset !== undefined) {
+            sql += ` OFFSET ?`;
+            params.push(query.offset);
+        }
+
         return {
             sql,
-            params: [],
+            params,
         }
     }
-    
+
     // Условия
     static compileWhere(where?: WhereClause): CompiledQuery {
         if (!where || Object.keys(where).length === 0) {
@@ -180,34 +210,14 @@ export class MySqlCompiler {
 
         for (let i = 0; i <= joins.length - 1; i++) {
             const join = joins[i];
-            const joinType = join.type?.toUpperCase() || 'LEFT';
             const table = MySqlCompiler.escapeIdentifier(join.table);
-            const alias = MySqlCompiler.escapeIdentifier(join.alias || '');
-            const on1 = Object.keys(join.on)[0].split('.').map((el) => MySqlCompiler.escapeIdentifier(el)).join('.');
-            const on2 = Object.keys(join.on)[1].split('.').map((el) => MySqlCompiler.escapeIdentifier(el)).join('.');
+            const joinType = (join.type || 'LEFT').toUpperCase();
+            const aliasSql = join.alias ? ` AS ${MySqlCompiler.escapeIdentifier(join.alias)}` : '';
+            const onConditions = Object.entries(join.on).map(([leftCol, rightCol]) => {
+                return `${MySqlCompiler.escapeIdentifier(leftCol)} = ${MySqlCompiler.escapeIdentifier(rightCol)}`;
+            }).join(' AND ');
             
-            const joinSql = ` ${joinType} JOIN ${table} ${alias ? `AS ${alias}` : ''} ON ${on1} = ${on2}`;
-            switch(joinType){
-                case 'LEFT': {
-                    sql += `LEFT ` + joinSql;
-                    break;
-                }
-                case 'RIGHT': {
-                    sql += `RIGHT ` + joinSql;
-                    break;
-                }
-                case 'INNER': {
-                    sql += `INNER ` + joinSql;
-                    break;
-                }
-                case 'OUTER': {
-                    sql += `OUTER ` + joinSql;
-                    break;
-                }
-                default: {
-                    throw new Error(`Неподдерживаемый тип соединения: ${join.type}`);
-                }
-            }
+            sql += `${joinType} JOIN ${table}${aliasSql} ON ${onConditions}`;
         }
 
         return sql;
