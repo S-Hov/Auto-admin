@@ -37,7 +37,7 @@ export class MySqlCompiler {
         if (query.joins) {
             const joinsSql = MySqlCompiler.compileJoins(query.joins);
             if (joinsSql) {
-                sql += ' ' + joinsSql;
+                sql += joinsSql;
             }
         }
 
@@ -217,7 +217,7 @@ export class MySqlCompiler {
                 return `${MySqlCompiler.escapeIdentifier(leftCol)} = ${MySqlCompiler.escapeIdentifier(rightCol)}`;
             }).join(' AND ');
 
-            sql += `${joinType} JOIN ${table}${aliasSql} ON ${onConditions}`;
+            sql += ` ${joinType} JOIN ${table}${aliasSql} ON ${onConditions}`;
         }
 
         return sql;
