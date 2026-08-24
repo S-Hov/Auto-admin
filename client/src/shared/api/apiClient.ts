@@ -20,10 +20,10 @@ export const getBaseUrl = (): string => {
     }
 
     if (typeof window !== 'undefined' && window.location.hostname) {
-        return `http://${window.location.hostname}:8880`
+        return `http://${window.location.hostname}:5180`
     }
 
-    return 'http://127.0.0.1:8880'
+    return 'http://127.0.0.1:5180'
 }
 
 export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
