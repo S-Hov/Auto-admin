@@ -1,4 +1,4 @@
-import type { ComparisonOperator, CreateQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UpdateQuery, WhereClause } from "../types/query.types";
+import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UpdateQuery, WhereClause } from "../types/query.types";
 
 export type LogicalKey = keyof LogicalOperators;
 
@@ -264,6 +264,22 @@ export class MySqlCompiler {
         sql += setColumns;
 
         const whereResult = MySqlCompiler.compileWhere(query.where);
+        if (whereResult.sql) {
+            sql += ` WHERE ${whereResult.sql}`;
+            params.push(...whereResult.params);
+        }
+
+        return { sql, params };
+    }
+
+    static compileDelete(query: DeleteQuery): CompiledQuery {
+        let sql = '';
+        const params: unknown[] = [];
+        const table = MySqlCompiler.escapeIdentifier(query.table);
+
+        sql += `DELETE FROM ${table}`;
+
+        const whereResult = MySqlCompiler.compileWhere(query.where)
         if (whereResult.sql) {
             sql += ` WHERE ${whereResult.sql}`;
             params.push(...whereResult.params);
