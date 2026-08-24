@@ -29,8 +29,11 @@ export class MySqlCompiler {
         }
 
         const selectSql = Array.isArray(select) ? select.join(', ') : select;
+        const join = query.joins;
+        const where = query.where;
+        const sort = query.sort;
 
-        sql += `SELECT ${selectSql} FROM ${table}`;
+        sql += `SELECT ${selectSql} FROM ${table} ${MySqlCompiler.compileJoins(join)} ${MySqlCompiler.compileWhere(where)} ${MySqlCompiler.compileSort(sort)}`;
 
         // чтобы компилятор не ругался, что параметров нет, вернем пустой массив
         return {
