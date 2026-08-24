@@ -6,9 +6,9 @@ export const canConfigureDatabase = async (_req: Request, _res: Response, next: 
     try {
         const status = await readBootstrapStatus();
     
-        if (status === 'database_required' || status === 'database_unavailable') return next();
+        if (status === 'database_required') return next();
 
-        next(conflict('Конфигурация базы данных не требуется'));
+        return next(conflict('Конфигурация базы данных не требуется или база временно недоступна'));
     }
     catch (err) {
         next(err);
