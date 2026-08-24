@@ -223,3 +223,34 @@ export class MySqlCompiler {
         return sql;
     }
 }
+
+// // test  ./node_modules/.bin/tsx src/core/query-engine/compiler/mysql.compiler.ts
+// const result = MySqlCompiler.compileRead({
+//     action: 'read',
+//     table: 'orders',
+//     select: ['orders.id', 'orders.total_price', 'users.email'],
+//     joins: [
+//         {
+//             table: 'users',
+//             alias: 'u',
+//             type: 'INNER',
+//             on: { 'orders.user_id': 'u.id' }
+//         }
+//     ],
+//     where: {
+//         _and: [
+//             { 'orders.total_price': { _gte: 1000 } },
+//             {
+//                 _or: [
+//                     { 'orders.status': { _in: ['paid', 'delivered'] } },
+//                     { 'u.is_vip': { _eq: true } }
+//                 ]
+//             }
+//         ]
+//     },
+//     sort: [{ field: 'orders.created_at', direction: 'desc' }],
+//     limit: 20,
+//     offset: 0
+// });
+
+// console.log(result.sql, '\n', result.params);
