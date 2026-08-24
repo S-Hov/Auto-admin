@@ -1,8 +1,7 @@
-import { keyof } from "zod";
-import type { ComparisonOperator, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
-// 
+import type { ComparisonOperator, CreateQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
+ 
 export type LogicalKey = keyof LogicalOperators;
-// todo
+
 export interface CompiledQuery {
     sql: string;
     params: unknown[];
@@ -221,6 +220,33 @@ export class MySqlCompiler {
         }
 
         return sql;
+    }
+
+    static compileCreate(query: CreateQuery): CompiledQuery {
+        const table = MySqlCompiler.escapeIdentifier(query.table);
+        let sql = `INSERT INTO ${table}`;
+        const params: unknown[] = [];
+        const rows = Array.isArray(query.data) ? query.data : [query.data];
+
+        sql += ` (`
+        for (let i = 0; i < rows.length; i++) {
+            const keys = Object.keys(rows[i]).map((key) => MySqlCompiler.escapeIdentifier(key));
+            const values = Object.values(rows[i]);
+            sql += `${keys.join(', ')}`;
+            params.push(...values);
+        }
+        sql += `) VALUES `;
+
+        const placeholders = [];
+        for (let i = 0; i < rows.length; i++) {
+            placeholders.push(`(${`?`.repeat(Object.keys(rows[i]).length).split('').join(', ')})`);
+        }
+        sql += placeholders.join(', ');
+        
+        return {
+            sql,
+            params
+        };
     }
 }
 
