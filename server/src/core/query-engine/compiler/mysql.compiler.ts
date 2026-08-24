@@ -1,4 +1,5 @@
-import type { ComparisonOperator, FieldCondition, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
+import { keyof } from "zod";
+import type { ComparisonOperator, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, WhereClause } from "../types/query.types";
 // 
 export type LogicalKey = keyof LogicalOperators;
 // todo
@@ -160,6 +161,49 @@ export class MySqlCompiler {
             sql += `${field} ${direction}`;
             if (i !== sort.length - 1) {
                 sql += ', ';
+            }
+        }
+
+        return sql;
+    }
+
+    // Соединения
+    static compileJoins(joins?: JoinClause[]): string {
+        if (!joins || joins.length === 0) {
+            return '';
+        }
+
+        let sql = '';
+
+        for (let i = 0; i <= joins.length - 1; i++) {
+            const join = joins[i];
+            const joinType = join.type?.toUpperCase() || 'LEFT';
+            const table = MySqlCompiler.escapeIdentifier(join.table);
+            const alias = MySqlCompiler.escapeIdentifier(join.alias || '');
+            const on1 = Object.keys(join.on)[0].split('.').map((el) => MySqlCompiler.escapeIdentifier(el)).join('.');
+            const on2 = Object.keys(join.on)[1].split('.').map((el) => MySqlCompiler.escapeIdentifier(el)).join('.');
+            
+            const joinSql = ` ${joinType} JOIN ${table} ${alias ? `AS ${alias}` : ''} ON ${on1} = ${on2}`;
+            switch(joinType){
+                case 'LEFT': {
+                    sql += `LEFT ` + joinSql;
+                    break;
+                }
+                case 'RIGHT': {
+                    sql += `RIGHT ` + joinSql;
+                    break;
+                }
+                case 'INNER': {
+                    sql += `INNER ` + joinSql;
+                    break;
+                }
+                case 'OUTER': {
+                    sql += `OUTER ` + joinSql;
+                    break;
+                }
+                default: {
+                    throw new Error(`Неподдерживаемый тип соединения: ${join.type}`);
+                }
             }
         }
 
