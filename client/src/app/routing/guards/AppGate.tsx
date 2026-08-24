@@ -28,7 +28,7 @@ export const AppGate = () => {
     }
 
     if (state.stage === 'database_required') {
-        if (location.pathname !== '/install'){
+        if (location.pathname !== '/install') {
             return <Navigate to="/install" replace />;
         }
         else if (location.pathname === '/install') {
@@ -43,6 +43,17 @@ export const AppGate = () => {
         else if (location.pathname === '/install/runMigrations') {
             return <Outlet />;
         }
+    }
+
+    if (state.stage === 'migration_recovery_required') {
+        return (
+            <div>
+                Требуется восстановление базы данных (одна из миграций завершилась с ошибкой).
+                <Button variant="primary" onClick={refreshBootstrap}>
+                    Проверить повторно
+                </Button>
+            </div>
+        );
     }
 
     if (state.stage === 'admin_required') {
