@@ -46,29 +46,28 @@ const InstallDatabaseForm = () => {
 
     const onSubmit = async (data: InstallDatabaseFormValues) => {
         try {
-            const installToken = data.install_token;
-            delete data.install_token;
-            const connectionPromise = installDatabase.checkTheConnection(data, installToken);
-    
+            const { install_token, ...dbPayload } = data;
+            const connectionPromise = installDatabase.checkTheConnection(dbPayload, install_token);
+
             await toast.promise(connectionPromise, {
                 loading: 'Проверяем подключение к MySQL...',
-    
-                success:(response) => {
-    
+
+                success: (response) => {
+
                     if (response.success) {
-                        sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, installToken);
+                        sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, install_token);
                         return `${response.message}`;
                     }
                     throw new Error('Сервер отклонил параметры подключения');
                 },
-    
+
                 error: (err) => {
                     const apiError = err as ApiError;
                     return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
                 },
-    
+
             }).unwrap();
-    
+
             await refreshBootstrap();
         }
         catch {

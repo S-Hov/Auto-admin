@@ -24,3 +24,11 @@ export interface ApplyNextMigrationResponse {
 export interface ApplyNextMigrationRequest {
     expectedVersion: string;
 }
+
+export interface DbConnectionPayload {
+    host: string;
+    port: number;
+    database: string;
+    user: string;
+    password: string;
+}

@@ -1,16 +1,16 @@
 import { apiClient, type UnifiedResponse } from '../../apiClient';
-import { type InstallDatabaseFormValues } from '../../../../features/install-database/model/installDatabase.schema';
 import {
     type ApplyNextMigrationRequest,
     type ApplyNextMigrationResponse,
     type DbCheckResponse,
+    type DbConnectionPayload,
     type MigrationPlanResponse,
 } from './install.types';
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
 
 export const installDatabase = {
-    checkTheConnection(data: InstallDatabaseFormValues, token: string) {
+    checkTheConnection(data: DbConnectionPayload, token: string) {
         return apiClient<UnifiedResponse<DbCheckResponse>>('/install/check-connection', {
             method: 'POST',
             body: JSON.stringify(data),
