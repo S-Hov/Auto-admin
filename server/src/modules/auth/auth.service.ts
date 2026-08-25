@@ -3,7 +3,7 @@ import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-hel
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
 import { createLoginAttempt, createSession, deleteLoginAttemptById, getActiveSessionByTokenHash, getLoginAttempts, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
-import { CreateSessionData, GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
+import { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
