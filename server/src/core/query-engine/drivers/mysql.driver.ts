@@ -1,6 +1,6 @@
 import { CompiledQuery } from "../compiler/mysql.compiler";
-import type { DatabaseDriver } from "./driver.types";
-import type { QueryResult, PoolConnection, ResultSetHeader } from "mysql2/promise"
+import type { DatabaseDriver, QueryResult } from "./driver.types";
+import type { PoolConnection, ResultSetHeader } from "mysql2/promise"
 
 export class MySqlDriver implements DatabaseDriver {
     private pool: PoolConnection;
