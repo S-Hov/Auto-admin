@@ -15,12 +15,12 @@ export interface PipelineDefinition {
 }
 
 // Контекст выполнения
-export interface PipelineExecutionContext<T> {
+export interface PipelineExecutionContext<T = unknown> {
     steps: Record<string, QueryResult<T>>   // объект, в который по мере выполнения мы складываем результаты
 }
 
 // Итоговый ответ клиенту
-export interface PipelineResult<T> {
+export interface PipelineResult<T = unknown> {
     success: boolean;
     steps: Record<string, QueryResult<T>>;  // результаты каждого выполненного шага.
     executionTimeMs?: number;               // общее время выполнения в миллисекундах
