@@ -1,16 +1,11 @@
+import { ApiClientError } from "./ApiClientError"
+import type { ApiError } from "./types"
+
 export interface UnifiedResponse<D> {
     success: boolean
     message: string
     status?: number
     data?: D
-}
-
-export interface ApiError {
-    message: string
-    status: number
-    code?: string
-    data?: any
-    success: false
 }
 
 export const getBaseUrl = (): string => {
@@ -58,15 +53,7 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 
     if (isUnifiedApiResponse) {
         if (!response.ok || data.success === false) {
-            const message = extractMessage(data, 'Не удалось выполнить запрос')
-
-            throw {
-                status: response.status,
-                data,
-                message,
-                error: message,
-                success: false
-            } as ApiError
+            throw new ApiClientError(data, response.status)
         }
 
         return data as T
