@@ -5,6 +5,7 @@ import { conflict, notFound } from '../../../shared/api/errors/error-helpers';
 import { getInstallationStatusForUpdate, updateInstallationStatus } from '../install.repository';
 import { withTransaction } from '../../../db';
 import { PagePaths } from '../../../constants/pagePaths';
+import { ERROR_CODES } from '../../../shared/api/codes/error-codes';
 
 const adminRoleKey = 'admin' as const;
 
@@ -15,7 +16,7 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
     } = data;
 
     const role = await getRoleByKey(adminRoleKey);
-    if (!role) throw notFound('Роль администратора не найдена. Регистрация не выполнена');
+    if (!role) throw notFound(ERROR_CODES.INSTALL_ADMIN_ROLE_NOT_FOUND);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -24,7 +25,7 @@ export const registerService = async (data: RegisterData, meta: RequestMeta): Pr
         if (installationStatus?.status !== 'migrated') throw conflict()
 
         const admin = await getAdminByRoleId(transaction, role.id)
-        if (admin) throw conflict('Администратор уже создан')
+        if (admin) throw conflict(ERROR_CODES.INSTALL_ADMIN_ALREADY_CREATED)
 
         const adminId = await register(transaction, role.id, userName, hashedPassword);
 

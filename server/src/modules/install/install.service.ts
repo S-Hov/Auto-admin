@@ -16,6 +16,7 @@ import { applyNextMigration, getCurrentMigrationPlan } from "../../migrations/mi
 import { MigrationLockUnavailableError, MigrationVersionConflictError } from "../../migrations/migration.errors";
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
 import { randomUUID } from "crypto";
+import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 
 const envPath = path.join(process.cwd(), '.env');
 
@@ -25,7 +26,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
     try {
         versionInfo = await checkConnection(data);
     } catch (error) {
-        throw badRequest('Ошибка при проверке подключения к базе данных');
+        throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
     }
     
     const databaseEnv = {
@@ -94,16 +95,12 @@ export const applyNextMigrationService = async (expectedVersion: string): Promis
     }
     catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
-            throw conflict(error.message, undefined, 'INSTALL.MIGRATIONS_ALREADY_RUNNING');
+            throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
         }
         if (error instanceof MigrationVersionConflictError) {
             throw conflict(
-                error.message,
-                {
-                    expectedVersion: error.expectedVersion,
-                    actualVersion: error.actualVersion
-                },
-                'INSTALL.MIGRATION_VERSION_CONFLICT'
+                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
+                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
             );
         }
         throw error;

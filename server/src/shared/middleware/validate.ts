@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { badRequest } from "../api/errors/error-helpers";
 import { ZodError, ZodType } from "zod";
+import { ERROR_CODES } from "../api/codes/error-codes";
 
 export const validate = (schema: ZodType ) => (req: Request, _res: Response, next: NextFunction) => {
     try {
@@ -13,7 +14,7 @@ export const validate = (schema: ZodType ) => (req: Request, _res: Response, nex
                 message: issue.message,
             }));
 
-            return next(badRequest('Ошибка валидации', errors));
+            return next(badRequest(ERROR_CODES.COMMON_BAD_REQUEST, { details: errors }));
         }
 
         return next(error)

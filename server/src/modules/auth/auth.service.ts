@@ -1,4 +1,5 @@
 import { PagePaths } from "../../constants/pagePaths";
+import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-helpers"
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
@@ -25,12 +26,12 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
 
     const user = await getUserByUserName(userName);
     if (!user || !user.is_active) {
-        throw unauthorized('Пользователь с таким именем и паролем не найден');
+        throw unauthorized(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
     }
 
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
-        throw unauthorized('Пользователь с таким именем и паролем не найден');
+        throw unauthorized(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
     }
 
     await deleteLoginAttemptById(attemptId);
@@ -54,7 +55,7 @@ export const getMeService = async (token: string): Promise<GetMeServiceResult> =
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const session = await getActiveSessionByTokenHash(tokenHash);
-    if (!session) throw unauthorized('Нет доступа');
+    if (!session) throw unauthorized(ERROR_CODES.AUTH_SESSION_INVALID);
 
     const response: GetMeServiceResult = {
         userId: session.userId,

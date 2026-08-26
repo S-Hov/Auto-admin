@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { readBootstrapStatus } from "../../modules/bootstrap";
 import { conflict } from "../api/errors/error-helpers";
+import { ERROR_CODES } from "../api/codes/error-codes";
 
 export const canConfigureDatabase = async (_req: Request, _res: Response, next: NextFunction) => {
     try {
@@ -8,7 +9,7 @@ export const canConfigureDatabase = async (_req: Request, _res: Response, next: 
     
         if (status === 'database_required') return next();
 
-        return next(conflict('Конфигурация базы данных не требуется или база временно недоступна'));
+        return next(conflict(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED));
     }
     catch (err) {
         next(err);
