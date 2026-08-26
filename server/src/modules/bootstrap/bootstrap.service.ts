@@ -3,8 +3,7 @@ import { checkConnection } from "../../db/checkConnection";
 import { hasCompleteConfig } from "../../db/databaseConfig";
 import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
-import { readInstallationStatus } from '../install';
-import { markMigrationsCompleted } from "../install/install.repository";
+import { readInstallationStatus, markMigrationsCompleted } from '../install';
 import type { BootstrapStage } from "./bootstrap.types";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
