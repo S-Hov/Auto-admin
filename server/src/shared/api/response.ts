@@ -1,14 +1,16 @@
 import type { Response } from 'express';
 import type { ErrorCode } from './codes/error-codes';
 import type { TranslationParams } from './errors/ApiError';
+import type { ApiErrorResponse, ApiSuccessResponse } from './response.types';
 
 export const successResponse = (res: Response, status: number, message: string, data?: any) => {
-    return res.status(status).json({
+    const body: ApiSuccessResponse<any> = {
         success: true,
         message,
         status,
         data
-    });
+    };
+    return res.status(status).json(body);
 };
 
 export const errorResponse = <TDetails = unknown>(
@@ -18,10 +20,11 @@ export const errorResponse = <TDetails = unknown>(
     params?: TranslationParams,
     details?: TDetails
 ) => {
-    return res.status(status).json({
+    const body: ApiErrorResponse<TDetails> = {
         success: false,
         code,
         params,
         details
-    });
+    };
+    return res.status(status).json(body);
 };

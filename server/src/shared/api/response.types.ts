@@ -1,8 +1,8 @@
 import { ErrorCode } from "./codes/error-codes";
 import { TranslationParams } from "./errors/ApiError";
 
-export interface ApiResponse<TData = null> {
-    success: boolean;
+export interface ApiSuccessResponse<TData = null> {
+    success: true;
     message: string;
     status: number;
     data?: TData;
