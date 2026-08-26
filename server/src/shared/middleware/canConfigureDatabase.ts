@@ -9,7 +9,7 @@ export const canConfigureDatabase = async (_req: Request, _res: Response, next: 
     
         if (status === 'database_required') return next();
 
-        return next(conflict(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED));
+        return next(conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED));
     }
     catch (err) {
         next(err);

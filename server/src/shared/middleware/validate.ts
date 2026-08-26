@@ -14,7 +14,7 @@ export const validate = (schema: ZodType ) => (req: Request, _res: Response, nex
                 message: issue.message,
             }));
 
-            return next(badRequest(ERROR_CODES.COMMON_BAD_REQUEST, { details: errors }));
+            return next(badRequest(ERROR_CODES.COMMON_VALIDATION_FAILED, { details: errors }));
         }
 
         return next(error)
