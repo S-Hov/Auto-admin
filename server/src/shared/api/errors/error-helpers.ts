@@ -1,57 +1,39 @@
-import { ApiError } from './ApiError';
+import { ERROR_CODES, type ErrorCode } from '../codes/error-codes';
+import { ApiError, type TranslationParams } from './ApiError';
+
+interface HelperOptions<TDetails = unknown> {
+    params?: TranslationParams;
+    details?: TDetails;
+    internalMessage?: string;
+    cause?: unknown;
+}
 
 export const badRequest = (
-    message = 'Некорректный запрос',
-    data?: unknown,
-    code = 'COMMON.BAD_REQUEST'
-) => {
-    return new ApiError(message, 400, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_BAD_REQUEST,
+    options?: HelperOptions
+) => new ApiError({ status: 400, code, ...options });
 
 export const unauthorized = (
-    message = 'Не авторизован',
-    data?: unknown,
-    code = 'COMMON.UNAUTHORIZED'
-) => {
-    return new ApiError(message, 401, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_UNAUTHORIZED,
+    options?: HelperOptions
+) => new ApiError({ status: 401, code, ...options });
 
 export const forbidden = (
-    message = 'Доступ запрещён',
-    data?: unknown,
-    code = 'COMMON.FORBIDDEN'
-) => {
-    return new ApiError(message, 403, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_FORBIDDEN,
+    options?: HelperOptions
+) => new ApiError({ status: 403, code, ...options });
 
 export const notFound = (
-    message = 'Не найдено',
-    data?: unknown,
-    code = 'COMMON.NOT_FOUND'
-) => {
-    return new ApiError(message, 404, code, data);
-};
-
-export const internal = (
-    message = 'Внутренняя ошибка сервера',
-    data?: unknown,
-    code = 'COMMON.INTERNAL_ERROR'
-) => {
-    return new ApiError(message, 500, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_NOT_FOUND,
+    options?: HelperOptions
+) => new ApiError({ status: 404, code, ...options });
 
 export const conflict = (
-    message = 'Конфликт состояния',
-    data?: unknown,
-    code = 'COMMON.CONFLICT'
-) => {
-    return new ApiError(message, 409, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_CONFLICT,
+    options?: HelperOptions
+) => new ApiError({ status: 409, code, ...options });
 
 export const tooManyRequests = (
-    message = 'Слишком много запросов',
-    data?: unknown,
-    code = 'COMMON.TOO_MANY_REQUESTS'
-) => {
-    return new ApiError(message, 429, code, data);
-};
+    code: ErrorCode = ERROR_CODES.COMMON_TOO_MANY_REQUESTS,
+    options?: HelperOptions
+) => new ApiError({ status: 429, code, ...options });
