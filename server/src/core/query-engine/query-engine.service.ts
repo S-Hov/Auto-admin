@@ -1,4 +1,4 @@
-import { getPool, withTransaction } from "../../db";
+import { withTransaction } from "../../db";
 import { MySqlCompiler } from "./compiler/mysql.compiler";
 import type { DatabaseDriver, QueryResult } from "./drivers/driver.types";
 import { MySqlDriver } from "./drivers/mysql.driver";
