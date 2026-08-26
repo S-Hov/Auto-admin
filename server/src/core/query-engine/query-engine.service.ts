@@ -24,7 +24,6 @@ export class QueryEngineService {
             })
         }
         else {
-            this.driver = new MySqlDriver(getPool());
             const compiled = MySqlCompiler.compile(query);
             return await this.driver.execute<T>(compiled);
         }
