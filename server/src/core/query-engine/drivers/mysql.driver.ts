@@ -44,6 +44,10 @@ export class MySqlDriver implements DatabaseDriver {
     }
 
     async close(): Promise<void> {
-        await this.pool.end();
+        if ('release' in this.pool && typeof this.pool.release === 'function') {
+            this.pool.release();
+        } else if ('end' in this.pool && typeof this.pool.end === 'function') {
+            await this.pool.end();
+        }
     }
 }
