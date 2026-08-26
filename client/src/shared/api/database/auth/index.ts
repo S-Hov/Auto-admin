@@ -1,7 +1,8 @@
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
 import type { CreateAdminFormValues } from '../../../../features/create-admin/model/CreateAdmin.schema';
-import { apiClient, type UnifiedResponse } from '../../apiClient';
+import { apiClient } from '../../apiClient';
+import type { UnifiedResponse } from '../../types';
 import type { CreateAdmin } from './auth.types';
 
 export const auth = {

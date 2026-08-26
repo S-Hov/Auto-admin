@@ -1,4 +1,4 @@
-import { apiClient, type UnifiedResponse } from '../../apiClient';
+import { apiClient } from '../../apiClient';
 import {
     type ApplyNextMigrationRequest,
     type ApplyNextMigrationResponse,
@@ -8,6 +8,7 @@ import {
 } from './install.types';
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
+import type { UnifiedResponse } from '../../types';
 
 export const installDatabase = {
     checkTheConnection(data: DbConnectionPayload, token: string) {

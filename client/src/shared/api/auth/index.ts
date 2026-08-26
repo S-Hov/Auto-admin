@@ -1,4 +1,5 @@
-import { apiClient, type UnifiedResponse } from '../apiClient';
+import { apiClient } from '../apiClient';
+import type { UnifiedResponse } from '../types';
 import type { AuthUser, LoginRequest, LoginResponse, LogoutResponse } from './auth.types';
 
 export const auth = {
