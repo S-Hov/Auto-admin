@@ -1,16 +1,17 @@
+import { type DbExecutor, getPool } from "../../../db";
 import { CompiledQuery } from "../compiler/mysql.compiler";
 import type { DatabaseDriver, QueryResult } from "./driver.types";
-import type { PoolConnection, ResultSetHeader } from "mysql2/promise"
+import mysql from "mysql2/promise"
 
 export class MySqlDriver implements DatabaseDriver {
-    private pool: PoolConnection;
+    private pool: mysql.PoolConnection | mysql.Pool;
 
-    constructor(pool: PoolConnection) {
+    constructor(pool: DbExecutor = getPool()) {
         this.pool = pool;
     }
 
     async execute<T = unknown>(query: CompiledQuery): Promise<QueryResult<T>> {
-        const result = this.pool.query(query.sql, query.params);
+        const [result] = await this.pool.query(query.sql, query.params);
         let rows: T[] = [];
         let affectedRows = 0;
         let insertId: number | string | null = null;
@@ -21,8 +22,8 @@ export class MySqlDriver implements DatabaseDriver {
             insertId = null;
         } else {
             rows = []
-            affectedRows = (result as ResultSetHeader).affectedRows
-            insertId = (result as ResultSetHeader).insertId
+            affectedRows = (result as mysql.ResultSetHeader).affectedRows
+            insertId = (result as mysql.ResultSetHeader).insertId
         }
 
         return {
