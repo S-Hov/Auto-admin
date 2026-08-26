@@ -1,4 +1,16 @@
-import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UnifiedQuery, UpdateQuery, WhereClause } from "../types/query.types";
+import type {
+    ComparisonOperator,
+    CreateQuery,
+    DeleteQuery,
+    FieldCondition,
+    JoinClause,
+    LogicalOperators,
+    ReadQuery,
+    SortClause,
+    UnifiedQuery,
+    UpdateQuery,
+    WhereClause
+} from "../types/query.types";
 
 export type LogicalKey = keyof LogicalOperators;
 
