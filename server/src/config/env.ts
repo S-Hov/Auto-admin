@@ -13,7 +13,7 @@ export const envSchema = z.object({
     Auto_Admin__DB_USERNAME: z.string().optional(),
     Auto_Admin__DB_PASSWORD: z.string().optional(),
     Auto_Admin__INSTALL_TOKEN: z.string().min(32, { message: "Токен должен содержать не менее 32 символов" }),
-    Auto_admin__CORS_ALLOWED_ORIGINS: z.string().optional(),
+    Auto_Admin__CORS_ALLOWED_ORIGINS: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

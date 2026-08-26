@@ -227,7 +227,7 @@ Setup token — обязательный первый барьер, но укр�
 
 ### 5.1. Исправить env-контракт
 
-- Переименовать `Auto_admin__CORS_ALLOWED_ORIGINS` в `Auto_Admin__CORS_ALLOWED_ORIGINS` во всех местах.
+- Переименовать `Auto_Admin__CORS_ALLOWED_ORIGINS` в `Auto_Admin__CORS_ALLOWED_ORIGINS` во всех местах.
 - Валидировать PORT как целое число `1..65535`.
 - Не допускать пустой HOST.
 - Использовать `envConfig` для системных переменных последовательно, не смешивая его с прямым `process.env` без причины.

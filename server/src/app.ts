@@ -9,7 +9,7 @@ import { envConfig } from './config/env';
 
 const app = express();
 
-const defaultAllowedOrigins = envConfig.Auto_admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
+const defaultAllowedOrigins = envConfig.Auto_Admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
 const nodeEnv = process.env.Auto_Admin__NODE_ENV;
 
 if (nodeEnv === 'development') {
