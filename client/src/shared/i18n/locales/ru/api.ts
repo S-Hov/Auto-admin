@@ -8,6 +8,8 @@ export const ruApi = {
         TOO_MANY_REQUESTS: 'Слишком много запросов',
         VALIDATION_FAILED: 'Ошибка валидации',
         INTERNAL_ERROR: 'Внутренняя ошибка',
+        UNKNOWN_ERROR: 'Неизвестная ошибка',
+        NETWORK_ERROR: 'Ошибка сети'
     },
 
     AUTH: {

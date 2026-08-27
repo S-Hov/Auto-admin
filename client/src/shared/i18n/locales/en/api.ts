@@ -8,6 +8,8 @@ export const enApi = {
         TOO_MANY_REQUESTS: 'Too many requests',
         VALIDATION_FAILED: 'Validation failed',
         INTERNAL_ERROR: 'Internal server error',
+        UNKNOWN_ERROR: 'Unknown error',
+        NETWORK_ERROR: 'Network error',
     },
 
     AUTH: {
