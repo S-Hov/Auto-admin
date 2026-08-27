@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "i18next": "^26.4.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.80.0",
+    "react-i18next": "^17.0.12",
     "react-router-dom": "^7.18.0",
     "sonner": "^2.0.7",
     "zod": "^4.4.3"
