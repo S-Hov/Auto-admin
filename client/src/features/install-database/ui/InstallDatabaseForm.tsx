@@ -8,7 +8,6 @@ import { installDatabase } from '../../../shared/api/database/install';
 import CardForm from '../../../shared/form/CardForm/CardForm';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
 import { STORAGE_KEYS } from '../../../constants/storage';
-import type { ApiError } from '../../../shared/api/types';
 import { apiMessage } from '../../../shared/i18n/api-message';
 
 interface FieldConfig {
