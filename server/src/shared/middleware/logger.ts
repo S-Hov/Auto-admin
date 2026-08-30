@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'node:crypto';
 
 export const logger = (req: Request, res: Response, next: NextFunction): void => {
-    const requestId = req.requestId || randomUUID();
+    const requestId = req.get('x-request-id') || req.requestId || randomUUID();
     req.requestId = requestId;
     res.setHeader('x-request-id', requestId);
 
