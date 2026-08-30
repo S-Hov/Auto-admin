@@ -70,7 +70,13 @@ export const getLoginAttempts = async (username: string, ipAddress: string | nul
         ipAddress, username    // для WHERE
     ]);
 
-    return attempts[0];
+    const row = attempts[0];
+    return {
+        ...row,
+        userCount15m: Number(row?.userCount15m ?? 0),
+        ipCount1d: Number(row?.ipCount1d ?? 0),
+        ipUserCount15m: Number(row?.ipUserCount15m ?? 0),
+    };
 };
 
 export const createLoginAttempt = async (username: string, ipAddress: string | null): Promise<number> => {
