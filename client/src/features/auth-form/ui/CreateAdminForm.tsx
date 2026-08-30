@@ -6,8 +6,8 @@ import { Button } from '../../../shared/ui/Button/Button';
 import { toast } from 'sonner';
 import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.schema';
 import { auth } from '../../../shared/api/auth';
-import type { ApiError } from '../../../shared/api/apiClient';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
+import { apiMessage } from '../../../shared/i18n/api-message';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -42,7 +42,7 @@ const AuthForm = () => {
             await toast.promise(auth.login(data), {
                 loading: 'Выполняется запрос...',
                 success: (response) => response.message,
-                error: (error: ApiError) => error.message,
+                error: (err) => apiMessage(err),
 
             }).unwrap();
 

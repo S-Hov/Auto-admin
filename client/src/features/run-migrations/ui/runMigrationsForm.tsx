@@ -9,6 +9,7 @@ import './runMigrationsForm.css'
 import Loader from "../../../shared/ui/Loader/Loader";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 import type { MigrationStepResponse } from "../../../shared/api/database/install/install.types";
+import { apiMessage } from "../../../shared/i18n/api-message";
 
 const RunMigrationsForm = () => {
     const { handleSubmit, formState: { isSubmitting }, } = useForm();
@@ -102,7 +103,7 @@ const RunMigrationsForm = () => {
             setIsProcessing(false);
             setSteps([]);
             setExecutedSteps([]);
-            toast.error(error instanceof Error ? error.message : 'Произошла неизвестная ошибка');
+            toast.error(apiMessage(error));
         }
     };
 

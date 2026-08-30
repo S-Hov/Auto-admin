@@ -7,8 +7,8 @@ import { CreateAdminSchema, type CreateAdminFormValues } from '../model/CreateAd
 import { auth } from '../../../shared/api/database/auth';
 import { toast } from 'sonner';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
-import type { ApiError } from '../../../shared/api/apiClient';
 import { STORAGE_KEYS } from '../../../constants/storage';
+import { apiMessage } from '../../../shared/i18n/api-message';
 
 interface FieldConfig {
     name: keyof CreateAdminFormValues;
@@ -54,10 +54,7 @@ const CreateAdminForm = () => {
                     throw new Error('Сервер отклонил параметры подключения');
                 },
 
-                error: (err) => {
-                    const apiError = err as ApiError;
-                    return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
-                },
+                error: (err) => apiMessage(err),
             }).unwrap();
     
             await refreshBootstrap();

@@ -5,11 +5,11 @@ import { installDatabaseSchema, type InstallDatabaseFormValues } from '../model/
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
 import { Button } from '../../../shared/ui/Button/Button';
 import { installDatabase } from '../../../shared/api/database/install';
-import { type ApiError } from '../../../shared/api/apiClient';
-
 import CardForm from '../../../shared/form/CardForm/CardForm';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
 import { STORAGE_KEYS } from '../../../constants/storage';
+import type { ApiError } from '../../../shared/api/types';
+import { apiMessage } from '../../../shared/i18n/api-message';
 
 interface FieldConfig {
     name: keyof InstallDatabaseFormValues;
@@ -61,11 +61,7 @@ const InstallDatabaseForm = () => {
                     throw new Error('Сервер отклонил параметры подключения');
                 },
 
-                error: (err) => {
-                    const apiError = err as ApiError;
-                    return `Ошибка: ${apiError.message || err.message || 'Не удалось связаться с сервером'}`;
-                },
-
+                error: (err) => apiMessage(err),
             }).unwrap();
 
             await refreshBootstrap();
