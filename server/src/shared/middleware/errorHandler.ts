@@ -8,17 +8,15 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
         return errorResponse(res, error.status, error.code, error.params, error.details);
     }
 
-    if (error.status === 500) {
-        console.log({
-            timestamp: new Date().toISOString(),
-            level: 'ERROR',
-            requestID: req.requestId,
-            method: req.method,
-            url: req.url,
-            message: error.message || 'Непредвиденная ошибка',
-            stack: error.stack,
-        });
-    }
+    console.error({
+        timestamp: new Date().toISOString(),
+        level: 'ERROR',
+        requestId: req.requestId,
+        method: req.method,
+        url: req.url,
+        message: error?.message || 'Непредвиденная ошибка',
+        stack: error?.stack,
+    });
 
     return errorResponse(res, 500, ERROR_CODES.COMMON_INTERNAL_ERROR);
 };
