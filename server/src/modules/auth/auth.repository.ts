@@ -94,3 +94,12 @@ export const deleteLoginAttemptById = async (attemptId: number): Promise<void> =
         WHERE id = ?
     `, [attemptId]);
 };
+
+export const cleanOldLoginAttempts = async (days: number = 30): Promise<number> => {
+    const [result] = await getPool().query<ResultSetHeader>(`
+        DELETE FROM Auto_Admin__login_attempts
+        WHERE created_at < NOW() - INTERVAL ? DAY
+    `, [days]);
+
+    return result.affectedRows ?? 0;
+};
