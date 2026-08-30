@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__login_attempts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     INDEX idx_user_ip_time (username, ip_address, created_at),
-    INDEX idx_ip_time (ip_address, created_at)
+    INDEX idx_ip_time (ip_address, created_at),
+    INDEX idx_user_time (username, created_at)
 );
