@@ -2,10 +2,16 @@ import { withTransaction } from "../../db";
 import { MySqlCompiler } from "./compiler/mysql.compiler";
 import type { DatabaseDriver, QueryResult } from "./drivers/driver.types";
 import { MySqlDriver } from "./drivers/mysql.driver";
+import { PipelineExecutor } from "./pipeline/pipeline.executor";
+import type { PipelineDefinition, PipelineResult } from "./pipeline/pipeline.types";
 import type { UnifiedQuery } from "./types/query.types";
 
 export class QueryEngineService {
-    constructor(private driver: DatabaseDriver = new MySqlDriver()) { }
+    private executor: PipelineExecutor;
+
+    constructor(private driver: DatabaseDriver = new MySqlDriver()) {
+        this.executor = new PipelineExecutor(this.driver);
+    }
 
     async execute<T = unknown>(query: UnifiedQuery): Promise<QueryResult<T>>;
 
@@ -35,5 +41,9 @@ export class QueryEngineService {
 
     async close(): Promise<void> {
         return await this.driver.close();
+    }
+
+    async executePipeline<T = unknown>(definition: PipelineDefinition): Promise<PipelineResult<T>> {
+        return await this.executor.execute<T>(definition);
     }
 }
