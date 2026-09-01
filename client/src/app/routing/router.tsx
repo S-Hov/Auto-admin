@@ -1,17 +1,17 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
-import AdminLayout from './layouts/AdminLayout'
-import AuthLayout from './layouts/AuthLayout'
-import InstallLayout from './layouts/InstallLayout'
-import { AppGate } from './guards/AppGate'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import AdminLayout from './layouts/AdminLayout';
+import AuthLayout from './layouts/AuthLayout';
+import InstallLayout from './layouts/InstallLayout';
+import { AppGate } from './guards/AppGate';
 
 // Ленивая загрузка страниц для оптимизации сборки
-const InstallPage = lazy(() => import('../../pages/install/installPage'))
-const HomePage = lazy(() => import('../../pages/home/homePage'))
-const NotFoundPage = lazy(() => import('../../pages/notFound/notFoundPage'))
-const CreateAdminPage = lazy(() => import('../../pages/createAdmin/createAdminPage'))
-const LoginPage = lazy(() => import('../../pages/login/loginPage'))
-const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'))
+const InstallPage = lazy(() => import('../../pages/install/installPage'));
+const HomePage = lazy(() => import('../../pages/home/homePage'));
+const NotFoundPage = lazy(() => import('../../pages/notFound/notFoundPage'));
+const CreateAdminPage = lazy(() => import('../../pages/createAdmin/createAdminPage'));
+const LoginPage = lazy(() => import('../../pages/login/loginPage'));
+const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'));
 
 // Вспомогательный компонент для отображения загрузки (Spinner/Skeleton)
 const PageLoader = (component: React.ReactNode) => (

@@ -1,41 +1,41 @@
-import { ApiClientError } from "./ApiClientError"
-import type { ApiErrorPayload } from "./types"
+import { ApiClientError } from "./ApiClientError";
+import type { ApiErrorPayload } from "./types";
 
 export const getBaseUrl = (): string => {
-    const viteApiUrl: string | undefined = import.meta.env.VITE_API_URL
+    const viteApiUrl: string | undefined = import.meta.env.VITE_API_URL;
     if (viteApiUrl) {
-        return viteApiUrl
+        return viteApiUrl;
     }
 
     if (typeof window !== 'undefined' && window.location.hostname) {
-        return `http://${window.location.hostname}:5180`
+        return `http://${window.location.hostname}:5180`;
     }
 
-    return 'http://127.0.0.1:5180'
+    return 'http://127.0.0.1:5180';
 }
 
 export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
-    const headers = new Headers(options?.headers as HeadersInit)
-    const isFormDataBody: boolean = typeof FormData !== 'undefined' && options?.body instanceof FormData
+    const headers = new Headers(options?.headers as HeadersInit);
+    const isFormDataBody: boolean = typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
     if (!isFormDataBody && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json')
+        headers.set('Content-Type', 'application/json');
     }
 
     const response = await fetch(getBaseUrl() + '/api' + url, {
         credentials: 'include',
         ...options,
         headers
-    })
+    });
 
-    const text = await response.text()
+    const text = await response.text();
 
-    let data: unknown
+    let data: unknown;
 
     try {
-        data = JSON.parse(text)
+        data = JSON.parse(text);
     } catch {
-        data = text
+        data = text;
     }
 
     // const isUnifiedApiResponse: boolean =
