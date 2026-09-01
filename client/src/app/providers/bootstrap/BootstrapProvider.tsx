@@ -6,25 +6,21 @@ interface BootstrapProviderProps {
     children: ReactNode;
 }
 
-export const BootstrapProvider = ({ children }: BootstrapProviderProps ) => {
+export const BootstrapProvider = ({ children }: BootstrapProviderProps) => {
     const [state, setState] = useState<BootstrapState>({
         status: 'checking',
         stage: null
     });
 
     const refreshBootstrap = useCallback(async (): Promise<void> => {
-        setState({ status: 'checking', stage: null });
-
+        setState((prev) => (prev.status === 'checking' ? prev : { status: 'checking', stage: null }));
         try {
             const response = await bootstrap.getStatus();
-            
             if (!response.data) {
                 throw new Error('Сервер не вернул данные о статусе bootstrap');
             }
-
             setState({ status: 'resolved', stage: response.data.stage });
-        }
-        catch {
+        } catch {
             setState({ status: 'error', stage: null });
         }
     }, []);
