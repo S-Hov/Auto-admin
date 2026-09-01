@@ -13,17 +13,18 @@ import type {
 import { ok } from '../../shared/api/success';
 import type { DbConnectionData } from '../../db/checkConnection';
 import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema';
+import { SUCCESS_CODES } from '../../shared/api/codes/success-codes';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
     const data = await checkConnectionService({ host, port, database, user, password });
 
-    return ok<DbCheckResponse>(res, 'Соединение с базой данных установлено. Файл конфигурации создан', data);
+    return ok<DbCheckResponse>(res, SUCCESS_CODES.INSTALL_DATABASE_CONNECTED, data);
 })
 
 export const getMigrationPlanController = asyncHandler(async (_req: Request, res: Response) => {
     const data = await getMigrationPlanService();
-    return ok<MigrationPlanResponse>(res, 'План миграции получен', data);
+    return ok<MigrationPlanResponse>(res, SUCCESS_CODES.INSTALL_MIGRATION_PLAN_RECEIVED, data);
 })
 
 export const applyNextMigrationController = asyncHandler(async (req: Request, res: Response) => {
@@ -35,7 +36,7 @@ export const applyNextMigrationController = asyncHandler(async (req: Request, re
 
     return ok<ApplyNextMigrationResponse>(
         res,
-        "Миграция выполнена",
+        SUCCESS_CODES.INSTALL_MIGRATION_APPLIED,
         result
     );
 })
