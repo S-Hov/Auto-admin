@@ -41,7 +41,7 @@ const AuthForm = () => {
         try {
             await toast.promise(auth.login(data), {
                 loading: 'Выполняется запрос...',
-                success: (response) => response.message,
+                success: (response) => apiMessage(response),
                 error: (err) => apiMessage(err),
 
             }).unwrap();

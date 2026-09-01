@@ -49,7 +49,7 @@ const CreateAdminForm = () => {
                 success: (response) => {
                     if (response.success) {
                         sessionStorage.removeItem(STORAGE_KEYS.INSTALL_TOKEN);
-                        return `${response.message}`;
+                        return apiMessage(response);
                     }
                     throw new Error('Сервер отклонил параметры подключения');
                 },

@@ -59,7 +59,7 @@ const RunMigrationsForm = () => {
                 throw new Error('Некорректный ответ от сервера');
             }
         } else {
-            throw new Error(response.message || 'Ошибка при выполнении миграции');
+            throw new Error(apiMessage(response) || 'Ошибка при выполнении миграции');
         }
 
     };
@@ -70,7 +70,7 @@ const RunMigrationsForm = () => {
                 const response = await installDatabase.getMigrationPlan();
 
                 if (!response.success) {
-                    throw new Error(response.message || 'Ошибка при получении шагов миграции');
+                    throw new Error(apiMessage(response) || 'Ошибка при получении шагов миграции');
                 }
                 if (!response.data) {
                     throw new Error('Нет данных о шагах миграции');

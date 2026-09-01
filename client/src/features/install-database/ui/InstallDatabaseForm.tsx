@@ -55,7 +55,7 @@ const InstallDatabaseForm = () => {
 
                     if (response.success) {
                         sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, install_token);
-                        return `${response.message}`;
+                        return apiMessage(response);
                     }
                     throw new Error('Сервер отклонил параметры подключения');
                 },
