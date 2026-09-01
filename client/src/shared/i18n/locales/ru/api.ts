@@ -9,13 +9,22 @@ export const ruApi = {
         VALIDATION_FAILED: 'Ошибка валидации',
         INTERNAL_ERROR: 'Внутренняя ошибка',
         UNKNOWN_ERROR: 'Неизвестная ошибка',
-        NETWORK_ERROR: 'Ошибка сети'
+        NETWORK_ERROR: 'Ошибка сети',
+
+        OK: 'Запрос успешен',
+        CREATED: 'Объект успешно создан',
+        ACCEPTED: 'Запрос принят',
+        NO_CONTENT: 'Нет данных',
     },
 
     AUTH: {
         INVALID_CREDENTIALS: 'Неверные учетные данные',
         SESSION_INVALID: 'Неверная сессия',
         TOO_MANY_ATTEMPTS: 'Слишком много попыток',
+
+        LOGIN_SUCCEEDED: 'Логин успешен',
+        LOGOUT_SUCCEEDED: 'Логаут успешен',
+        CURRENT_USER_RECEIVED: 'Текущий пользователь получен',
     },
 
     INSTALL: {
@@ -27,5 +36,14 @@ export const ruApi = {
         MIGRATION_VERSION_CONFLICT: 'Конфликт версий миграций',
         ADMIN_ALREADY_CREATED: 'Администратор уже создан',
         ADMIN_ROLE_NOT_FOUND: 'Роль администратора не найдена',
+    
+        DATABASE_CONNECTED: 'Подключение к БД успешно',
+        MIGRATION_PLAN_RECEIVED: 'План миграции получен',
+        MIGRATION_APPLIED: 'Миграция применена',
+        ADMIN_CREATED: 'Администратор успешно создан',
+    },
+
+    BOOTSTRAP: {
+        STATUS_RECEIVED: 'Статус загрузки получен',
     }
 } as const;
