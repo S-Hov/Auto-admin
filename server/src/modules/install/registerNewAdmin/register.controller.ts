@@ -3,6 +3,7 @@ import { created } from "../../../shared/api/success";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { registerService } from "./register.service";
 import { RequestMeta } from "./register.types";
+import { SUCCESS_CODES } from "../../../shared/api/codes/success-codes";
 
 const getRequestMeta = (req: Request) => ({
     ipAddress: req.ip || req.socket?.remoteAddress || null,
@@ -21,5 +22,5 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 
     const data = await registerService({userName, password, confirmPassword}, requestMeta)
 
-    return created(res, 'Администратор создан, перенаправляем вас на страницу входа', data);
+    return created(res, SUCCESS_CODES.INSTALL_ADMIN_CREATED, data);
 })
