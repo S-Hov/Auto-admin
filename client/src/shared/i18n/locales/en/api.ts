@@ -10,12 +10,21 @@ export const enApi = {
         INTERNAL_ERROR: 'Internal server error',
         UNKNOWN_ERROR: 'Unknown error',
         NETWORK_ERROR: 'Network error',
+
+        OK: 'OK',
+        CREATED: 'Created',
+        ACCEPTED: 'Accepted',
+        NO_CONTENT: 'No content',
     },
 
     AUTH: {
         INVALID_CREDENTIALS: 'Invalid credentials',
         SESSION_INVALID: 'Invalid session',
         TOO_MANY_ATTEMPTS: 'Too many attempts',
+
+        LOGIN_SUCCEEDED: 'Login succeeded',
+        LOGOUT_SUCCEEDED: 'Logout succeeded',
+        CURRENT_USER_RECEIVED: 'Current user received',
     },
 
     INSTALL: {
@@ -27,5 +36,14 @@ export const enApi = {
         MIGRATION_VERSION_CONFLICT: 'Migration version conflict',
         ADMIN_ALREADY_CREATED: 'Admin already created',
         ADMIN_ROLE_NOT_FOUND: 'Admin role not found',
+
+        DATABASE_CONNECTED: 'Database connected',
+        MIGRATION_PLAN_RECEIVED: 'Migration plan received',
+        MIGRATION_APPLIED: 'Migration step applied',
+        ADMIN_CREATED: 'Admin created',
+    },
+
+    BOOTSTRAP: {
+        STATUS_RECEIVED: 'Status received',
     }
 } as const;
