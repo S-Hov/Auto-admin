@@ -6,6 +6,7 @@ export const SUCCESS_CODES = {
 
     AUTH_LOGIN_SUCCEEDED: 'AUTH.LOGIN_SUCCEEDED', // Авторизация успешна
     AUTH_LOGOUT_SUCCEEDED: 'AUTH.LOGOUT_SUCCEEDED', // Выход успешен
+    AUTH_CURRENT_USER_RECEIVED: 'AUTH.CURRENT_USER_RECEIVED', // Информация об авторизованном пользователе успешно получена
 
     INSTALL_DATABASE_CONNECTED: 'INSTALL.DATABASE_CONNECTED', // Подключение к БД успешно
     INSTALL_MIGRATION_PLAN_RECEIVED: 'INSTALL.MIGRATION_PLAN_RECEIVED', // План миграции получен

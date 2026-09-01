@@ -5,6 +5,7 @@ import { loginService, logoutService } from "./auth.service";
 import type { GetMeServiceResult, LoginData, LoginResponse, LoginServiceResult, LogoutResponse } from './auth.types'
 import { ok } from "../../shared/api/success";
 import { COOKIE_NAMES } from "../../constants/cookies";
+import { SUCCESS_CODES } from "../../shared/api/codes/success-codes";
 
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
     const meta = getRequestMeta(req);
@@ -24,11 +25,11 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
         expires: data.expiresAt,
     });
 
-    return ok<LoginResponse>(res, 'Выполнен успешный вход в систему', { redirectedTo: data.redirectedTo });
+    return ok<LoginResponse>(res, SUCCESS_CODES.AUTH_LOGIN_SUCCEEDED, { redirectedTo: data.redirectedTo });
 })
 
 export const getMeController = asyncHandler(async (req: Request, res: Response) => {
-    return ok<GetMeServiceResult>(res, 'Успешно', req.auth);
+    return ok<GetMeServiceResult>(res, SUCCESS_CODES.AUTH_CURRENT_USER_RECEIVED, req.auth);
 })
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
@@ -40,5 +41,5 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
         sameSite: 'lax',
         path: '/',
     });
-    return ok<LogoutResponse>(res, 'Вы успешно вышли из системы', data);
+    return ok<LogoutResponse>(res, SUCCESS_CODES.AUTH_LOGOUT_SUCCEEDED, data);
 })
