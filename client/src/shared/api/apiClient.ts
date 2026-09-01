@@ -38,20 +38,6 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
         data = text;
     }
 
-    // const isUnifiedApiResponse: boolean =
-    //     data &&
-    //     typeof data === 'object' &&
-    //     Object.prototype.hasOwnProperty.call(data, 'success') &&
-    //     Object.prototype.hasOwnProperty.call(data, 'message')
-
-    // if (isUnifiedApiResponse) {
-    //     if (!response.ok || data.success === false) {
-    //         throw new ApiClientError(data, response.status)
-    //     }
-
-    //     return data as T
-    // }
-
     const errorObj = (typeof data === 'object' && data !== null) ? (data as Record<string, unknown>) : null;
     const isFailed = !response.ok || (errorObj && errorObj.success === false);
 
@@ -67,21 +53,3 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 
     return data as T;
 }
-
-// function extractMessage(payload: any, fallbackMessage: string): string {
-//     if (typeof payload === 'string' && payload.trim().length > 0) {
-//         return payload
-//     }
-
-//     if (payload && typeof payload === 'object') {
-//         if (typeof payload.message === 'string' && payload.message.trim().length > 0) {
-//             return payload.message
-//         }
-
-//         if (typeof payload.error === 'string' && payload.error.trim().length > 0) {
-//             return payload.error
-//         }
-//     }
-
-//     return fallbackMessage
-// }

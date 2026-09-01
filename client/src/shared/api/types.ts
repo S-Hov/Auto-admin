@@ -7,8 +7,10 @@ export interface ApiErrorPayload {
     details?: unknown;
 }
 
-export interface UnifiedResponse<D = unknown> {
-    success: true;
-    message?: string;
-    data?: D;
+export interface UnifiedResponse<TData = unknown> {
+    success: boolean;
+    code: string;
+    data?: TData;
+    params?: TranslationParams;
+    details?: unknown;
 }
