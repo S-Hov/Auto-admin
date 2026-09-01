@@ -24,7 +24,7 @@ export const BootstrapProvider = ({ children }: BootstrapProviderProps ) => {
 
             setState({ status: 'resolved', stage: response.data.stage });
         }
-        catch (error: unknown) {
+        catch {
             setState({ status: 'error', stage: null });
         }
     }, []);
