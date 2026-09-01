@@ -1,21 +1,20 @@
-import { StrictMode } from 'react'
+import { StrictMode } from 'react';
 import './shared/i18n';
-import { createRoot } from 'react-dom/client'
-import { RouterProvider } from 'react-router-dom'
-import { Toaster } from 'sonner'
-import { router } from './app/routing/router'
+import { createRoot } from 'react-dom/client';
+import { Toaster } from 'sonner';
+import { AppRouter } from './app/routing/router';
 
-import './index.css'
-import './app/styles/global.css'
-import './app/styles/variables.css'
-import { AuthProvider } from './app/providers/auth/AuthProvider'
-import { BootstrapProvider } from './app/providers/bootstrap/BootstrapProvider'
+import './index.css';
+import './app/styles/global.css';
+import './app/styles/variables.css';
+import { AuthProvider } from './app/providers/auth/AuthProvider';
+import { BootstrapProvider } from './app/providers/bootstrap/BootstrapProvider';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BootstrapProvider>
       <AuthProvider>
-        <RouterProvider router={router} />
+        <AppRouter />
       </AuthProvider>
     </BootstrapProvider>
     <Toaster

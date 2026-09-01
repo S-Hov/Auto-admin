@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
@@ -20,7 +20,7 @@ const PageLoader = (component: React.ReactNode) => (
   </Suspense>
 )
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     element: <AppGate />, // Проверка статуса bootstrap перед рендерингом маршрутов
     errorElement: PageLoader(<NotFoundPage />), // Глобальная обработка ошибок
@@ -69,3 +69,7 @@ export const router = createBrowserRouter([
     ]
   }
 ])
+
+export function AppRouter() {
+    return <RouterProvider router={router} />;
+}
