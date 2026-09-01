@@ -1,10 +1,10 @@
 import { ErrorCode } from "./codes/error-codes";
+import { SuccessCode } from "./codes/success-codes";
 import { TranslationParams } from "./errors/ApiError";
 
 export interface ApiSuccessResponse<TData = null> {
     success: true;
-    message: string;
-    status: number;
+    code: SuccessCode;
     data?: TData;
 }
 

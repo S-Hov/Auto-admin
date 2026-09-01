@@ -2,12 +2,12 @@ import type { Response } from 'express';
 import type { ErrorCode } from './codes/error-codes';
 import type { TranslationParams } from './errors/ApiError';
 import type { ApiErrorResponse, ApiSuccessResponse } from './response.types';
+import { SuccessCode } from './codes/success-codes';
 
-export const successResponse = (res: Response, status: number, message: string, data?: any) => {
-    const body: ApiSuccessResponse<any> = {
+export const successResponse = <TData = unknown>(res: Response, status: number, code: SuccessCode, data?: TData) => {
+    const body: ApiSuccessResponse<TData> = {
         success: true,
-        message,
-        status,
+        code,
         data
     };
     return res.status(status).json(body);
