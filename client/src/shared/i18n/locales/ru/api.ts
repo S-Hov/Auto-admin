@@ -23,8 +23,8 @@ export const ruApi = {
         TOO_MANY_ATTEMPTS: 'Слишком много попыток',
 
         LOGIN_SUCCEEDED: 'Логин успешен',
-        LOGOUT_SUCCEEDED: 'Логаут успешен',
-        CURRENT_USER_RECEIVED: 'Текущий пользователь получен',
+        LOGOUT_SUCCEEDED: 'Выход успешен',
+        CURRENT_USER_RECEIVED: 'Информация об авторизованном пользователе успешно получена',
     },
 
     INSTALL: {

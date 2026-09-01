@@ -24,7 +24,7 @@ export const enApi = {
 
         LOGIN_SUCCEEDED: 'Login succeeded',
         LOGOUT_SUCCEEDED: 'Logout succeeded',
-        CURRENT_USER_RECEIVED: 'Current user received',
+        CURRENT_USER_RECEIVED: 'Current user information received',
     },
 
     INSTALL: {
