@@ -43,10 +43,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     useEffect(() => {
-        if (state.status === 'resolved' && state.stage === 'ready') {
-            void refreshAuth();
+        if (state.status !== 'resolved' || state.stage !== 'ready') {
+            return;
         }
-    }, [refreshAuth, state.status, state.stage]);
+
+        let ignore = false;
+
+        auth.getMe()
+            .then((response) => {
+                if (!ignore && response.data) {
+                    setUser(response.data);
+                    setStatus('authenticated');
+                }
+            })
+            .catch((error: unknown) => {
+                if (!ignore) {
+                    setUser(null);
+                    if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
+                        setStatus('unauthenticated');
+                    } else {
+                        setStatus('error');
+                    }
+                }
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, [state.status, state.stage]);
 
     return (
         <AuthContext.Provider value={{ user, status, refreshAuth, logout }}>
