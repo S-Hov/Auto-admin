@@ -44,12 +44,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     useEffect(() => {
-        if (state.status !== 'resolved' || state.stage !== 'ready') {
-            setStatus('checking');
-            setUser(null);
-            return;
+        if (state.status === 'resolved' && state.stage === 'ready') {
+            void refreshAuth();
         }
-        void refreshAuth();
     }, [refreshAuth, state.status, state.stage]);
 
     return (
