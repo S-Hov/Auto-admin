@@ -25,12 +25,28 @@ export const BootstrapProvider = ({ children }: BootstrapProviderProps) => {
     }, []);
 
     useEffect(() => {
-        void refreshBootstrap();
-    }, [refreshBootstrap]);
+        let ignore = false;
+
+        bootstrap.getStatus()
+            .then((response) => {
+                if (!ignore && response.data) {
+                    setState({ status: 'resolved', stage: response.data.stage });
+                }
+            })
+            .catch(() => {
+                if (!ignore) {
+                    setState({ status: 'error', stage: null });
+                }
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     return (
         <BootstrapContext.Provider value={{ state, refreshBootstrap }}>
             {children}
         </BootstrapContext.Provider>
-    )
-}
+    );
+};
