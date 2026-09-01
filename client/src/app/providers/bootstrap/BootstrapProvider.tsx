@@ -13,7 +13,6 @@ export const BootstrapProvider = ({ children }: BootstrapProviderProps) => {
     });
 
     const refreshBootstrap = useCallback(async (): Promise<void> => {
-        setState((prev) => (prev.status === 'checking' ? prev : { status: 'checking', stage: null }));
         try {
             const response = await bootstrap.getStatus();
             if (!response.data) {

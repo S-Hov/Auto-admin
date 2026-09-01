@@ -14,8 +14,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const { state } = useBootstrap();
 
     const refreshAuth = useCallback(async () => {
-        setStatus('checking');
-        setUser(null);
         try {
             const response = await auth.getMe();
 
@@ -26,6 +24,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(response.data);
             setStatus('authenticated');
         } catch (error: unknown) {
+            setUser(null);
             if (error && typeof error === 'object' && 'status' in error) {
                 const statusCode = error.status;
                 if (statusCode === 401) setStatus('unauthenticated');
