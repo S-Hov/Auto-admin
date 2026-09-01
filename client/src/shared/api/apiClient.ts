@@ -30,7 +30,7 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 
     const text = await response.text()
 
-    let data: any
+    let data: unknown
 
     try {
         data = JSON.parse(text)
@@ -52,14 +52,16 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
     //     return data as T
     // }
 
-    if (!response.ok || (data && data.success === false)) {
+    const errorObj = (typeof data === 'object' && data !== null) ? (data as Record<string, unknown>) : null;
+    const isFailed = !response.ok || (errorObj && errorObj.success === false);
+
+    if (isFailed) {
         const errorPayload: ApiErrorPayload = {
             success: false,
-            code: data?.code || 'COMMON.UNKNOWN_ERROR',
-            params: data?.params,
-            details: data?.details
+            code: typeof errorObj?.code === 'string' ? errorObj.code : 'COMMON.UNKNOWN_ERROR',
+            params: errorObj?.params as ApiErrorPayload['params'],
+            details: errorObj?.details
         };
-
         throw new ApiClientError(errorPayload, response.status);
     }
 
