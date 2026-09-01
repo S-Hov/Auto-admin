@@ -3,7 +3,7 @@ import { useAuth } from '../../providers/auth/AuthContext';
 import { Button } from '../../../shared/ui/Button/Button';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { ApiError } from '../../../shared/api/apiClient';
+import { apiMessage } from '../../../shared/i18n/api-message';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -23,7 +23,7 @@ export default function AdminLayout() {
       await toast.promise(logout(), {
         loading: 'Выполняется выход...',
         success: 'Вы успешно вышли из системы',
-        error: (error: ApiError) => error.message,
+        error: (err) => apiMessage(err),
       }).unwrap();
     } catch {
       // Ошибка уже показана через toast
