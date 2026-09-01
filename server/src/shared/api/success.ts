@@ -7,7 +7,7 @@ export const ok = <TData>(
     code: SuccessCode = SUCCESS_CODES.COMMON_OK,
     data?: TData
 ) => {
-    return successResponse(res, 200, code, data);
+    return successResponse<TData>(res, 200, code, data);
 };
 
 export const created = <TData>(
@@ -15,7 +15,7 @@ export const created = <TData>(
     code: SuccessCode = SUCCESS_CODES.COMMON_CREATED,
     data?: TData
 ) => {
-    return successResponse(res, 201, code, data);
+    return successResponse<TData>(res, 201, code, data);
 };
 
 export const noContent = (
