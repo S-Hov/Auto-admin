@@ -32,3 +32,25 @@ export interface DbConnectionPayload {
     user: string;
     password: string;
 }
+
+export interface RetryMigrationRequest {
+    expectedVersion: string;
+    checksum: string;
+}
+
+export interface RetryMigrationResponse {
+    applied: MigrationStepResponse | null;
+    nextVersion: string | null;
+    isComplete: boolean;
+}
+
+export interface MarkMigrationAppliedRequest {
+    expectedVersion: string;
+    checksum: string;
+}
+
+export interface MarkMigrationAppliedResponse {
+    applied: MigrationStepResponse | null;
+    nextVersion: string | null;
+    isComplete: boolean;
+}
