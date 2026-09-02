@@ -54,3 +54,10 @@ export interface MarkMigrationAppliedResponse {
     nextVersion: string | null;
     isComplete: boolean;
 }
+
+export interface RecoveryMigrationResponse {
+    version: string;
+    name: string;
+    checksum: string;
+    status: 'running' | 'failed' | 'applied';
+}

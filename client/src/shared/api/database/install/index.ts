@@ -7,6 +7,7 @@ import type {
     MarkMigrationAppliedRequest,
     MarkMigrationAppliedResponse,
     MigrationPlanResponse,
+    RecoveryMigrationResponse,
     RetryMigrationRequest,
     RetryMigrationResponse,
 } from './install.types';
@@ -62,5 +63,14 @@ export const installDatabase = {
                 [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
             }
         })
-    }
+    },
+
+    getRecoveryInfo() {
+        return apiClient<UnifiedResponse<RecoveryMigrationResponse>>('/install/migrations/recovery', {
+            method: 'GET',
+            headers: {
+                [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
+            }
+        });
+    },
 }
