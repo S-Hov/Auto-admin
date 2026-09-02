@@ -8,6 +8,7 @@ import { AuthFormSchema, type AuthSchemaFormValues } from '../model/AuthForm.sch
 import { auth } from '../../../shared/api/auth';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
 import { apiMessage } from '../../../shared/i18n/api-message';
+import { applyFieldErrors } from '../../../shared/api/apply-field-errors';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -27,6 +28,7 @@ const AuthForm = () => {
     const {
         control,
         handleSubmit,
+        setError,
         formState: { isSubmitting }
     } = useForm<AuthSchemaFormValues>({
         mode: 'onChange',
@@ -42,7 +44,10 @@ const AuthForm = () => {
             await toast.promise(auth.login(data), {
                 loading: 'Выполняется запрос...',
                 success: (response) => apiMessage(response),
-                error: (err) => apiMessage(err),
+                error: (err) => {
+                    applyFieldErrors(err, setError, ['userName', 'password']);
+                    return apiMessage(err);
+                },
 
             }).unwrap();
 

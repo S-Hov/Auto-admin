@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';
 import { STORAGE_KEYS } from '../../../constants/storage';
 import { apiMessage } from '../../../shared/i18n/api-message';
+import { applyFieldErrors } from '../../../shared/api/apply-field-errors';
 
 interface FieldConfig {
     name: keyof CreateAdminFormValues;
@@ -27,6 +28,7 @@ const CreateAdminForm = () => {
     const {
         control,
         handleSubmit,
+        setError,
         formState: { isSubmitting }
     } = useForm<CreateAdminFormValues>({
         mode: 'onChange',
@@ -37,15 +39,15 @@ const CreateAdminForm = () => {
             confirmPassword: '',
         }
     });
-    const {refreshBootstrap} = useBootstrap();
+    const { refreshBootstrap } = useBootstrap();
 
     const onSubmit = async (data: CreateAdminFormValues) => {
         try {
             const createAdminPromise = auth.register(data)
-    
+
             await toast.promise(createAdminPromise, {
                 loading: 'Создаём администратора...',
-    
+
                 success: (response) => {
                     if (response.success) {
                         sessionStorage.removeItem(STORAGE_KEYS.INSTALL_TOKEN);
@@ -54,9 +56,12 @@ const CreateAdminForm = () => {
                     throw new Error('Сервер отклонил параметры подключения');
                 },
 
-                error: (err) => apiMessage(err),
+                error: (err) => {
+                    applyFieldErrors(err, setError, ['userName', 'password', 'confirmPassword']);
+                    return apiMessage(err);
+                },
             }).unwrap();
-    
+
             await refreshBootstrap();
         }
         catch {
@@ -82,11 +87,11 @@ const CreateAdminForm = () => {
                     />
                 ))
             }
-            <Button 
-                type="submit" 
-                variant='primary' 
-                className="check-button w-100__percent" 
-                disabled={isSubmitting} 
+            <Button
+                type="submit"
+                variant='primary'
+                className="check-button w-100__percent"
+                disabled={isSubmitting}
                 isLoading={isSubmitting}
             >
                 Создать администратора

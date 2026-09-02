@@ -1,4 +1,4 @@
-import AuthForm from "../../features/auth-form/ui/CreateAdminForm";
+import AuthForm from "../../features/auth-form/ui/AuthForm";
 
 const LoginPage = () => {
     return (

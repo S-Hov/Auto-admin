@@ -739,7 +739,7 @@ server/src/modules/auth/auth.service.ts
 Изменить:
 
 ```text
-client/src/features/auth-form/ui/CreateAdminForm.tsx
+client/src/features/auth-form/ui/AuthForm.tsx
 ```
 
 Файл назван неудачно: это login form, поэтому отдельным рефакторингом его стоит переименовать в `LoginForm.tsx`, но не смешивай переименование с изменением API-контракта.

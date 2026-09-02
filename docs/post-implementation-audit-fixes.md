@@ -252,7 +252,7 @@ client/src/shared/i18n/locales/en/api.ts
 Сейчас `response.message` используется в:
 
 ```text
-client/src/features/auth-form/ui/CreateAdminForm.tsx
+client/src/features/auth-form/ui/AuthForm.tsx
 client/src/features/create-admin/ui/CreateAdminForm.tsx
 client/src/features/install-database/ui/InstallDatabaseForm.tsx
 client/src/features/run-migrations/ui/runMigrationsForm.tsx
