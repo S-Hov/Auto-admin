@@ -45,5 +45,16 @@ export const enApi = {
 
     BOOTSTRAP: {
         STATUS_RECEIVED: 'Status received',
-    }
+    },
+
+    VALIDATION: {
+        REQUIRED: 'This field is required',
+        INVALID_TYPE: 'Invalid type',
+        STRING_TOO_SHORT: 'String is too short',
+        STRING_TOO_LONG: 'String is too long',
+        NUMBER_TOO_SMALL: 'Number is too small',
+        NUMBER_TOO_LARGE: 'Number is too large',
+        PASSWORDS_DO_NOT_MATCH: 'Passwords do not match',
+        INVALID_VALUE: 'Invalid value',
+    },
 } as const;

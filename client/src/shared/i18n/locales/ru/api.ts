@@ -36,7 +36,7 @@ export const ruApi = {
         MIGRATION_VERSION_CONFLICT: 'Конфликт версий миграций',
         ADMIN_ALREADY_CREATED: 'Администратор уже создан',
         ADMIN_ROLE_NOT_FOUND: 'Роль администратора не найдена',
-    
+
         DATABASE_CONNECTED: 'Подключение к БД успешно',
         MIGRATION_PLAN_RECEIVED: 'План миграции получен',
         MIGRATION_APPLIED: 'Миграция применена',
@@ -45,5 +45,16 @@ export const ruApi = {
 
     BOOTSTRAP: {
         STATUS_RECEIVED: 'Статус загрузки получен',
-    }
+    },
+
+    VALIDATION: {
+        REQUIRED: 'Это поле обязательное',
+        INVALID_TYPE: 'Неверный тип',
+        STRING_TOO_SHORT: 'Слишком короткая строка',
+        STRING_TOO_LONG: 'Слишком длинная строка',
+        NUMBER_TOO_SMALL: 'Слишком маленькое число',
+        NUMBER_TOO_LARGE: 'Слишком большое число',
+        PASSWORDS_DO_NOT_MATCH: 'Пароли не совпадают',
+        INVALID_VALUE: 'Неверное значение',
+    },
 } as const;
