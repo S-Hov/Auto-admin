@@ -19,8 +19,14 @@ import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 
 const envPath = path.join(process.cwd(), '.env');
+let isConfiguringDb = false;
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
+    if (isConfiguringDb) {
+        throw conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED);
+    }
+    isConfiguringDb = true;
+
     let versionInfo: { version?: string };
 
     try {
@@ -28,7 +34,7 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
     } catch (error) {
         throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
     }
-    
+
     const databaseEnv = {
         Auto_Admin__DB_HOST: data.host,
         Auto_Admin__DB_PORT: String(data.port),
@@ -54,14 +60,25 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
         .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
         .join('\n') + '\n';
 
-    const temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
+    let temporaryPath: string | null = null;
 
-    await fs.writeFile(temporaryPath, updatedContent, {
-        encoding: 'utf8',
-        mode: 0o600,
-    });
+    try {
+        temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
 
-    await fs.rename(temporaryPath, envPath);
+        await fs.writeFile(temporaryPath, updatedContent, {
+            encoding: 'utf8',
+            mode: 0o600,
+        });
+
+        await fs.rename(temporaryPath, envPath);
+        temporaryPath = null;
+    }
+    finally {
+        isConfiguringDb = false;
+        if (temporaryPath) {
+            await fs.unlink(temporaryPath).catch(() => { });
+        }
+    }
 
     Object.assign(process.env, databaseEnv);
 
