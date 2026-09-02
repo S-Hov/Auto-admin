@@ -12,6 +12,7 @@ const NotFoundPage = lazy(() => import('../../pages/notFound/notFoundPage'));
 const CreateAdminPage = lazy(() => import('../../pages/createAdmin/createAdminPage'));
 const LoginPage = lazy(() => import('../../pages/login/loginPage'));
 const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'));
+const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/MigrationRecoveryPage'));
 
 // Вспомогательный компонент для отображения загрузки (Spinner/Skeleton)
 const PageLoader = (component: React.ReactNode) => (
@@ -63,6 +64,11 @@ const router = createBrowserRouter([
           {
             path: 'runMigrations',
             element: PageLoader(<RunMigrationsPage />),
+          },
+
+          {
+            path: 'migration-recovery',
+            element: PageLoader(<MigrationRecoveryPage />),
           }
         ],
       }
