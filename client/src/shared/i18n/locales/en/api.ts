@@ -40,6 +40,9 @@ export const enApi = {
         DATABASE_CONNECTED: 'Database connected',
         MIGRATION_PLAN_RECEIVED: 'Migration plan received',
         MIGRATION_APPLIED: 'Migration step applied',
+        MIGRATION_NOT_FOUND: 'Migration not found',
+        MIGRATION_ALREADY_APPLIED: 'Migration already applied',
+        MIGRATION_NOT_APPLIED: 'Migration not applied',
         ADMIN_CREATED: 'Admin created',
     },
 

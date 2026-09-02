@@ -181,6 +181,7 @@ export const retryMigrationService = async (expectedVersion: string, checksum: s
 export const markMigrationAppliedService = async (expectedVersion: string, checksum: string): Promise<ApplyNextMigrationResponse> => {
     try {
         const result = await markMigrationAppliedManually(expectedVersion, checksum);
+        if (result.isComplete) await markMigrationsCompleted(getPool());
 
         return {
             applied: result.applied,

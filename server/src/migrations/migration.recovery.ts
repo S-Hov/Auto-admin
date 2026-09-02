@@ -74,7 +74,7 @@ export const markMigrationAppliedManually = async (expectedVersion: string, chec
         if (lastMigration.status === 'applied') {
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
         }
-        if (lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum) {
+        if (!descriptor || lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
         }
 

@@ -40,7 +40,11 @@ export const ruApi = {
         DATABASE_CONNECTED: 'Подключение к БД успешно',
         MIGRATION_PLAN_RECEIVED: 'План миграции получен',
         MIGRATION_APPLIED: 'Миграция применена',
+        MIGRATION_NOT_FOUND: 'Миграция не найдена',
+        MIGRATION_ALREADY_APPLIED: 'Миграция уже применена',
+        MIGRATION_NOT_APPLIED: 'Миграция не применена',
         ADMIN_CREATED: 'Администратор успешно создан',
+
     },
 
     BOOTSTRAP: {
