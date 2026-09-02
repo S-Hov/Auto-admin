@@ -17,7 +17,7 @@ export const applyFieldErrors = <TFieldValues extends FieldValues>(
                 && Object.prototype.hasOwnProperty.call(field, 'code'))
         ) {
             for (const field of error.details) {
-                if (allowedFields && allowedFields.includes(field.field)) continue;
+                if (allowedFields && !allowedFields.includes(field.field)) continue;
                 hasDetails = true;
                 const message = apiMessage({ code: field.code, params: field.params });
                 setError(field.field as Path<TFieldValues>, { type: 'server', message });
