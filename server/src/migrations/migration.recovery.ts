@@ -23,11 +23,11 @@ export const retryMigration = async (expectedVersion: string, checksum: string):
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
         }
 
-        const lastMigration = history[history.length -1];
+        const lastMigration = history[history.length - 1];
         if (lastMigration.status === 'applied') {
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
         }
-        if (lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum || checksum !== descriptor?.version) {
+        if (!descriptor || lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
         }
         const startedAt = Date.now();
@@ -39,7 +39,7 @@ export const retryMigration = async (expectedVersion: string, checksum: string):
         return {
             applied: descriptor,
             next: plan.next,
-            isComplete: true
+            isComplete: plan.isComplete
         };
     }
     catch (error) {
@@ -56,7 +56,7 @@ export const retryMigration = async (expectedVersion: string, checksum: string):
     }
 }
 
-export const markMigrationAppliedManually = async (expectedVersion: string, checksum: string): Promise<void> => {
+export const markMigrationAppliedManually = async (expectedVersion: string, checksum: string): Promise<MigrationExecutionResult> => {
     const connection = await createMigrationConnection();
     let lockAcquired = false;
 
@@ -65,12 +65,13 @@ export const markMigrationAppliedManually = async (expectedVersion: string, chec
         lockAcquired = true;
         const history = await getMigrationHistory(connection);
         const catalog = await loadMigrationCatalog();
+        const descriptor = catalog.find(m => m.version === expectedVersion);
 
         if (history.length === 0) {
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
         }
 
-        const lastMigration = history[-1];
+        const lastMigration = history[history.length - 1];
         if (lastMigration.status === 'applied') {
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
         }
@@ -78,7 +79,14 @@ export const markMigrationAppliedManually = async (expectedVersion: string, chec
             throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
         }
 
-        await markMigrationApplied(connection, expectedVersion, 0)
+        await markMigrationApplied(connection, expectedVersion, 0);
+
+        const plan = await loadCurrentMigrationPlan(connection);
+        return {
+            applied: descriptor!,
+            next: plan.next,
+            isComplete: plan.isComplete
+        };
     }
     catch (error) {
         throw error;
