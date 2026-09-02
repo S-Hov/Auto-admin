@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql, { RowDataPacket } from "mysql2/promise";
 
 export interface DbConnectionData {
     host: string;
@@ -6,6 +6,10 @@ export interface DbConnectionData {
     database: string;
     user: string;
     password: string;
+}
+
+interface VersionRow extends RowDataPacket {
+    version: string;
 }
 
 export const checkConnection = async ({ host, port, database, user, password }: DbConnectionData): Promise<{ version?: string }> => {
@@ -22,8 +26,8 @@ export const checkConnection = async ({ host, port, database, user, password }: 
             connectTimeout: 5000,
         });
 
-        const [rows] = await connection.query("SELECT VERSION() AS version");
-        const version = (rows as any)[0]?.version;
+        const [rows] = await connection.query<VersionRow[]>("SELECT VERSION() AS version");
+        const version = rows[0]?.version;
 
         return { version };
 
