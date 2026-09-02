@@ -1,5 +1,6 @@
 import { RowDataPacket } from "mysql2";
 import { AutoAdmin } from "../../db/db.types";
+import { MigrationStatus } from "../../migrations/migration.types";
 
 export interface DbCheckResponse {
     version?: string;
@@ -32,4 +33,11 @@ export interface ApplyNextMigrationResponse {
     applied: MigrationStepResponse | null;
     nextVersion: string | null;
     isComplete: boolean;
+}
+
+export interface RecoveryMigrationResponse {
+    version: string;
+    name: string;
+    checksum: string;
+    status: Exclude<MigrationStatus, "applied">;
 }

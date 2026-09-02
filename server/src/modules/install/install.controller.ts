@@ -5,12 +5,14 @@ import {
     checkConnectionService,
     getMigrationPlanService,
     markMigrationAppliedService,
+    recoveryMigrationService,
     retryMigrationService,
 } from './install.service';
 import type {
     DbCheckResponse,
     MigrationPlanResponse,
-    ApplyNextMigrationResponse
+    ApplyNextMigrationResponse,
+    RecoveryMigrationResponse
 } from './install.types';
 import { ok } from '../../shared/api/success';
 import type { DbConnectionData } from '../../db/checkConnection';
@@ -44,12 +46,12 @@ export const applyNextMigrationController = asyncHandler(async (req: Request, re
     );
 })
 
-export const retryMigrationController = asyncHandler(async (req:Request, res:Response)=>{
+export const retryMigrationController = asyncHandler(async (req: Request, res: Response) => {
     const {
         expectedVersion,
         checksum
     }: RecoveryData = req.body;
-    
+
     const result = await retryMigrationService(expectedVersion, checksum);
 
     return ok<ApplyNextMigrationResponse>(
@@ -59,17 +61,22 @@ export const retryMigrationController = asyncHandler(async (req:Request, res:Res
     );
 })
 
-export const markMigrationAppliedController = asyncHandler(async(req:Request, res:Response)=>{
+export const markMigrationAppliedController = asyncHandler(async (req: Request, res: Response) => {
     const {
         expectedVersion,
         checksum
     }: RecoveryData = req.body;
-    
+
     const result = await markMigrationAppliedService(expectedVersion, checksum);
-    
+
     return ok<ApplyNextMigrationResponse>(
         res,
         SUCCESS_CODES.INSTALL_MIGRATION_APPLIED,
         result
     );
+})
+
+export const recoveryMigrationController = asyncHandler(async (_req: Request, res: Response) => {
+    const result = await recoveryMigrationService();
+    return ok<RecoveryMigrationResponse>(res, SUCCESS_CODES.COMMON_OK, result);
 })

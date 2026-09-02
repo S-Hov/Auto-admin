@@ -4,6 +4,7 @@ import {
     checkConnectionController,
     getMigrationPlanController,
     markMigrationAppliedController,
+    recoveryMigrationController,
     retryMigrationController,
 } from "./install.controller";
 import registerRouter from "./registerNewAdmin/register.routes";
@@ -27,6 +28,8 @@ installRouter.get("/migrations/plan", requirePendingMigrations, getMigrationPlan
 installRouter.post("/migrations/retry", validate(recoverySchema), retryMigrationController);
 
 installRouter.post("/migrations/mark-applied", validate(recoverySchema), markMigrationAppliedController);
+
+installRouter.get("/migrations/recovery", recoveryMigrationController);
 
 installRouter.post("/migrations/apply-next", requirePendingMigrations, validate(applyNextMigrationSchema), applyNextMigrationController);
 

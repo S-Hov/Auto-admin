@@ -8,7 +8,8 @@ import type {
     ApplyNextMigrationResponse,
     DbCheckResponse,
     MigrationPlanResponse,
-    MigrationStepResponse
+    MigrationStepResponse,
+    RecoveryMigrationResponse
 } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
 import { checkConnection, type DbConnectionData } from "../../db/checkConnection";
@@ -18,6 +19,7 @@ import type { MigrationExecutionResult } from "../../migrations/migration.types"
 import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import { markMigrationAppliedManually, retryMigration } from "../../migrations/migration.recovery";
+import { getMigrationHistory } from "../../migrations/migration.repository";
 
 const envPath = path.join(process.cwd(), '.env');
 let isConfiguringDb = false;
@@ -200,5 +202,25 @@ export const markMigrationAppliedService = async (expectedVersion: string, check
             );
         }
         throw error;
+    }
+}
+
+export const recoveryMigrationService = async (): Promise<RecoveryMigrationResponse> => {
+    const history = await getMigrationHistory(getPool());
+
+    if (history.length === 0) {
+        throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
+    }
+
+    const lastMigration = history[history.length - 1];
+    if (lastMigration.status === 'applied') {
+        throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
+    }
+
+    return {
+        version: lastMigration.version,
+        name: lastMigration.name,
+        checksum: lastMigration.checksum,
+        status: lastMigration.status
     }
 }
