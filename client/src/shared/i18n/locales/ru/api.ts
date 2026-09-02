@@ -48,13 +48,13 @@ export const ruApi = {
     },
 
     VALIDATION: {
-        REQUIRED: 'Это поле обязательное',
-        INVALID_TYPE: 'Неверный тип',
-        STRING_TOO_SHORT: 'Слишком короткая строка',
-        STRING_TOO_LONG: 'Слишком длинная строка',
-        NUMBER_TOO_SMALL: 'Слишком маленькое число',
-        NUMBER_TOO_LARGE: 'Слишком большое число',
+        REQUIRED: 'Обязательное поле',
+        INVALID_TYPE: 'Неверный тип данных',
+        STRING_TOO_SHORT: 'Минимальная длина: {{min}} симв.',
+        STRING_TOO_LONG: 'Максимальная длина: {{max}} симв.',
+        NUMBER_TOO_SMALL: 'Значение должно быть не меньше {{min}}',
+        NUMBER_TOO_LARGE: 'Значение должно быть не больше {{max}}',
         PASSWORDS_DO_NOT_MATCH: 'Пароли не совпадают',
-        INVALID_VALUE: 'Неверное значение',
-    },
+        INVALID_VALUE: 'Недопустимое значение',
+    }
 } as const;

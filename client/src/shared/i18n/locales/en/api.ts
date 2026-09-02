@@ -48,13 +48,13 @@ export const enApi = {
     },
 
     VALIDATION: {
-        REQUIRED: 'This field is required',
-        INVALID_TYPE: 'Invalid type',
-        STRING_TOO_SHORT: 'String is too short',
-        STRING_TOO_LONG: 'String is too long',
-        NUMBER_TOO_SMALL: 'Number is too small',
-        NUMBER_TOO_LARGE: 'Number is too large',
+        REQUIRED: 'Required field',
+        INVALID_TYPE: 'Invalid data type',
+        STRING_TOO_SHORT: 'Minimum length: {{min}} chars',
+        STRING_TOO_LONG: 'Maximum length: {{max}} chars',
+        NUMBER_TOO_SMALL: 'Value must be at least {{min}}',
+        NUMBER_TOO_LARGE: 'Value must be at most {{max}}',
         PASSWORDS_DO_NOT_MATCH: 'Passwords do not match',
         INVALID_VALUE: 'Invalid value',
-    },
+    }
 } as const;
