@@ -3,6 +3,8 @@ import {
     applyNextMigrationController,
     checkConnectionController,
     getMigrationPlanController,
+    markMigrationAppliedController,
+    retryMigrationController,
 } from "./install.controller";
 import registerRouter from "./registerNewAdmin/register.routes";
 import { statusMigrated } from "../../shared/middleware/checkInstallationStatus";
@@ -22,9 +24,9 @@ installRouter.post("/check-connection", canConfigureDatabase, validate(checkConn
 
 installRouter.get("/migrations/plan", requirePendingMigrations, getMigrationPlanController);
 
-installRouter.post("/migrations/retry", validate(recoverySchema));
+installRouter.post("/migrations/retry", validate(recoverySchema), retryMigrationController);
 
-installRouter.post("/migrations/mark-applied", validate(recoverySchema));
+installRouter.post("/migrations/mark-applied", validate(recoverySchema), markMigrationAppliedController);
 
 installRouter.post("/migrations/apply-next", requirePendingMigrations, validate(applyNextMigrationSchema), applyNextMigrationController);
 

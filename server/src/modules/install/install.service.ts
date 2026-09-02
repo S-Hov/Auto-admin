@@ -17,6 +17,7 @@ import { MigrationLockUnavailableError, MigrationVersionConflictError } from "..
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
 import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { markMigrationAppliedManually, retryMigration } from "../../migrations/migration.recovery";
 
 const envPath = path.join(process.cwd(), '.env');
 let isConfiguringDb = false;
@@ -139,4 +140,64 @@ export const applyNextMigrationService = async (expectedVersion: string): Promis
         nextVersion: result.next?.version ?? null,
         isComplete: result.isComplete
     };
+}
+
+export const retryMigrationService = async (expectedVersion: string, checksum: string): Promise<ApplyNextMigrationResponse> => {
+    let applied: MigrationStepResponse | null = null;
+    let result: MigrationExecutionResult;
+
+    try {
+        result = await retryMigration(expectedVersion, checksum);
+        if (result.isComplete) await markMigrationsCompleted(getPool());
+    }
+    catch (error) {
+        if (error instanceof MigrationLockUnavailableError) {
+            throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
+        }
+        if (error instanceof MigrationVersionConflictError) {
+            throw conflict(
+                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
+                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
+            );
+        }
+        throw error;
+    }
+
+    if (result.applied !== null) {
+        applied = {
+            version: result.applied.version,
+            name: result.applied.name,
+            fileName: result.applied.fileName
+        };
+    }
+
+    return {
+        applied,
+        nextVersion: result.next?.version ?? null,
+        isComplete: result.isComplete
+    };
+}
+
+export const markMigrationAppliedService = async (expectedVersion: string, checksum: string): Promise<ApplyNextMigrationResponse> => {
+    try {
+        const result = await markMigrationAppliedManually(expectedVersion, checksum);
+
+        return {
+            applied: result.applied,
+            nextVersion: result.next?.version ?? null,
+            isComplete: result.isComplete
+        };
+    }
+    catch (error) {
+        if (error instanceof MigrationLockUnavailableError) {
+            throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
+        }
+        if (error instanceof MigrationVersionConflictError) {
+            throw conflict(
+                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
+                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
+            );
+        }
+        throw error;
+    }
 }

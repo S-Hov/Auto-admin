@@ -1,10 +1,9 @@
-import { version } from "node:os";
 import { ERROR_CODES } from "../shared/api/codes/error-codes";
 import { badRequest, conflict } from "../shared/api/errors/error-helpers";
 import { createMigrationConnection } from "./migration.db";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
 import { getMigrationHistory, markMigrationApplied } from "./migration.repository";
-import { applyNextMigration, loadCurrentMigrationPlan } from "./migration.runner";
+import { loadCurrentMigrationPlan } from "./migration.runner";
 import { MigrationExecutionResult } from "./migration.types";
 import { loadMigrationCatalog } from "./migration.catalog";
 
