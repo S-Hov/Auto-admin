@@ -12,6 +12,7 @@ import { requirePendingMigrations } from "../../shared/middleware/requirePending
 import { canConfigureDatabase } from "../../shared/middleware/canConfigureDatabase";
 import { requireInstallToken } from "../../shared/middleware/requireInstallToken";
 import { checkConnectionSchema } from "./schema/checkConnection.schema";
+import { recoverySchema } from "./schema/recovery.schema";
 
 const installRouter = express.Router();
 
@@ -20,6 +21,10 @@ installRouter.use(requireInstallToken);
 installRouter.post("/check-connection", canConfigureDatabase, validate(checkConnectionSchema), checkConnectionController);
 
 installRouter.get("/migrations/plan", requirePendingMigrations, getMigrationPlanController);
+
+installRouter.post("/migrations/retry", validate(recoverySchema));
+
+installRouter.post("/migrations/mark-applied", validate(recoverySchema));
 
 installRouter.post("/migrations/apply-next", requirePendingMigrations, validate(applyNextMigrationSchema), applyNextMigrationController);
 
