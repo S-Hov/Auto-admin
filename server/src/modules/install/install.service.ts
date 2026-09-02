@@ -26,65 +26,68 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
         throw conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED);
     }
     isConfiguringDb = true;
-
-    let versionInfo: { version?: string };
-
-    try {
-        versionInfo = await checkConnection(data);
-    } catch (error) {
-        throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
-    }
-
-    const databaseEnv = {
-        Auto_Admin__DB_HOST: data.host,
-        Auto_Admin__DB_PORT: String(data.port),
-        Auto_Admin__DB_DATABASE: data.database,
-        Auto_Admin__DB_USERNAME: data.user,
-        Auto_Admin__DB_PASSWORD: data.password,
-    };
-
-    let currentContent = '';
-
-    try {
-        currentContent = await fs.readFile(envPath, 'utf8');
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-            throw error;
-        }
-    }
-
-    const currentEnv = dotenv.parse(currentContent);
-    const updatedEnv = { ...currentEnv, ...databaseEnv };
-
-    const updatedContent = Object.entries(updatedEnv)
-        .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-        .join('\n') + '\n';
-
     let temporaryPath: string | null = null;
-
     try {
-        temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
+        let versionInfo: { version?: string };
 
-        await fs.writeFile(temporaryPath, updatedContent, {
-            encoding: 'utf8',
-            mode: 0o600,
-        });
-
-        await fs.rename(temporaryPath, envPath);
-        temporaryPath = null;
-    }
-    finally {
-        isConfiguringDb = false;
-        if (temporaryPath) {
-            await fs.unlink(temporaryPath).catch(() => { });
+        try {
+            versionInfo = await checkConnection(data);
+        } catch (error) {
+            throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
         }
+
+        const databaseEnv = {
+            Auto_Admin__DB_HOST: data.host,
+            Auto_Admin__DB_PORT: String(data.port),
+            Auto_Admin__DB_DATABASE: data.database,
+            Auto_Admin__DB_USERNAME: data.user,
+            Auto_Admin__DB_PASSWORD: data.password,
+        };
+
+        let currentContent = '';
+
+        try {
+            currentContent = await fs.readFile(envPath, 'utf8');
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw error;
+            }
+        }
+
+        const currentEnv = dotenv.parse(currentContent);
+        const updatedEnv = { ...currentEnv, ...databaseEnv };
+
+        const updatedContent = Object.entries(updatedEnv)
+            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+            .join('\n') + '\n';
+
+
+        try {
+            temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
+
+            await fs.writeFile(temporaryPath, updatedContent, {
+                encoding: 'utf8',
+                mode: 0o600,
+            });
+
+            await fs.rename(temporaryPath, envPath);
+            temporaryPath = null;
+        }
+        finally {
+            isConfiguringDb = false;
+            if (temporaryPath) {
+                await fs.unlink(temporaryPath).catch(() => { });
+            }
+        }
+
+        Object.assign(process.env, databaseEnv);
+
+        await resetPool();
+
+        return { ...versionInfo, redirectedTo: PagePaths.login };
+    } finally {
+        isConfiguringDb = false;
     }
-
-    Object.assign(process.env, databaseEnv);
-
-    await resetPool();
-
-    return { ...versionInfo, redirectedTo: PagePaths.login };
 }
 
 export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> => {
