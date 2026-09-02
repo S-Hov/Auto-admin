@@ -63,7 +63,7 @@ export const applyNextMigration = async (expectedVersion: string): Promise<Migra
     }
 };
 
-const loadCurrentMigrationPlan = async (connection: Connection): Promise<MigrationPlan> => {
+export const loadCurrentMigrationPlan = async (connection: Connection): Promise<MigrationPlan> => {
     await ensureMigrationHistoryTable(connection);
     const catalog = await loadMigrationCatalog();
     const history = await getMigrationHistory(connection);
