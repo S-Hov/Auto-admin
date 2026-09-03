@@ -5,8 +5,14 @@ import { installDatabase } from "../../../shared/api/database/install";
 import { toast } from "sonner";
 import { apiMessage } from "../../../shared/i18n/api-message";
 import type { RecoveryMigrationResponse } from "../../../shared/api/database/install/install.types";
+import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 
-const recoveryInfoItems = [
+interface RecoveryInfoItem {
+    name: string;
+    key: keyof RecoveryMigrationResponse;
+}
+
+const recoveryInfoItems: RecoveryInfoItem[] = [
     { name: "Версия", key: "version" },
     { name: "Имя", key: "name" },
     { name: "Хэш", key: "checksum" },
@@ -15,6 +21,10 @@ const recoveryInfoItems = [
 
 const MigrationRecovery = () => {
     const [migrationInfo, setMigrationInfo] = useState<RecoveryMigrationResponse | null>(null);
+    const [isRetrying, setIsRetrying] = useState<boolean>(false);
+    const [isMarking, setIsMarking] = useState<boolean>(false);
+
+    const { refreshBootstrap } = useBootstrap();
 
     useEffect(() => {
         try {
@@ -22,7 +32,7 @@ const MigrationRecovery = () => {
             toast.promise(result, {
                 loading: 'Загрузка информации о миграциях...',
                 success: (response) => {
-                    setMigrationInfo(response.data);
+                    setMigrationInfo(response.data ?? null);
 
                     return apiMessage(response);
                 },
@@ -34,6 +44,49 @@ const MigrationRecovery = () => {
         }
     }, [])
 
+    const handleRetry = async () => {
+        if (!migrationInfo || !isMarking || isRetrying) return;
+
+        setIsRetrying(true);
+        try {
+            const result = installDatabase.retryMigration({ expectedVersion: migrationInfo.version, checksum: migrationInfo.checksum });
+
+            toast.promise(result, {
+                loading: 'Повторное выполнение миграции...',
+                success: (response) => apiMessage(response),
+                error: (err) => apiMessage(err),
+            }).unwrap();
+            await refreshBootstrap();
+        }
+        catch {
+            // Ошибка уже отображена через toast
+        }
+        finally {
+            setIsRetrying(false);
+        }
+    }
+
+    const handleMarkApplied = async () => {
+        if (!migrationInfo || isMarking || !isRetrying) return;
+
+        setIsMarking(true);
+        try {
+            const result = installDatabase.markMigrationApplied({ expectedVersion: migrationInfo.version, checksum: migrationInfo.checksum });
+
+            toast.promise(result, {
+                loading: 'Пометка миграции как выполненной...',
+                success: (response) => apiMessage(response),
+                error: (err) => apiMessage(err),
+            }).unwrap();
+            await refreshBootstrap();
+        }
+        catch {
+            // Ошибка уже отображена через toast
+        }
+        finally {
+            setIsMarking(false);
+        }
+    }
 
     return (
         <CardForm
@@ -43,7 +96,7 @@ const MigrationRecovery = () => {
             <div className="recovery-info">
                 {recoveryInfoItems.map((item) => {
                     return (
-                        <div className="grid grid-1-column recovery-info__item">
+                        <div key={item.key} className="grid grid-1-column recovery-info__item">
                             <span>{item.name}: </span>
                             <strong>
                                 {migrationInfo?.[item.key] ?? (
@@ -56,13 +109,17 @@ const MigrationRecovery = () => {
             </div>
             <div className="grid actions grid-2-columns">
                 <Button
-                    disabled={!migrationInfo}
+                    disabled={!migrationInfo || isRetrying || isMarking}
+                    isLoading={isRetrying}
+                    onClick={handleRetry}
                     variant="primary"
                 >
                     Повторить выполнение
                 </Button>
                 <Button
-                    disabled={!migrationInfo}
+                    disabled={!migrationInfo || isRetrying || isMarking}
+                    isLoading={isMarking}
+                    onClick={handleMarkApplied}
                     variant="danger"
                 >
                     Пометить как выполненную вручную
