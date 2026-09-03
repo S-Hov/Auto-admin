@@ -1,19 +1,19 @@
 import { cleanOldLoginAttempts } from "../modules/auth";
+import { readBootstrapStatus } from "../modules/bootstrap";
 
 export const cleanOldLoginAttemptsService = async (days: number = 30) => {
     const startTime = Date.now();
-    let deletedCount = 0;
-    try {
-        deletedCount = await cleanOldLoginAttempts(days);
-    }
-    catch (error) {
+    const bootstrapStatus = await readBootstrapStatus();
+    if (bootstrapStatus !== 'ready') {
         console.log({
             timestamp: new Date().toISOString(),
-            level: 'ERROR',
+            level: 'INFO',
             service: 'clean-old-login-attempts',
-            error: error
+            message: `System is not ready, skipping clean-old-login-attempts (stage: ${bootstrapStatus})`
         });
+        return;
     }
+    const deletedCount = await cleanOldLoginAttempts(days);
     console.log({
         timestamp: new Date().toISOString(),
         level: 'INFO',
