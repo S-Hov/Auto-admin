@@ -5,6 +5,9 @@ import { ERROR_CODES } from '../api/codes/error-codes';
 
 export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     if (error instanceof ApiError) {
+        if (error.status === 429 && error.params?.seconds) {
+            res.setHeader('Retry-After', String(error.params.seconds));
+        }
         return errorResponse(res, error.status, error.code, error.params, error.details);
     }
 
