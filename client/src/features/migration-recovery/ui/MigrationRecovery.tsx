@@ -51,7 +51,7 @@ const MigrationRecovery = () => {
         try {
             const result = installDatabase.retryMigration({ expectedVersion: migrationInfo.version, checksum: migrationInfo.checksum });
 
-            toast.promise(result, {
+            await toast.promise(result, {
                 loading: 'Повторное выполнение миграции...',
                 success: (response) => apiMessage(response),
                 error: (err) => apiMessage(err),
@@ -73,7 +73,7 @@ const MigrationRecovery = () => {
         try {
             const result = installDatabase.markMigrationApplied({ expectedVersion: migrationInfo.version, checksum: migrationInfo.checksum });
 
-            toast.promise(result, {
+            await toast.promise(result, {
                 loading: 'Пометка миграции как выполненной...',
                 success: (response) => apiMessage(response),
                 error: (err) => apiMessage(err),
