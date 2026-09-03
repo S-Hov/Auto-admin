@@ -7,6 +7,8 @@ import ApiRouter from './routes/ApiRouter';
 import { resetPool } from './db';
 import { envConfig } from './config/env';
 
+import './services';
+
 const app = express();
 
 const defaultAllowedOrigins = envConfig.Auto_Admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
