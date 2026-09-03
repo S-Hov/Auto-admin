@@ -45,7 +45,7 @@ const MigrationRecovery = () => {
     }, [])
 
     const handleRetry = async () => {
-        if (!migrationInfo || !isMarking || isRetrying) return;
+        if (!migrationInfo || isMarking || isRetrying) return;
 
         setIsRetrying(true);
         try {
@@ -67,7 +67,7 @@ const MigrationRecovery = () => {
     }
 
     const handleMarkApplied = async () => {
-        if (!migrationInfo || isMarking || !isRetrying) return;
+        if (!migrationInfo || isMarking || isRetrying) return;
 
         setIsMarking(true);
         try {
