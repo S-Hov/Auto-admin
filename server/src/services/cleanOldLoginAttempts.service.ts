@@ -2,7 +2,18 @@ import { cleanOldLoginAttempts } from "../modules/auth";
 
 export const cleanOldLoginAttemptsService = async (days: number = 30) => {
     const startTime = Date.now();
-    const deletedCount = await cleanOldLoginAttempts(days);
+    let deletedCount = 0;
+    try {
+        deletedCount = await cleanOldLoginAttempts(days);
+    }
+    catch (error) {
+        console.log({
+            timestamp: new Date().toISOString(),
+            level: 'ERROR',
+            service: 'clean-old-login-attempts',
+            error: error
+        });
+    }
     console.log({
         timestamp: new Date().toISOString(),
         level: 'INFO',
