@@ -67,7 +67,7 @@ const router = createBrowserRouter([
           },
 
           {
-            path: 'migration-recovery',
+            path: 'migrationRecovery',
             element: PageLoader(<MigrationRecoveryPage />),
           }
         ],
