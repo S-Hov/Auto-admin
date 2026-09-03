@@ -49,6 +49,10 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`Server started on http://${HOST}:${PORT}`);
 });
 
+server.requestTimeout = 30000;
+server.keepAliveTimeout = 30000;
+server.headersTimeout = 35000;
+
 const shutdown = async (signal: string) => {
   console.log(`Received ${signal}, closing gracefully...`);
 
