@@ -21,7 +21,7 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
     const attempts = await getLoginAttempts(normalizeUsername, meta.ipAddress);
 
     if (attempts.userCount15m >= 10 || attempts.ipCount1d >= 100 || attempts.ipUserCount15m >= 5) {
-        throw tooManyRequests(ERROR_CODES.AUTH_TOO_MANY_ATTEMPTS);
+        throw tooManyRequests(ERROR_CODES.AUTH_TOO_MANY_ATTEMPTS, { params: { seconds: 900 } });
     }
 
     const user = await getUserByUserName(userName);
