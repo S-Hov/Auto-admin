@@ -1,11 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import { tooManyRequests } from "../api/errors/error-helpers";
 
+const rateLimit = new Map<string, { count: number, resetTime: number }>();
+
 export const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
     const limit = 10;
     const windowInMs = 60 * 1000;
     const ip = req.ip;
-    const rateLimit = new Map<string, { count: number, resetTime: number }>();
 
     if (!ip) {
         return next();
