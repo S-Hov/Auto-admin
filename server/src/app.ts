@@ -79,3 +79,22 @@ const shutdown = async (signal: string) => {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('unhandledRejection', (reason) => {
+  console.log({
+    timestamp: new Date().toISOString(),
+    status: 'FATAL',
+    level: 'ERROR',
+    service: 'unhandled-rejection',
+    reason: reason
+  });
+})
+process.on('uncaughtException', (error) => {
+  console.log({
+    timestamp: new Date().toISOString(),
+    status: 'FATAL',
+    level: 'ERROR',
+    service: 'uncaught-exception',
+    error: error
+  });
+  process.exit(1);
+})
