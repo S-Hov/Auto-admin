@@ -21,7 +21,7 @@ const SINGLE_FIELDS: FieldConfig[] = [
     { name: 'database', label: 'База данных', placeholder: 'my_database' },
     { name: 'user', label: 'Пользователь', placeholder: 'admin' },
     { name: 'password', label: 'Пароль', type: 'password', placeholder: '••••••••' },
-    { name: 'install_token', label: 'Токен установки', type: 'text', placeholder: '********-****-****-****-************' },
+    { name: 'install_token', label: 'Токен установки', type: 'password', placeholder: '********-****-****-****-************' },
 ];
 
 const InstallDatabaseForm = () => {

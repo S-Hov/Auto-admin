@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { BootstrapContext, type BootstrapState } from "./BootstrapContext";
 import { bootstrap } from "../../../shared/api/bootstrap";
+import { STORAGE_KEYS } from "../../../constants/storage";
 
 interface BootstrapProviderProps {
     children: ReactNode;
@@ -43,6 +44,14 @@ export const BootstrapProvider = ({ children }: BootstrapProviderProps) => {
             ignore = true;
         };
     }, []);
+
+    useEffect(() => {
+        if (state.status === 'resolved' && state.stage === 'ready') {
+            if (sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN)) {
+                sessionStorage.removeItem(STORAGE_KEYS.INSTALL_TOKEN);
+            }
+        }
+    }, [state.status, state.stage])
 
     return (
         <BootstrapContext.Provider value={{ state, refreshBootstrap }}>
