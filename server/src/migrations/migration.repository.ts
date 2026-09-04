@@ -120,3 +120,35 @@ export const markMigrationFailed = async (connection: Connection, version: strin
         throw new Error(`Migration ${version} not found or not in running state`);
     }
 }
+
+export const markMigrationAppliedFromRecovery = async (
+    connection: Connection,
+    version: string
+): Promise<void> => {
+    const [result] = await connection.query<ResultSetHeader>(`
+        UPDATE \`${MIGRATION_HISTORY_TABLE}\`
+        SET status = 'applied',
+            finished_at = CURRENT_TIMESTAMP(3),
+            execution_ms = 0,
+            error_message = NULL
+        WHERE version = ?
+        AND status IN ('failed', 'running')
+    `, [version]);
+
+    if (result.affectedRows !== 1) {
+        throw new Error(`Migration ${version} not found or not in recoverable state`);
+    }
+};
+
+export const prepareMigrationForRetry = async (connection: Connection, version: string): Promise<void> => {
+    await connection.query(`
+        UPDATE \`${MIGRATION_HISTORY_TABLE}\`
+        SET status = 'running',
+            started_at = CURRENT_TIMESTAMP(3),
+            finished_at = NULL,
+            error_message = NULL,
+            attempt_count = attempt_count + 1
+        WHERE version = ?
+        AND status IN ('failed', 'running')
+    `, [version]);
+};

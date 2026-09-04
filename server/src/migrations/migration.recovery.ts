@@ -2,7 +2,7 @@ import { ERROR_CODES } from "../shared/api/codes/error-codes";
 import { badRequest, conflict } from "../shared/api/errors/error-helpers";
 import { createMigrationConnection } from "./migration.db";
 import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
-import { getMigrationHistory, markMigrationApplied } from "./migration.repository";
+import { getMigrationHistory, markMigrationApplied, markMigrationAppliedFromRecovery, markMigrationFailed, prepareMigrationForRetry } from "./migration.repository";
 import { loadCurrentMigrationPlan } from "./migration.runner";
 import { MigrationExecutionResult } from "./migration.types";
 import { loadMigrationCatalog } from "./migration.catalog";
@@ -31,8 +31,15 @@ export const retryMigration = async (expectedVersion: string, checksum: string):
         }
         const startedAt = Date.now();
 
-        await connection.query(descriptor.sql);
-        await markMigrationApplied(connection, expectedVersion, Date.now() - startedAt);
+        await prepareMigrationForRetry(connection, expectedVersion)
+        try {
+            await connection.query(descriptor.sql);
+            await markMigrationApplied(connection, expectedVersion, Date.now() - startedAt);
+        }
+        catch (error) {
+            await markMigrationFailed(connection, expectedVersion, (Date.now() - startedAt), JSON.stringify(error));
+            throw badRequest(ERROR_CODES.COMMON_INTERNAL_ERROR);
+        }
         const plan = await loadCurrentMigrationPlan(connection);
 
         return {
@@ -78,7 +85,7 @@ export const markMigrationAppliedManually = async (expectedVersion: string, chec
             throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
         }
 
-        await markMigrationApplied(connection, expectedVersion, 0);
+        await markMigrationAppliedFromRecovery(connection, expectedVersion);
 
         const plan = await loadCurrentMigrationPlan(connection);
         return {
