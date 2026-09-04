@@ -27,22 +27,23 @@ const MigrationRecovery = () => {
     const { refreshBootstrap } = useBootstrap();
 
     useEffect(() => {
+    const loadRecoveryInfo = async () => {
         try {
-            const result = installDatabase.getRecoveryInfo();
-            toast.promise(result, {
+            await toast.promise(installDatabase.getRecoveryInfo(), {
                 loading: 'Загрузка информации о миграциях...',
                 success: (response) => {
                     setMigrationInfo(response.data ?? null);
-
                     return apiMessage(response);
                 },
                 error: (err) => apiMessage(err),
             }).unwrap();
-        }
-        catch {
+        } catch {
             // Ошибка уже отображена через toast
         }
-    }, [])
+    };
+
+    void loadRecoveryInfo();
+}, []);
 
     const handleRetry = async () => {
         if (!migrationInfo || isMarking || isRetrying) return;
