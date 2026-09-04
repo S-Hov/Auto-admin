@@ -8,6 +8,8 @@ import type { RecoveryMigrationResponse } from "../../../shared/api/database/ins
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 
 import './MigrationRecovery.css';
+import { STORAGE_KEYS } from "../../../constants/storage";
+import { Input } from "../../../shared/ui/Input/Input";
 
 interface RecoveryInfoItem {
     name: string;
@@ -25,6 +27,7 @@ const MigrationRecovery = () => {
     const [migrationInfo, setMigrationInfo] = useState<RecoveryMigrationResponse | null>(null);
     const [isRetrying, setIsRetrying] = useState<boolean>(false);
     const [isMarking, setIsMarking] = useState<boolean>(false);
+    const [installToken, setInstallToken] = useState<string | null>(sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) ?? null);
 
     const { refreshBootstrap } = useBootstrap();
 
@@ -111,10 +114,22 @@ const MigrationRecovery = () => {
                     )
                 })}
             </div>
+            <div className="grid">
+                {installToken ? '' : (
+                    <Input
+                        name="installToken"
+                        placeholder="Токен установки"
+                        title="Введите токен установки для подтверждения действия"
+                        type="password"
+                        onChange={(e) => setInstallToken(e.target.value)}
+                    />
+                )}
+            </div>
             <div className="grid actions grid-2-columns">
                 <Button
                     disabled={!migrationInfo || isRetrying || isMarking}
                     isLoading={isRetrying}
+                    type="submit"
                     onClick={handleRetry}
                     variant="primary"
                 >
@@ -123,6 +138,7 @@ const MigrationRecovery = () => {
                 <Button
                     disabled={!migrationInfo || isRetrying || isMarking}
                     isLoading={isMarking}
+                    type="submit"
                     onClick={handleMarkApplied}
                     variant="danger"
                 >
