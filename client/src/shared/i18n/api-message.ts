@@ -1,6 +1,6 @@
 import { ApiClientError } from "../api/ApiClientError";
 import i18n from "i18next";
-import type { TranslationParams, UnifiedResponse } from "../api/types";
+import type { TranslationParams } from "../api/types";
 
 export function apiMessage(obj: unknown): string {
     if (obj instanceof ApiClientError) {
@@ -9,11 +9,13 @@ export function apiMessage(obj: unknown): string {
         return getMessage(key, obj.params);
     }
 
-    if (typeof obj === 'object' && obj && Object.prototype.hasOwnProperty.call(obj, 'code')) {
-        const { code, params } = obj as UnifiedResponse;
-        const key = `api:${code}`;
-
-        return getMessage(key, params);
+    if (obj && typeof obj === 'object') {
+        const code = 'code' in obj && typeof obj.code === 'string' ? obj.code : null;
+        const params = 'params' in obj && typeof obj.params === 'object' ? (obj.params as TranslationParams) : undefined;
+        if (code) {
+            const key = `api:${code}`;
+            return getMessage(key, params);
+        }
     }
 
     return i18n.t('api:COMMON.NETWORK_ERROR');
