@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { logger } from './shared/middleware/logger';
 import { errorHandler } from './shared/middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import ApiRouter from './routes/ApiRouter';
 import { resetPool } from './db';
 import { envConfig } from './config/env';
+import { httpLogger } from './shared/middleware/logger';
 
 import './services';
 
@@ -36,7 +36,7 @@ app.use(express.json({ limit: '64kb' }));
 
 app.use(cookieParser());
 
-app.use(logger);
+app.use(httpLogger);
 
 app.use('/api', ApiRouter)
 

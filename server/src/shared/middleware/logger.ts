@@ -1,27 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'node:crypto';
+import { logger } from '../logger';
 
-export const logger = (req: Request, res: Response, next: NextFunction): void => {
-    const requestId = req.get('x-request-id') || req.requestId || randomUUID();
+export const httpLogger = (req: Request, res: Response, next: NextFunction): void => {
+    const rawReqId = req.get('x-request-id');
+    const requestId = (rawReqId && rawReqId.length <= 64) ? rawReqId : randomUUID();
+
     req.requestId = requestId;
     res.setHeader('x-request-id', requestId);
 
-    const start = performance.now();
-
-    next();
+    const startTime = performance.now();
 
     res.on('finish', () => {
-        const duration = Math.round(performance.now() - start);
+        const duration = Math.round(performance.now() - startTime);
+        const level = res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info';
 
-        console.log({
-            timestamp: new Date().toISOString(),
-            level: 'INFO',
+        logger[level]({
             requestId,
             method: req.method,
             url: req.url,
             statusCode: res.statusCode,
             duration,
-            ip: req.ip,
-        })
-    })
-}
+        }, `${req.method} ${req.url} ${res.statusCode} in ${duration}ms`);
+    });
+
+    next();
+};
