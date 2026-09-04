@@ -62,8 +62,10 @@ const MigrationRecovery = () => {
     };
 
     useEffect(() => {
-        void loadRecoveryInfo();
-    }, []);
+        if (installToken) {
+            void loadRecoveryInfo();
+        }
+    }, [installToken]);
 
     const handleRetry = async () => {
         if (!migrationInfo || isMarking || isRetrying) return;
@@ -112,6 +114,7 @@ const MigrationRecovery = () => {
 
     const onSubmit = async (data: MigrationRecoveryFormValues) => {
         sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, data.install_token);
+        setInstallToken(data.install_token);
         void loadRecoveryInfo();
     }
 
@@ -146,7 +149,7 @@ const MigrationRecovery = () => {
                             <Button
                                 disabled={!migrationInfo || isRetrying || isMarking}
                                 isLoading={isRetrying}
-                                type="submit"
+                                type="button"
                                 onClick={handleRetry}
                                 variant="primary"
                             >
@@ -155,7 +158,7 @@ const MigrationRecovery = () => {
                             <Button
                                 disabled={!migrationInfo || isRetrying || isMarking}
                                 isLoading={isMarking}
-                                type="submit"
+                                type="button"
                                 onClick={handleMarkApplied}
                                 variant="danger"
                             >
