@@ -6,9 +6,9 @@ import ApiRouter from './routes/ApiRouter';
 import { resetPool } from './db';
 import { envConfig } from './config/env';
 import { httpLogger } from './shared/middleware/logger';
+import { logger } from './shared/logger';
 
 import './services';
-import { logger } from './shared/logger';
 
 const app = express();
 
@@ -47,7 +47,10 @@ const PORT = envConfig.Auto_Admin__PORT;
 const HOST = envConfig.Auto_Admin__HOST;
 
 const server = app.listen(PORT, HOST, () => {
-  console.log(`Server started on http://${HOST}:${PORT}`);
+  logger.info({
+    PORT,
+    HOST
+  }, `Server started on http://${HOST}:${PORT}`);
 });
 
 server.requestTimeout = 30000;
@@ -60,25 +63,36 @@ const shutdown = async (signal: string) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log(`Received ${signal}, closing gracefully...`);
+  logger.info({
+    signal
+  }, `Received ${signal}, closing gracefully...`);
 
   server.close(async () => {
     try {
       await resetPool();
-      console.log('Database connection closed');
+      logger.info({
+        service: 'db-cleanup',
+      }, `Database connection closed`);
 
-      console.log('Server closed');
+      logger.info({
+        service: 'server-shutdown',
+      }, 'Server closed');
       process.exit(0);
     }
     catch (error) {
-      console.error('Error during DB cleanup:', error);
+      logger.fatal({
+        service: 'db-cleanup',
+        error: error
+      }, `Error during DB cleanup`);
       process.exit(1);
     }
   })
 
   // Аварийный таймер на 10 сек (если какой-то запрос завис)
   setTimeout(() => {
-    console.error('Forceful shutdown due to timeout');
+    logger.fatal({
+      service: 'timeout',
+    }, `Forceful shutdown due to timeout`);
     process.exit(1);
   }, 10000).unref();
 };

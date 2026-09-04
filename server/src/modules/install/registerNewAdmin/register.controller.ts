@@ -11,7 +11,6 @@ const getRequestMeta = (req: Request) => ({
 } as RequestMeta)
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
-    console.log("запрос на регистрацию");
     const {
         userName,
         password,
