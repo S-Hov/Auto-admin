@@ -8,6 +8,7 @@ import { envConfig } from './config/env';
 import { httpLogger } from './shared/middleware/logger';
 
 import './services';
+import { logger } from './shared/logger';
 
 const app = express();
 
@@ -85,21 +86,15 @@ const shutdown = async (signal: string) => {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('unhandledRejection', (reason) => {
-  console.log({
-    timestamp: new Date().toISOString(),
-    status: 'FATAL',
-    level: 'ERROR',
+  logger.fatal({
     service: 'unhandled-rejection',
     reason: reason
-  });
+  }, `Unhandled rejection at ${reason}`);
 })
 process.on('uncaughtException', (error) => {
-  console.log({
-    timestamp: new Date().toISOString(),
-    status: 'FATAL',
-    level: 'ERROR',
+  logger.fatal({
     service: 'uncaught-exception',
     error: error
-  });
+  }, `Uncaught exception at ${error}`);
   process.exit(1);
 })
