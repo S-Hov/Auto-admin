@@ -32,7 +32,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({limit: '64kb'}));
+app.use(express.json({ limit: '64kb' }));
 
 app.use(cookieParser());
 
@@ -53,7 +53,12 @@ server.requestTimeout = 30000;
 server.keepAliveTimeout = 30000;
 server.headersTimeout = 35000;
 
+let isShuttingDown = false
+
 const shutdown = async (signal: string) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
   console.log(`Received ${signal}, closing gracefully...`);
 
   server.close(async () => {
