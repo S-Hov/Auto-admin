@@ -4,8 +4,8 @@ import { z } from "zod";
 dotenv.config();
 
 export const envSchema = z.object({
-    Auto_Admin__PORT: z.coerce.number().default(3000), // coerce сразу превратит строку в number!
-    Auto_Admin__HOST: z.string().default("localhost"),
+    Auto_Admin__PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    Auto_Admin__HOST: z.string().trim().min(1).default("localhost"),
     Auto_Admin__NODE_ENV: z.enum(["development", "production", "test"] as const).default("development"),
     Auto_Admin__DB_HOST: z.string().optional(),
     Auto_Admin__DB_PORT: z.string().optional(),
