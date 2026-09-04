@@ -21,8 +21,6 @@ const RunMigrationsForm = () => {
     const { refreshBootstrap } = useBootstrap();
 
     const runNextStep = async (expectedVersion: string, index: number): Promise<void> => {
-        console.log('index :', index);
-
         setCurrentStepIndex(index);
         setIsProcessing(true);
 

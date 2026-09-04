@@ -3,6 +3,10 @@
         margin-bottom: 28px;
         padding-bottom: 18px;
         border-bottom: var(--border-lite);
+
+        & .recovery-info__item-loader{
+            margin-left: 10px;
+        }
     }
 
     & .recovery-info__item {
@@ -24,5 +28,9 @@
 
     & .actions {
         margin-top: var(--gap-md);
+
+        & .field-group{
+            margin-bottom: 0;
+        }
     }
 }
