@@ -7,6 +7,8 @@ import { apiMessage } from "../../../shared/i18n/api-message";
 import type { RecoveryMigrationResponse } from "../../../shared/api/database/install/install.types";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 
+import './MigrationRecovery.css';
+
 interface RecoveryInfoItem {
     name: string;
     key: keyof RecoveryMigrationResponse;
@@ -93,13 +95,14 @@ const MigrationRecovery = () => {
         <CardForm
             headerTitle="Восстановление миграций"
             headerDescription="Выберите способ восстановления миграций"
+            className="recovery-form"
         >
             <div className="recovery-info">
                 {recoveryInfoItems.map((item) => {
                     return (
-                        <div key={item.key} className="grid grid-1-column recovery-info__item">
+                        <div key={item.key} className="flex recovery-info__item">
                             <span>{item.name}: </span>
-                            <strong>
+                            <strong className={`${item.key}__${migrationInfo?.[item.key] ?? ''}`} title={migrationInfo?.[item.key] ?? ''}>
                                 {migrationInfo?.[item.key] ?? (
                                     <div className="recovery-info__item-loader"></div>
                                 )}

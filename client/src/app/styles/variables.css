@@ -18,4 +18,10 @@
     --radius-card-2: 16px;
     --radius-card-3: 12px;
     --radius-card-4: 8px;
+    --radius-card-5: 4px;
+    --gap-2xl: clamp(40px, 5vw, 80px);
+    --gap-xl: clamp(20px, 4vw, 40px);
+    --gap-lg: clamp(10px, 3vw, 20px);
+    --gap-md: clamp(5px, 2vw, 10px);
+    --gap-sm: clamp(2.5px, 1vw, 5px);
 }

@@ -1,0 +1,28 @@
+.recovery-form {
+    & .recovery-info {
+        margin-bottom: 28px;
+        padding-bottom: 18px;
+        border-bottom: var(--border-lite);
+    }
+
+    & .recovery-info__item {
+        gap: var(--gap-sm);
+
+        &:not(:first-child) {
+            margin-top: var(--gap-sm);
+        }
+
+        & strong {
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &.status__failed {
+                color: var(--text-color-error);
+            }
+        }
+    }
+
+    & .actions {
+        margin-top: var(--gap-md);
+    }
+}

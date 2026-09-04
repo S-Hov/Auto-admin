@@ -55,3 +55,16 @@ body {
         align-items: center;
     }
 }
+
+.grid {
+    display: grid;
+    gap: clamp(5px, 1vw, 10px);
+
+    &.grid-1-column {
+        grid-template-columns: 1fr;
+    }
+
+    &.grid-2-columns {
+        grid-template-columns: 1fr 1fr;
+    }
+}
