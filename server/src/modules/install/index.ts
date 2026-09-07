@@ -1,3 +1,2 @@
-export { readInstallationStatus } from './install.queries';
+export { getInstallationStatus as readInstallationStatus, markMigrationsCompleted } from './install.repository';
 export type { InstallationStatusValue } from './install.types';
-export { markMigrationsCompleted } from './install.repository';
