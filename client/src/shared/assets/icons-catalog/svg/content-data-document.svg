@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
+<path stroke="none" d="M47,55H36V51H28v4H17a7,7,0,0,0-7,7H54A7,7,0,0,0,47,55Z"/>
+<path stroke="none" d="M19,50H45V18H19Zm23-3.5H33v-1h9Zm0-4H27v-1H42Zm0-4H32v-1H42Zm0-4H39v-1h3Zm0-4H27v-1H42Zm0-4H34v-1h8Zm-3-5h3v1H39Zm-17,0H37v1H22Zm0,4H32v1H22Zm0,4h3v1H22Zm0,4H37v1H22Zm0,4h8v1H22Zm0,4h3v1H22Zm0,4h9v1H22Z"/>
+<path stroke="none" d="M49,15l3-4h9V2H45v9h3Zm7-9.5h2v1H56Zm-8,0h6v1H48Z"/>
+<path stroke="none" d="M15,15l1-4h3V2H3v9h9ZM9,6.5H6v-1H9Zm2-1h5v1H11Z"/>
+</svg>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 452.986 452.986" fill="none">
+<g>
+	<path stroke="none" d="M403.87,0H49.095C22.11,0,0,22.11,0,49.117v354.796c0,26.963,22.11,49.074,49.095,49.074H403.87 c27.007,0,49.117-22.11,49.117-49.074V49.117C452.986,22.11,430.876,0,403.87,0z M415.82,410.859H37.188V101.836H415.82V410.859z"/>
+	<circle stroke="none" cx="124.765" cy="169.029" r="36.843"/>
+	<rect stroke="none" x="192.282" y="153.692" width="161.716" height="30.695"/>
+	<circle stroke="none" cx="124.765" cy="259.065" r="36.843"/>
+	<rect stroke="none" x="192.282" y="243.728" width="161.716" height="30.674"/>
+	<circle stroke="none" cx="124.765" cy="349.123" r="36.843"/>
+	<rect stroke="none" x="192.282" y="333.765" width="161.716" height="30.674"/>
+</g>
+</svg>
