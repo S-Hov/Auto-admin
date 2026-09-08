@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MySqlCompiler } from './mysql.compiler';
-import type { ReadQuery, CreateQuery } from '../types/query.types';
+import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from '../types/query.types';
 
 describe('MySqlCompiler', () => {
 
@@ -75,6 +75,45 @@ describe('MySqlCompiler', () => {
 
             expect(result.sql.trim()).toBe('INSERT INTO `users` (`username`, `age`) VALUES (?, ?)');
             expect(result.params).toEqual(['john_doe', 25]);
+        });
+    });
+
+    describe('compileUpdate', () => {
+        it('должен компилировать UPDATE для одной строки', () => {
+            const query: UpdateQuery = {
+                action: 'update',
+                table: 'users',
+                data: {
+                    name: 'John Doe',
+                    age: 26,
+                    sex: 'male',
+                },
+                where: {
+                    id: { _eq: 1 },
+                },
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('UPDATE `users` SET `name` = ?, `age` = ?, `sex` = ? WHERE `id` = ?');
+            expect(result.params).toEqual(['John Doe', 26, 'male', 1]);
+        });
+    });
+
+    describe('compileDelete', () => {
+        it('должен компилировать DELETE для одной строки', () => {
+            const query: DeleteQuery = {
+                action: 'delete',
+                table: 'users',
+                where: {
+                    id: { _eq: 1 },
+                },
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('DELETE FROM `users` WHERE `id` = ?');
+            expect(result.params).toEqual([1]);
         });
     });
 
