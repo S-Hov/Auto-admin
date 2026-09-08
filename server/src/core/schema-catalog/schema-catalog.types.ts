@@ -4,23 +4,18 @@ export interface DBSnapshot {
     tables: DBTable[];
 }
 
-export interface DBPrimary {
-    name: "PRIMARY";
-    columns: string[];
-}
-
-export interface DBUniq {
+export interface DBKey {
     name: string;
     columns: string[];
 }
 
 export type ForeignKeyAction = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION' | 'SET DEFAULT';
 
-export interface DBForeign {
+export interface DBForeignKey {
     name: string;
     columns: string[];
-    refTableName: string;
-    refColumns: string[];
+    referencedTableName: string;
+    referencedColumns: string[];
     onUpdate: ForeignKeyAction;
     onDelete: ForeignKeyAction;
 }
@@ -29,9 +24,10 @@ export interface DBTable {
     name: string;
     type: 'table' | 'view';
     columns: DBColumn[];
-    primaryKey: DBPrimary | null;
-    uniqueKeys: DBUniq[];
-    foreignKeys: DBForeign[];
+    primaryKey: DBKey | null;
+    uniqueKeys: DBKey[];
+    foreignKeys: DBForeignKey[];
+    isServiceTable: boolean;
 }
 
 export interface DBGenerated {
@@ -45,15 +41,7 @@ export interface DBColumn {
     dataType: string;
     columnType: string;
     nullable: boolean;
-    default: string | null;
+    defaultValue: string | null;
     generated: DBGenerated;
     autoIncrement: boolean;
-}
-
-export interface DBUnion {
-    name: string;
-    columns: Extract<DBColumn, 'name'>[];
-    onDelete: ForeignKeyAction;
-    onUpdate: ForeignKeyAction;
-    type: 'LEFT' | 'RIGHT' | 'INNER' | 'OUTER';
 }
