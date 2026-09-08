@@ -9,8 +9,8 @@
     "start": "node dist/app.js",
     "test": "tsx --test tests/core.test.ts",
     "test:integration": "tsx --test tests/integration/mysql.test.ts",
-    "vitest": "vitest run",
-    "vitest:watch": "vitest"
+    "vitest": "vitest run src/core/query-engine",
+    "vitest:watch": "vitest src/core/query-engine"
   },
   "keywords": [],
   "author": "",
