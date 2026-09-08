@@ -1,8 +1,9 @@
 import { cleanOldLoginAttempts } from "../modules/auth";
 import { readBootstrapStatus } from "../modules/bootstrap";
 import { logger } from "../shared/logger";
+import { envConfig } from "../config/env";
 
-export const cleanOldLoginAttemptsService = async (days: number = 30) => {
+export const cleanOldLoginAttemptsService = async (days: number = envConfig.Auto_Admin__LOGIN_ATTEMPT_RETENTION_DAYS) => {
     const startTime = Date.now();
     const bootstrapStatus = await readBootstrapStatus();
     if (bootstrapStatus !== 'ready') {

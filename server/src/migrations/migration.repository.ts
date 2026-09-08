@@ -141,7 +141,7 @@ export const markMigrationAppliedFromRecovery = async (
 };
 
 export const prepareMigrationForRetry = async (connection: Connection, version: string): Promise<void> => {
-    await connection.query(`
+    const [result] = await connection.query<ResultSetHeader>(`
         UPDATE \`${MIGRATION_HISTORY_TABLE}\`
         SET status = 'running',
             started_at = CURRENT_TIMESTAMP(3),
@@ -151,4 +151,8 @@ export const prepareMigrationForRetry = async (connection: Connection, version: 
         WHERE version = ?
         AND status IN ('failed', 'running')
     `, [version]);
+
+    if (result.affectedRows !== 1) {
+        throw new Error(`Migration ${version} not found or not in recoverable state`);
+    }
 };

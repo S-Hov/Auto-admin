@@ -1,6 +1,7 @@
 import type { Connection, RowDataPacket } from "mysql2/promise"
 import { MIGRATION_LOCK_NAME } from "./config";
 import { MigrationLockUnavailableError } from "./migration.errors";
+import { logger } from "../shared/logger";
 
 interface MigrationLockRow extends RowDataPacket {
     acquired: 0 | 1 | null;
@@ -29,6 +30,6 @@ export const releaseMigrationLock = async (connection: Connection): Promise<void
     const released = rows[0]?.released;
 
     if (released === 1) return;
-    else if (released === 0) console.warn('Блокировка существует, но принадлежит другому соединению');
-    else console.warn('Блокировки с таким именем не существует');
+    else if (released === 0) logger.warn({ lockName: MIGRATION_LOCK_NAME }, 'Migration lock belongs to another connection');
+    else logger.warn({ lockName: MIGRATION_LOCK_NAME }, 'Migration lock does not exist');
 }

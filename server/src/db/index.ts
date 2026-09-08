@@ -1,4 +1,6 @@
 import mysql from "mysql2/promise";
+import { envConfig } from "../config/env";
+import { logger } from "../shared/logger";
 
 let pool: mysql.Pool | null = null;
 
@@ -21,6 +23,7 @@ export function getPool() {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
+            connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
             supportBigNumbers: true,
             bigNumberStrings: false,
         });
@@ -28,7 +31,10 @@ export function getPool() {
         return pool;
     }
     catch (error) {
-        console.error('Error connecting to the database:', error);
+        const safeError = error instanceof Error
+            ? { name: error.name, message: error.message, code: 'code' in error ? String(error.code) : undefined }
+            : { type: typeof error };
+        logger.error({ error: safeError, service: 'database-pool' }, 'Failed to create database pool');
         throw error;
     }
 }

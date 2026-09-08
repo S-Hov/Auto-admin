@@ -7,10 +7,12 @@ export interface ApiErrorPayload {
     details?: unknown;
 }
 
-export interface UnifiedResponse<TData = unknown> {
-    success: boolean;
+export interface ApiSuccessPayload<TData = unknown> {
+    success: true;
     code: string;
     data?: TData;
-    params?: TranslationParams;
-    details?: unknown;
 }
+
+// apiClient throws for every error envelope, therefore endpoint methods expose
+// only the successful branch to their callers.
+export type UnifiedResponse<TData = unknown> = ApiSuccessPayload<TData>;

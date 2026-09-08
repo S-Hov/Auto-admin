@@ -114,7 +114,6 @@ const MigrationRecovery = () => {
     const onSubmit = async (data: MigrationRecoveryFormValues) => {
         sessionStorage.setItem(STORAGE_KEYS.INSTALL_TOKEN, data.install_token);
         setInstallToken(data.install_token);
-        void loadRecoveryInfo();
     }
 
     return (

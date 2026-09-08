@@ -12,12 +12,14 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
         return errorResponse(res, error.status, error.code, error.params, error.details);
     }
 
+    const message = error instanceof Error ? error.message : 'Unhandled non-error value';
+
     logger.error({
         requestId: req.requestId,
         method: req.method,
         url: req.url,
         err: error,
-    }, error.message);
+    }, message);
 
     return errorResponse(res, 500, ERROR_CODES.COMMON_INTERNAL_ERROR);
 };

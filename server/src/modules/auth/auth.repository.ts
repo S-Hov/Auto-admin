@@ -1,6 +1,7 @@
 import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../db"
 import { ActiveSessionRow, CreateSessionData, LoginAttemptsRow, LoginUserRow } from "./auth.types";
+import { envConfig } from "../../config/env";
 
 export const getUserByUserName = async (userName: string): Promise<LoginUserRow | undefined> => {
     const [user] = await getPool().query<LoginUserRow[]>(`
@@ -52,30 +53,30 @@ export const revokeSessionByTokenHash = async (tokenHash: string): Promise<void>
 export const getLoginAttempts = async (username: string, ipAddress: string | null): Promise<LoginAttemptsRow> => {
     const [attempts] = await getPool().query<LoginAttemptsRow[]>(`
         SELECT 
-            -- 1. Попытки пользователя со ВСЕХ IP (за последние 15 минут)
-            COALESCE(SUM(CASE WHEN username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS userCount15m,
+            -- Попытки пользователя со всех IP за короткое окно
+            COALESCE(SUM(CASE WHEN username = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND) THEN 1 ELSE 0 END), 0) AS userCountInWindow,
             
-            -- 2. Все попытки с текущего IP адреса (за последние 24 часа)
-            COALESCE(SUM(CASE WHEN ip_address <=> ? AND created_at >= NOW() - INTERVAL 1 DAY THEN 1 ELSE 0 END), 0) AS ipCount1d,
+            -- Все попытки с текущего IP за длинное окно
+            COALESCE(SUM(CASE WHEN ip_address <=> ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND) THEN 1 ELSE 0 END), 0) AS ipCountInWindow,
             
-            -- 3. (Опционально) Попытки этого пользователя с этого конкретного IP (за 15 минут)
-            COALESCE(SUM(CASE WHEN ip_address <=> ? AND username = ? AND created_at >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END), 0) AS ipUserCount15m
+            -- Попытки пользователя с конкретного IP за короткое окно
+            COALESCE(SUM(CASE WHEN ip_address <=> ? AND username = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND) THEN 1 ELSE 0 END), 0) AS ipUserCountInWindow
         FROM Auto_Admin__login_attempts 
         WHERE (ip_address <=> ? OR username = ?) 
-        AND created_at >= NOW() - INTERVAL 1 DAY;
+        AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND);
     `, [
-        username,              // для userCount15m
-        ipAddress,             // для ipCount1d
-        ipAddress, username,   // для ipUserCount15m
-        ipAddress, username    // для WHERE
+        username, envConfig.Auto_Admin__AUTH_SHORT_WINDOW_SECONDS,
+        ipAddress, envConfig.Auto_Admin__AUTH_IP_WINDOW_SECONDS,
+        ipAddress, username, envConfig.Auto_Admin__AUTH_SHORT_WINDOW_SECONDS,
+        ipAddress, username, envConfig.Auto_Admin__AUTH_IP_WINDOW_SECONDS,
     ]);
 
     const row = attempts[0];
     return {
         ...row,
-        userCount15m: Number(row?.userCount15m ?? 0),
-        ipCount1d: Number(row?.ipCount1d ?? 0),
-        ipUserCount15m: Number(row?.ipUserCount15m ?? 0),
+        userCountInWindow: Number(row?.userCountInWindow ?? 0),
+        ipCountInWindow: Number(row?.ipCountInWindow ?? 0),
+        ipUserCountInWindow: Number(row?.ipUserCountInWindow ?? 0),
     };
 };
 

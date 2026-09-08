@@ -22,11 +22,14 @@ export const getInstallationStatusForUpdate = async (connection: PoolConnection)
     return rows[0];
 };
 
-export const getInstallationStatus = async (): Promise<InstallationStatus | undefined> => {
-    const [status] = await getPool().query<InstallationStatus[]>(`
-        SELECT status FROM Auto_Admin__installation
+export const getInstallationStatus = async (): Promise<InstallationStatusValue | undefined> => {
+    const [rows] = await getPool().query<InstallationStatus[]>(`
+        SELECT status
+        FROM Auto_Admin__installation
+        WHERE id = 1
+        LIMIT 1
     `);
-    return status[0];
+    return rows[0]?.status;
 }
 
 export const markMigrationsCompleted = async (executor: DbExecutor): Promise<void> => {

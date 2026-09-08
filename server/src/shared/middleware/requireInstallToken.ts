@@ -2,12 +2,13 @@ import type { NextFunction, Request, Response } from "express";
 import { unauthorized } from "../api/errors/error-helpers";
 import crypto from 'crypto';
 import { ERROR_CODES } from "../api/codes/error-codes";
+import { envConfig } from "../../config/env";
 
 const clientTokenName = 'x-auto-admin-install-token';
 
 export const requireInstallToken = (req: Request, _res: Response, next: NextFunction) => {
     const clientToken = req.get(clientTokenName);
-    const serverToken = process.env.Auto_Admin__INSTALL_TOKEN;
+    const serverToken = envConfig.Auto_Admin__INSTALL_TOKEN;
 
     if (!serverToken || serverToken.length < 32) {
         return next(unauthorized(ERROR_CODES.INSTALL_INVALID_SETUP_TOKEN));

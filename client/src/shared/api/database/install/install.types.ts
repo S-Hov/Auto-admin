@@ -59,5 +59,5 @@ export interface RecoveryMigrationResponse {
     version: string;
     name: string;
     checksum: string;
-    status: 'running' | 'failed' | 'applied';
+    status: 'running' | 'failed';
 }

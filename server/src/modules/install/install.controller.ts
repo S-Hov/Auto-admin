@@ -19,6 +19,7 @@ import type { DbConnectionData } from '../../db/checkConnection';
 import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema';
 import { SUCCESS_CODES } from '../../shared/api/codes/success-codes';
 import { RecoveryData } from './schema/recovery.schema';
+import { getRequestMeta } from '../../utils/getRequestMeta';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: DbConnectionData = req.body;
@@ -52,7 +53,7 @@ export const retryMigrationController = asyncHandler(async (req: Request, res: R
         checksum
     }: RecoveryData = req.body;
 
-    const result = await retryMigrationService(expectedVersion, checksum);
+    const result = await retryMigrationService(expectedVersion, checksum, getRequestMeta(req));
 
     return ok<ApplyNextMigrationResponse>(
         res,
@@ -67,7 +68,7 @@ export const markMigrationAppliedController = asyncHandler(async (req: Request, 
         checksum
     }: RecoveryData = req.body;
 
-    const result = await markMigrationAppliedService(expectedVersion, checksum);
+    const result = await markMigrationAppliedService(expectedVersion, checksum, getRequestMeta(req));
 
     return ok<ApplyNextMigrationResponse>(
         res,

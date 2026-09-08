@@ -4,7 +4,8 @@ import { logger } from '../logger';
 
 export const httpLogger = (req: Request, res: Response, next: NextFunction): void => {
     const rawReqId = req.get('x-request-id');
-    const requestId = (rawReqId && rawReqId.length <= 64) ? rawReqId : randomUUID();
+    const requestIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
+    const requestId = rawReqId && requestIdPattern.test(rawReqId) ? rawReqId : randomUUID();
 
     req.requestId = requestId;
     res.setHeader('x-request-id', requestId);

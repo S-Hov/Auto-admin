@@ -1,8 +1,13 @@
 import { ApiClientError } from "../api/ApiClientError";
+import { ApiContractError } from "../api/apiClient";
 import i18n from "i18next";
 import type { TranslationParams } from "../api/types";
 
 export function apiMessage(obj: unknown): string {
+    if (obj instanceof ApiContractError) {
+        return i18n.t('api:COMMON.UNKNOWN_ERROR');
+    }
+
     if (obj instanceof ApiClientError) {
         const key = `api:${obj.code}`;
 

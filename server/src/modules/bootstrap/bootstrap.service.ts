@@ -5,6 +5,7 @@ import { MigrationRecoveryRequiredError } from "../../migrations/migration.error
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from '../install';
 import type { BootstrapStage } from "./bootstrap.types";
+import { logger } from "../../shared/logger";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
     try {
@@ -57,6 +58,7 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
         }
     }
     catch (error) {
+        logger.error({ err: error, service: 'bootstrap-status' }, 'Unexpected bootstrap status error');
         return 'system_error';
     }
 }

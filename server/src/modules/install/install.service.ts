@@ -20,17 +20,21 @@ import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import { markMigrationAppliedManually, retryMigration } from "../../migrations/migration.recovery";
 import { getMigrationHistory } from "../../migrations/migration.repository";
+import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
+import { hasCompleteConfig } from "../../db/databaseConfig";
+import type { RequestMeta } from "../../utils/getRequestMeta";
 
 const envPath = path.join(process.cwd(), '.env');
-let isConfiguringDb = false;
+const databaseConfigurationMutex = new AsyncMutex();
 
 export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
-    if (isConfiguringDb) {
-        throw conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED);
-    }
-    isConfiguringDb = true;
+    const release = await databaseConfigurationMutex.acquire();
     let temporaryPath: string | null = null;
     try {
+        if (hasCompleteConfig()) {
+            throw conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED);
+        }
+
         let versionInfo: { version?: string };
 
         try {
@@ -65,23 +69,15 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
             .join('\n') + '\n';
 
 
-        try {
-            temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
+        temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
 
-            await fs.writeFile(temporaryPath, updatedContent, {
-                encoding: 'utf8',
-                mode: 0o600,
-            });
+        await fs.writeFile(temporaryPath, updatedContent, {
+            encoding: 'utf8',
+            mode: 0o600,
+        });
 
-            await fs.rename(temporaryPath, envPath);
-            temporaryPath = null;
-        }
-        finally {
-            isConfiguringDb = false;
-            if (temporaryPath) {
-                await fs.unlink(temporaryPath).catch(() => { });
-            }
-        }
+        await fs.rename(temporaryPath, envPath);
+        temporaryPath = null;
 
         Object.assign(process.env, databaseEnv);
 
@@ -89,7 +85,10 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
 
         return { ...versionInfo, redirectedTo: PagePaths.login };
     } finally {
-        isConfiguringDb = false;
+        if (temporaryPath) {
+            await fs.unlink(temporaryPath).catch(() => undefined);
+        }
+        release();
     }
 }
 
@@ -144,12 +143,12 @@ export const applyNextMigrationService = async (expectedVersion: string): Promis
     };
 }
 
-export const retryMigrationService = async (expectedVersion: string, checksum: string): Promise<ApplyNextMigrationResponse> => {
+export const retryMigrationService = async (expectedVersion: string, checksum: string, meta: RequestMeta): Promise<ApplyNextMigrationResponse> => {
     let applied: MigrationStepResponse | null = null;
     let result: MigrationExecutionResult;
 
     try {
-        result = await retryMigration(expectedVersion, checksum);
+        result = await retryMigration(expectedVersion, checksum, meta);
         if (result.isComplete) await markMigrationsCompleted(getPool());
     }
     catch (error) {
@@ -180,13 +179,17 @@ export const retryMigrationService = async (expectedVersion: string, checksum: s
     };
 }
 
-export const markMigrationAppliedService = async (expectedVersion: string, checksum: string): Promise<ApplyNextMigrationResponse> => {
+export const markMigrationAppliedService = async (expectedVersion: string, checksum: string, meta: RequestMeta): Promise<ApplyNextMigrationResponse> => {
     try {
-        const result = await markMigrationAppliedManually(expectedVersion, checksum);
+        const result = await markMigrationAppliedManually(expectedVersion, checksum, meta);
         if (result.isComplete) await markMigrationsCompleted(getPool());
 
         return {
-            applied: result.applied,
+            applied: result.applied === null ? null : {
+                version: result.applied.version,
+                name: result.applied.name,
+                fileName: result.applied.fileName,
+            },
             nextVersion: result.next?.version ?? null,
             isComplete: result.isComplete
         };

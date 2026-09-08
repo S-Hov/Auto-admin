@@ -1,5 +1,41 @@
 import { ApiClientError } from "./ApiClientError";
-import type { ApiErrorPayload } from "./types";
+import type { ApiErrorPayload, ApiSuccessPayload, TranslationParams } from "./types";
+
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+);
+
+const isTranslationParams = (value: unknown): value is TranslationParams => (
+    isRecord(value)
+    && Object.values(value).every((item) => (
+        typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'
+    ))
+);
+
+export const isApiErrorPayload = (value: unknown): value is ApiErrorPayload => {
+    if (!isRecord(value) || value.success !== false || typeof value.code !== 'string' || value.code.length === 0) {
+        return false;
+    }
+
+    return value.params === undefined || isTranslationParams(value.params);
+};
+
+export const isApiSuccessPayload = (value: unknown): value is ApiSuccessPayload => (
+    isRecord(value)
+    && value.success === true
+    && typeof value.code === 'string'
+    && value.code.length > 0
+);
+
+export class ApiContractError extends Error {
+    readonly status: number;
+
+    constructor(status: number) {
+        super('The server returned an invalid API response');
+        this.name = 'ApiContractError';
+        this.status = status;
+    }
+}
 
 export const getBaseUrl = (): string => {
     const viteApiUrl: string | undefined = import.meta.env.VITE_API_URL;
@@ -14,7 +50,7 @@ export const getBaseUrl = (): string => {
     return 'http://127.0.0.1:5180';
 }
 
-export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
+export async function apiClient<TData = unknown>(url: string, options?: RequestInit): Promise<ApiSuccessPayload<TData>> {
     const headers = new Headers(options?.headers as HeadersInit);
     const isFormDataBody: boolean = typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
@@ -38,18 +74,17 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
         data = text;
     }
 
-    const errorObj = (typeof data === 'object' && data !== null) ? (data as Record<string, unknown>) : null;
-    const isFailed = !response.ok || (errorObj && errorObj.success === false);
-
-    if (isFailed) {
-        const errorPayload: ApiErrorPayload = {
-            success: false,
-            code: typeof errorObj?.code === 'string' ? errorObj.code : 'COMMON.UNKNOWN_ERROR',
-            params: errorObj?.params as ApiErrorPayload['params'],
-            details: errorObj?.details
-        };
-        throw new ApiClientError(errorPayload, response.status);
+    if (isApiErrorPayload(data)) {
+        throw new ApiClientError(data, response.status);
     }
 
-    return data as T;
+    if (!response.ok) {
+        throw new ApiClientError({ success: false, code: 'COMMON.UNKNOWN_ERROR' }, response.status);
+    }
+
+    if (!isApiSuccessPayload(data)) {
+        throw new ApiContractError(response.status);
+    }
+
+    return data as ApiSuccessPayload<TData>;
 }

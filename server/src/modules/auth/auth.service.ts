@@ -7,6 +7,7 @@ import { createLoginAttempt, createSession, deleteLoginAttemptById, getActiveSes
 import { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { envConfig } from '../../config/env';
 
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
 
@@ -20,7 +21,11 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
 
     const attempts = await getLoginAttempts(normalizeUsername, meta.ipAddress);
 
-    if (attempts.userCount15m >= 10 || attempts.ipCount1d >= 100 || attempts.ipUserCount15m >= 5) {
+    if (
+        attempts.userCountInWindow >= envConfig.Auto_Admin__AUTH_USER_ATTEMPT_LIMIT
+        || attempts.ipCountInWindow >= envConfig.Auto_Admin__AUTH_IP_ATTEMPT_LIMIT
+        || attempts.ipUserCountInWindow >= envConfig.Auto_Admin__AUTH_IP_USER_ATTEMPT_LIMIT
+    ) {
         throw tooManyRequests(ERROR_CODES.AUTH_TOO_MANY_ATTEMPTS, { params: { seconds: 900 } });
     }
 

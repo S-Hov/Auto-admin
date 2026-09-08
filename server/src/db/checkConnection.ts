@@ -1,4 +1,6 @@
 import mysql, { RowDataPacket } from "mysql2/promise";
+import { envConfig } from "../config/env";
+import { logger } from "../shared/logger";
 
 export interface DbConnectionData {
     host: string;
@@ -23,7 +25,7 @@ export const checkConnection = async ({ host, port, database, user, password }: 
             user,
             password,
             database,
-            connectTimeout: 5000,
+            connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
         });
 
         const [rows] = await connection.query<VersionRow[]>("SELECT VERSION() AS version");
@@ -32,7 +34,10 @@ export const checkConnection = async ({ host, port, database, user, password }: 
         return { version };
 
     } catch (error) {
-        console.error('Error in checkConnection:', error);
+        const safeError = error instanceof Error
+            ? { name: error.name, message: error.message, code: 'code' in error ? String(error.code) : undefined }
+            : { type: typeof error };
+        logger.warn({ error: safeError, service: 'database-connection-check' }, 'Database connection check failed');
         throw error;
     } finally {
         await connection?.end();

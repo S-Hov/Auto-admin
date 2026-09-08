@@ -2,6 +2,7 @@ import { type DbExecutor, getPool } from "../../../db";
 import { CompiledQuery } from "../compiler/mysql.compiler";
 import type { DatabaseDriver, QueryResult } from "./driver.types";
 import mysql from "mysql2/promise"
+import { envConfig } from "../../../config/env";
 
 export class MySqlDriver implements DatabaseDriver {
     private pool: mysql.PoolConnection | mysql.Pool;
@@ -11,7 +12,11 @@ export class MySqlDriver implements DatabaseDriver {
     }
 
     async execute<T = unknown>(query: CompiledQuery): Promise<QueryResult<T>> {
-        const [result] = await this.pool.query(query.sql, query.params);
+        const [result] = await this.pool.query({
+            sql: query.sql,
+            timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+            values: query.params,
+        });
         let rows: T[] = [];
         let affectedRows = 0;
         let insertId: number | string | null = null;
@@ -35,7 +40,10 @@ export class MySqlDriver implements DatabaseDriver {
 
     async ping(): Promise<boolean> {
         try {
-            await this.pool.query('SELECT 1');
+            await this.pool.query({
+                sql: 'SELECT 1',
+                timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+            });
             return true;
         }
         catch {

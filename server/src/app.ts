@@ -13,7 +13,14 @@ import './services';
 const app = express();
 
 const defaultAllowedOrigins = envConfig.Auto_Admin__CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) ?? [];
-const nodeEnv = process.env.Auto_Admin__NODE_ENV;
+const nodeEnv = envConfig.Auto_Admin__NODE_ENV;
+
+if (envConfig.Auto_Admin__TRUST_PROXY_HOPS > 0) {
+  app.set('trust proxy', envConfig.Auto_Admin__TRUST_PROXY_HOPS);
+}
+
+// Register tracing before parsers and CORS so their errors receive a request ID.
+app.use(httpLogger);
 
 if (nodeEnv === 'development') {
   for (let i = 5173; i <= 5179; i++) {
@@ -36,8 +43,6 @@ app.use(cors({
 app.use(express.json({ limit: '64kb' }));
 
 app.use(cookieParser());
-
-app.use(httpLogger);
 
 app.use('/api', ApiRouter)
 

@@ -20,7 +20,6 @@ export const created = <TData>(
 
 export const noContent = (
     res: Response,
-    code: SuccessCode = SUCCESS_CODES.COMMON_NO_CONTENT,
 ) => {
-    return successResponse(res, 204, code);
+    return res.status(204).send();
 };

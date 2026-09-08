@@ -34,6 +34,8 @@ export const enApi = {
         MIGRATIONS_ALREADY_COMPLETED: 'Migrations already completed',
         MIGRATIONS_ALREADY_RUNNING: 'Migrations already running',
         MIGRATION_VERSION_CONFLICT: 'Migration version conflict',
+        MIGRATION_SCHEMA_VERIFICATION_FAILED: 'The database schema does not match the migration and cannot be marked as applied',
+        MIGRATION_RECOVERY_NOT_REQUIRED: 'Migration recovery is not currently required',
         ADMIN_ALREADY_CREATED: 'Admin already created',
         ADMIN_ROLE_NOT_FOUND: 'Admin role not found',
 

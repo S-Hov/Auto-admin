@@ -1,9 +1,10 @@
 import pino from 'pino';
+import { envConfig } from '../../config/env';
 
-const isDev = process.env.Auto_Admin__NODE_ENV === 'development';
+const isDev = envConfig.Auto_Admin__NODE_ENV === 'development';
 
 export const logger = pino({
-    level: process.env.Auto_Admin__LOG_LEVEL || 'info',
+    level: envConfig.Auto_Admin__LOG_LEVEL,
     redact: {
         paths: [
             'req.headers.cookie',
@@ -13,6 +14,12 @@ export const logger = pino({
             '*.confirmPassword',
             '*.token',
             '*.install_token',
+            'err.config.password',
+            'error.config.password',
+            'reason.config.password',
+            'cause.config.password',
+            'req.body.password',
+            'req.body.confirmPassword',
         ],
         censor: '[REDACTED]',
     },

@@ -1,23 +1,22 @@
 import { apiClient } from '../apiClient';
-import type { UnifiedResponse } from '../types';
 import type { AuthUser, LoginRequest, LoginResponse, LogoutResponse } from './auth.types';
 
 export const auth = {
     login(data: LoginRequest) {
-        return apiClient<UnifiedResponse<LoginResponse>>('/auth/login', {
+        return apiClient<LoginResponse>('/auth/login', {
             method: 'POST',
             body: JSON.stringify(data)
         })
     },
 
     getMe() {
-        return apiClient<UnifiedResponse<AuthUser>>('/auth/me', {
+        return apiClient<AuthUser>('/auth/me', {
             method: 'GET'
         })
     },
 
     logout() {
-        return apiClient<UnifiedResponse<LogoutResponse>>('/auth/logout', {
+        return apiClient<LogoutResponse>('/auth/logout', {
             method: 'POST'
         })
     },

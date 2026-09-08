@@ -34,6 +34,8 @@ export const ruApi = {
         MIGRATIONS_ALREADY_COMPLETED: 'Миграции уже завершены',
         MIGRATIONS_ALREADY_RUNNING: 'Миграции уже запущены',
         MIGRATION_VERSION_CONFLICT: 'Конфликт версий миграций',
+        MIGRATION_SCHEMA_VERIFICATION_FAILED: 'Схема базы не соответствует миграции. Нельзя пометить её выполненной',
+        MIGRATION_RECOVERY_NOT_REQUIRED: 'Восстановление миграций сейчас не требуется',
         ADMIN_ALREADY_CREATED: 'Администратор уже создан',
         ADMIN_ROLE_NOT_FOUND: 'Роль администратора не найдена',
 
