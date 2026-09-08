@@ -1,6 +1,5 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { z } from 'zod';
+import { expect, it } from 'vitest';
 import { buildMigrationPlan } from '../src/migrations/migration.plan';
 import { MigrationRecoveryRequiredError } from '../src/migrations/migration.errors';
 import type { MigrationDescriptor, MigrationHistoryRecord } from '../src/migrations/migration.types';
@@ -32,49 +31,47 @@ const historyRecord = (status: MigrationHistoryRecord['status'] = 'applied'): Mi
     updatedAt: new Date(1),
 });
 
-test('buildMigrationPlan returns the next pending migration', () => {
+it('buildMigrationPlan returns the next pending migration', () => {
     const plan = buildMigrationPlan([descriptor], []);
-    assert.equal(plan.next, descriptor);
-    assert.equal(plan.isComplete, false);
+    expect(plan.next).toBe(descriptor);
+    expect(plan.isComplete).toBe(false);
 });
 
-test('buildMigrationPlan rejects a failed migration', () => {
-    assert.throws(
-        () => buildMigrationPlan([descriptor], [historyRecord('failed')]),
-        MigrationRecoveryRequiredError,
-    );
+it('buildMigrationPlan rejects a failed migration', () => {
+    expect(() => buildMigrationPlan([descriptor], [historyRecord('failed')]))
+        .toThrow(MigrationRecoveryRequiredError);
 });
 
-test('buildMigrationPlan rejects a changed checksum', () => {
+it('buildMigrationPlan rejects a changed checksum', () => {
     const changed = { ...historyRecord(), checksum: 'different' };
-    assert.throws(() => buildMigrationPlan([descriptor], [changed]), /checksum mismatch/i);
+    expect(() => buildMigrationPlan([descriptor], [changed])).toThrow(/checksum mismatch/i);
 });
 
-test('mapZodIssue distinguishes missing, invalid and too-short fields in Zod 4', () => {
+it('mapZodIssue distinguishes missing, invalid and too-short fields in Zod 4', () => {
     const schema = z.object({ name: z.string().min(3) });
 
     const missing = schema.safeParse({});
-    assert.equal(missing.success, false);
+    expect(missing.success).toBe(false);
     if (!missing.success) {
-        assert.equal(mapZodIssue(missing.error.issues[0], {}).code, ERROR_CODES.VALIDATION_REQUIRED);
+        expect(mapZodIssue(missing.error.issues[0], {}).code).toBe(ERROR_CODES.VALIDATION_REQUIRED);
     }
 
     const invalid = schema.safeParse({ name: 1 });
-    assert.equal(invalid.success, false);
+    expect(invalid.success).toBe(false);
     if (!invalid.success) {
-        assert.equal(mapZodIssue(invalid.error.issues[0], { name: 1 }).code, ERROR_CODES.VALIDATION_INVALID_TYPE);
+        expect(mapZodIssue(invalid.error.issues[0], { name: 1 }).code).toBe(ERROR_CODES.VALIDATION_INVALID_TYPE);
     }
 
     const tooShort = schema.safeParse({ name: 'a' });
-    assert.equal(tooShort.success, false);
+    expect(tooShort.success).toBe(false);
     if (!tooShort.success) {
         const mapped = mapZodIssue(tooShort.error.issues[0], { name: 'a' });
-        assert.equal(mapped.code, ERROR_CODES.VALIDATION_STRING_TOO_SHORT);
-        assert.deepEqual(mapped.params, { min: 3 });
+        expect(mapped.code).toBe(ERROR_CODES.VALIDATION_STRING_TOO_SHORT);
+        expect(mapped.params).toEqual({ min: 3 });
     }
 });
 
-test('AsyncMutex serializes concurrent critical sections', async () => {
+it('AsyncMutex serializes concurrent critical sections', async () => {
     const mutex = new AsyncMutex();
     const order: string[] = [];
 
@@ -93,5 +90,5 @@ test('AsyncMutex serializes concurrent critical sections', async () => {
     })();
 
     await Promise.all([first, second]);
-    assert.deepEqual(order, ['first:start', 'first:end', 'second:start']);
+    expect(order).toEqual(['first:start', 'first:end', 'second:start']);
 });

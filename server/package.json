@@ -7,10 +7,9 @@
     "dev": "tsx watch src/app.ts",
     "build": "tsc && node -e \"require('fs').cpSync('src/migrations/sql', 'dist/migrations/sql', { recursive: true })\"",
     "start": "node dist/app.js",
-    "test": "tsx --test tests/core.test.ts",
-    "test:integration": "tsx --test tests/integration/mysql.test.ts",
-    "vitest": "vitest run src/core/query-engine",
-    "vitest:watch": "vitest src/core/query-engine"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration/mysql.test.ts"
   },
   "keywords": [],
   "author": "",

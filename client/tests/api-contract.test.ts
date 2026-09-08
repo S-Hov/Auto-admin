@@ -1,19 +1,18 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { expect, it } from 'vitest';
 import { isApiErrorPayload, isApiSuccessPayload } from '../src/shared/api/apiClient';
 
-test('accepts valid success and error envelopes', () => {
-    assert.equal(isApiSuccessPayload({ success: true, code: 'COMMON.OK', data: { id: 1 } }), true);
-    assert.equal(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: { min: 1 } }), true);
+it('accepts valid success and error envelopes', () => {
+    expect(isApiSuccessPayload({ success: true, code: 'COMMON.OK', data: { id: 1 } })).toBe(true);
+    expect(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: { min: 1 } })).toBe(true);
 });
 
-test('rejects malformed success envelopes', () => {
-    assert.equal(isApiSuccessPayload({ code: 'COMMON.OK' }), false);
-    assert.equal(isApiSuccessPayload({ success: true, code: '' }), false);
-    assert.equal(isApiSuccessPayload({ success: false, code: 'COMMON.OK' }), false);
+it('rejects malformed success envelopes', () => {
+    expect(isApiSuccessPayload({ code: 'COMMON.OK' })).toBe(false);
+    expect(isApiSuccessPayload({ success: true, code: '' })).toBe(false);
+    expect(isApiSuccessPayload({ success: false, code: 'COMMON.OK' })).toBe(false);
 });
 
-test('rejects malformed error params', () => {
-    assert.equal(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: null }), false);
-    assert.equal(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: { nested: {} } }), false);
+it('rejects malformed error params', () => {
+    expect(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: null })).toBe(false);
+    expect(isApiErrorPayload({ success: false, code: 'COMMON.BAD_REQUEST', params: { nested: {} } })).toBe(false);
 });

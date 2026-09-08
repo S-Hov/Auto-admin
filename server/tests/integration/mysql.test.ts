@@ -1,10 +1,11 @@
-import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import test from 'node:test';
+import { expect, it } from 'vitest';
 
 const enabled = process.env.Auto_Admin__RUN_MYSQL_TESTS === '1';
 
-test('migration runner applies a clean catalog once and in order', { skip: !enabled }, async () => {
+const integrationTest = enabled ? it : it.skip;
+
+integrationTest('migration runner applies a clean catalog once and in order', async () => {
     const host = process.env.Auto_Admin__TEST_DB_HOST;
     const user = process.env.Auto_Admin__TEST_DB_USERNAME;
     const password = process.env.Auto_Admin__TEST_DB_PASSWORD ?? '';
@@ -31,7 +32,7 @@ test('migration runner applies a clean catalog once and in order', { skip: !enab
         const { applyNextMigration, getCurrentMigrationPlan } = await import('../../src/migrations/migration.runner');
         const { resetPool } = await import('../../src/db');
 
-        await assert.rejects(() => applyNextMigration('9999'), /expected|next|version/i);
+        await expect(applyNextMigration('9999')).rejects.toThrow(/expected|next|version/i);
 
         let plan = await getCurrentMigrationPlan();
         while (plan.next) {
@@ -39,13 +40,13 @@ test('migration runner applies a clean catalog once and in order', { skip: !enab
             plan = await getCurrentMigrationPlan();
         }
 
-        assert.equal(plan.isComplete, true);
-        assert.equal(plan.pending.length, 0);
+        expect(plan.isComplete).toBe(true);
+        expect(plan.pending).toHaveLength(0);
 
         const [historyRows] = await adminConnection.query<Array<{ count: number } & import('mysql2/promise').RowDataPacket>>(
             `SELECT COUNT(*) AS count FROM \`${database}\`.Auto_Admin__migration_history WHERE status = 'applied'`,
         );
-        assert.equal(Number(historyRows[0]?.count), plan.applied.length);
+        expect(Number(historyRows[0]?.count)).toBe(plan.applied.length);
 
         await resetPool();
     }
