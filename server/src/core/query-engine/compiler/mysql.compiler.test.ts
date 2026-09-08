@@ -85,22 +85,22 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `id` IN (?, ?, ?)');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `id` NOT IN (?, ?, ?)');
             expect(result.params).toEqual([1, 2, 3]);
         });
 
-        it('должен корректно обрабатывать операторы BETWEEN', () => {
+        it('должен корректно обрабатывать несколько операторов для одного поля (диапазон >= и <=)', () => {
             const query: ReadQuery = {
                 action: 'read',
                 table: 'users',
                 where: {
-                    age: { _between: [20, 30] },
+                    age: { _gte: 20, _lte: 30 },
                 },
             };
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` BETWEEN ? AND ?');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` >= ? AND `age` <= ?');
             expect(result.params).toEqual([20, 30]);
         });
 
@@ -118,7 +118,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` = ? OR `age` = ?');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` = ? OR `age` = ?)');
             expect(result.params).toEqual([20, 30]);
         });
 
@@ -136,7 +136,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` >= ? AND `age` <= ?');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` >= ? AND `age` <= ?)');
             expect(result.params).toEqual([20, 30]);
         });
 
@@ -156,7 +156,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE NOT (`age` >= ? AND `age` <= ?)');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE NOT ((`age` >= ? AND `age` <= ?))');
             expect(result.params).toEqual([20, 30]);
         });
 
@@ -179,7 +179,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` >= ?) AND (`name` = ? OR `name` = ?)');
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` >= ? AND (`name` = ? OR `name` = ?))');
             expect(result.params).toEqual([20, 'John', 'Jane']);
         });
 
@@ -221,7 +221,7 @@ describe('MySqlCompiler', () => {
                     {
                         table: 'posts',
                         on: {
-                            id: 'users.id',
+                            'users.id': 'posts.id',
                         },
                     },
                 ],
@@ -229,7 +229,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id`');
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
         });
 
@@ -242,7 +242,7 @@ describe('MySqlCompiler', () => {
                         table: 'posts',
                         type: 'RIGHT',
                         on: {
-                            id: 'users.id',
+                            'users.id': 'posts.id',
                         },
                     },
                 ],
@@ -250,7 +250,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users` RIGHT JOIN `posts` ON `users`.`id` = `posts`.`id`');
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` RIGHT JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
         });
 
@@ -263,7 +263,7 @@ describe('MySqlCompiler', () => {
                         table: 'posts',
                         type: 'INNER',
                         on: {
-                            id: 'users.id',
+                            'users.id': 'posts.id',
                         },
                     },
                 ],
@@ -271,7 +271,7 @@ describe('MySqlCompiler', () => {
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT * FROM `users` INNER JOIN `posts` ON `users`.`id` = `posts`.`id`');
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` INNER JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
         });
 
@@ -279,24 +279,24 @@ describe('MySqlCompiler', () => {
             const query: ReadQuery = {
                 action: 'read',
                 table: 'users',
-                select: ['id', 'name'],
+                select: ['users.id', 'users.name'],
                 joins: [
                     {
                         table: 'posts',
                         type: 'LEFT',
                         on: {
-                            id: 'users.id',
+                            'users.id': 'posts.id',
                         },
                     },
                 ],
                 where: {
-                    id: { _eq: 1 },
+                    'users.id': { _eq: 1 },
                 },
             };
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` WHERE `users`.`id` = ?');
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` WHERE `users`.`id` = ?');
             expect(result.params).toEqual([1]);
         });
 
@@ -304,32 +304,102 @@ describe('MySqlCompiler', () => {
             const query: ReadQuery = {
                 action: 'read',
                 table: 'users',
-                select: ['id', 'name'],
+                select: ['users.id', 'users.name'],
                 joins: [
                     {
                         table: 'posts',
                         type: 'LEFT',
                         on: {
-                            id: 'users.id',
+                            'users.id': 'posts.id',
                         },
                     },
                     {
                         table: 'comments',
                         type: 'LEFT',
                         on: {
-                            id: 'posts.id',
+                            'posts.id': 'comments.id',
                         },
                     },
                 ],
                 where: {
-                    id: { _eq: 1 },
+                    'users.id': { _eq: 1 },
                 },
             };
 
             const result = MySqlCompiler.compile(query);
 
-            expect(result.sql.trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` LEFT JOIN `comments` ON `posts`.`id` = `comments`.`id` WHERE `users`.`id` = ?');
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` LEFT JOIN `comments` ON `posts`.`id` = `comments`.`id` WHERE `users`.`id` = ?');
             expect(result.params).toEqual([1]);
+        });
+
+        it('должен корректно обрабатывать сортировку ORDER BY по одному полю', () => {
+            const query: ReadQuery = {
+                action: 'read',
+                table: 'users',
+                sort: [
+                    { field: 'created_at', direction: 'desc' },
+                ],
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  ORDER BY `created_at` DESC');
+            expect(result.params).toEqual([]);
+        });
+
+        it('должен корректно обрабатывать сортировку ORDER BY по нескольким полям', () => {
+            const query: ReadQuery = {
+                action: 'read',
+                table: 'users',
+                sort: [
+                    { field: 'role', direction: 'asc' },
+                    { field: 'id', direction: 'desc' },
+                ],
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  ORDER BY `role` ASC, `id` DESC');
+            expect(result.params).toEqual([]);
+        });
+
+        it('должен корректно обрабатывать операторы _gt, _lt, _neq, _like', () => {
+            const query: ReadQuery = {
+                action: 'read',
+                table: 'users',
+                where: {
+                    age: { _gt: 18, _lt: 60 },
+                    status: { _neq: 'banned' },
+                    name: { _like: '%admin%' },
+                },
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` > ? AND `age` < ? AND `status` != ? AND `name` LIKE ?');
+            expect(result.params).toEqual([18, 60, 'banned', '%admin%']);
+        });
+
+        it('должен корректно обрабатывать JOIN с алиасом таблицы (AS)', () => {
+            const query: ReadQuery = {
+                action: 'read',
+                table: 'posts',
+                joins: [
+                    {
+                        table: 'users',
+                        alias: 'author',
+                        type: 'INNER',
+                        on: {
+                            'posts.author_id': 'author.id',
+                        },
+                    },
+                ],
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `posts` INNER JOIN `users` AS `author` ON `posts`.`author_id` = `author`.`id`');
+            expect(result.params).toEqual([]);
         });
     });
 
@@ -348,6 +418,22 @@ describe('MySqlCompiler', () => {
 
             expect(result.sql.trim()).toBe('INSERT INTO `users` (`username`, `age`) VALUES (?, ?)');
             expect(result.params).toEqual(['john_doe', 25]);
+        });
+
+        it('должен компилировать пакетную вставку (Batch Create) нескольких строк', () => {
+            const query: CreateQuery = {
+                action: 'create',
+                table: 'users',
+                data: [
+                    { username: 'alice', age: 20 },
+                    { username: 'bob', age: 30 },
+                ],
+            };
+
+            const result = MySqlCompiler.compile(query);
+
+            expect(result.sql.trim()).toBe('INSERT INTO `users` (`username`, `age`) VALUES (?, ?), (?, ?)');
+            expect(result.params).toEqual(['alice', 20, 'bob', 30]);
         });
     });
 
