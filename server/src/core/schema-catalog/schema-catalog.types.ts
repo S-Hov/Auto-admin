@@ -1,6 +1,6 @@
 export interface DBSnapshot {
-    name: string;
-    scanTime: Date;
+    schemaName: string;
+    scannedAt: Date;
     tables: DBTable[];
 }
 
@@ -15,6 +15,7 @@ export interface DBForeignKey {
     name: string;
     columns: string[];
     referencedTableName: string;
+    referencedSchemaName: string;
     referencedColumns: string[];
     onUpdate: ForeignKeyAction;
     onDelete: ForeignKeyAction;
@@ -23,11 +24,13 @@ export interface DBForeignKey {
 export interface DBTable {
     name: string;
     type: 'table' | 'view';
+    engine: string | null;
     columns: DBColumn[];
     primaryKey: DBKey | null;
     uniqueKeys: DBKey[];
     foreignKeys: DBForeignKey[];
     isServiceTable: boolean;
+    comment: string | null;
 }
 
 export interface DBGenerated {
@@ -39,9 +42,24 @@ export interface DBColumn {
     name: string;
     position: number;
     dataType: string;
+    characterMaximumLength: number | null;
+    numericPrecision: number | null;
+    numericScale: number | null;
+    datetimePrecision: number | null;
     columnType: string;
     nullable: boolean;
     defaultValue: string | null;
     generated: DBGenerated;
     autoIncrement: boolean;
+    extra: string;
+    characterSetName: string | null;
+    collationName: string | null;
+    comment: string | null;
+}
+
+export interface DBIndex {
+    name: string;
+    columns: string[];
+    isUnique: boolean;
+    type: number;
 }
