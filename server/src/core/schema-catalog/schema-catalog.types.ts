@@ -31,7 +31,7 @@ export interface DBTable {
     foreignKeys: DBForeignKey[];
     isServiceTable: boolean;
     comment: string | null;
-    index: DBIndex[];
+    indexes: DBIndex[];
 }
 
 export interface DBGenerated {
@@ -62,5 +62,5 @@ export interface DBIndex {
     name: string;
     columns: string[];
     isUnique: boolean;
-    indexType: 'BTREE' | 'FULLTEXT' | 'HASH' | 'RTREE' | string;
+    indexType: string;
 }
