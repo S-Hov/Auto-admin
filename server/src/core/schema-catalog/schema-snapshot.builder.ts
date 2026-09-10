@@ -1,32 +1,41 @@
-import { logger } from "../../shared/logger";
 import type { InformationSchemaRows } from "./information-schema.types";
+import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 import type { DBSnapshot, DBTable } from "./schema-catalog.types";
 
-export const schemaSnapshotBuilder = async (schemaName: string, time: Date, schema: InformationSchemaRows): Promise<DBSnapshot> => {
+export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: InformationSchemaRows): DBSnapshot => {
     const tables: DBTable[] = [];
+    const tablesMap = new Map<string, DBTable>();
     for (const table of schema.tables) {
-        tables.push({
+        const tableType = (() => {
+            switch (table.tableType) {
+                case 'BASE TABLE':
+                    return 'table';
+                case 'VIEW':
+                    return 'view';
+                default:
+                    throw new Error(`Unknown table type: ${table.tableType}`);
+            }
+        })();
+        const DBtable: DBTable = {
             name: table.tableName,
-            type: table.tableType === 'BASE TABLE' ? 'table' : 'view',
+            type: tableType,
             engine: table.engine,
             columns: [],
             primaryKey: null,
             uniqueKeys: [],
             foreignKeys: [],
-            isServiceTable: table.tableName.startsWith("Auto_Admin__") ? true : false,
+            isServiceTable: table.tableName.startsWith(SERVICES_TABLE_PREFIX) ? true : false,
             comment: table.tableComment || null,
             indexes: [],
-        })
+        }
+        tables.push(DBtable);
+        tablesMap.set(table.tableName, DBtable);
     }
 
     for (const column of schema.columns) {
-        const table = tables.find(t => t.name === column.tableName);
+        const table = tablesMap.get(column.tableName);
         if (!table) {
-            logger.info({
-                columnName: column.columnName,
-                tableName: column.tableName,
-            }, `Table not found for column`);
-            continue;
+            throw new Error(`Table ${column.tableName} not found for column ${column.columnName}`);
         }
         table.columns.push({
             name: column.columnName,
@@ -40,10 +49,10 @@ export const schemaSnapshotBuilder = async (schemaName: string, time: Date, sche
             nullable: column.isNullable === 'YES' ? true : false,
             defaultValue: column.columnDefault,
             generated: {
-                isGenerated: column.generationExpression !== null,
+                isGenerated: column.generationExpression.trim() !== '',
                 generationExpression: column.generationExpression,
             },
-            autoIncrement: column.extra.includes('auto_increment'),
+            autoIncrement: column.extra.toLowerCase().includes('auto_increment'),
             extra: column.extra,
             characterSetName: column.characterSetName,
             collationName: column.collationName,
@@ -54,6 +63,6 @@ export const schemaSnapshotBuilder = async (schemaName: string, time: Date, sche
     return {
         schemaName,
         scannedAt: time,
-        tables: [],
+        tables,
     }
 }

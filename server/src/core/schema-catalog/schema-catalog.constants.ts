@@ -1,0 +1,1 @@
+export const SERVICES_TABLE_PREFIX = 'Auto_Admin__';
