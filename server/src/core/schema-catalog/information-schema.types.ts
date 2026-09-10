@@ -24,5 +24,5 @@ export interface InformationSchemaColumnRow extends RowDataPacket {
     generationExpression: string;
     characterSetName: string | null;
     collationName: string | null;
-    columnComment: string | null;
+    columnComment: string;
 }
