@@ -5,7 +5,7 @@ import type { InformationSchemaTableRow, InformationSchemaColumnRow } from './in
 type MockTableRow = {
     schemaName?: string;
     tableName: string;
-    tableType?: 'BASE TABLE' | 'VIEW' | string;
+    tableType?: 'BASE TABLE' | 'VIEW';
     engine?: string | null;
     tableComment?: string;
 };

@@ -30,4 +30,13 @@ export interface InformationSchemaColumnRow extends RowDataPacket {
 export interface InformationSchemaRows {
     tables: InformationSchemaTableRow[];
     columns: InformationSchemaColumnRow[];
+    keyConstraints: InformationSchemaKeyConstraintRow[];
+}
+
+export interface InformationSchemaKeyConstraintRow {
+    tableName: string;
+    constraintName: string;
+    constraintType: 'PRIMARY KEY' | 'UNIQUE';
+    columnName: string;
+    ordinalPosition: number;
 }
