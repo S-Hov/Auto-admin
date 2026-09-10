@@ -1,7 +1,6 @@
 import { envConfig } from "../../config/env";
 import type { DbExecutor } from "../../db";
 import type { InformationSchemaColumnRow, InformationSchemaKeyConstraintRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
-import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>({
