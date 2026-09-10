@@ -1,4 +1,4 @@
-import type { InformationSchemaRows } from "./information-schema.types";
+import type { InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
 import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 import type { DBSnapshot, DBTable } from "./schema-catalog.types";
 
@@ -61,9 +61,45 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         })
     }
 
+    const constraints = [...schema.keyConstraints];
+    const groupedConstraints = constraints.reduce((acc: Record<string, InformationSchemaKeyConstraintRow[]>, item: InformationSchemaKeyConstraintRow) => {
+        const existing = acc[item.tableName];
+        if (existing) {
+            existing.push(item);
+        } else {
+            acc[item.tableName] = [item];
+        }
+        return acc;
+    }, {});
+
+    for (const key of Object.values(groupedConstraints)) {
+        key.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
+    }
+
+    for (const table of tables) {
+        const tableConstraints = groupedConstraints[table.name];
+        if (!tableConstraints) {
+            throw new Error(`Table ${table.name} not found for constraints`);
+        }
+        const primaryKey = tableConstraints.find(c => c.constraintType === 'PRIMARY KEY');
+        if (primaryKey) {
+            table.primaryKey = {
+                name: primaryKey.constraintName,
+                columns: tableConstraints.filter(c => c.constraintType === 'PRIMARY KEY').map(c => c.columnName),
+            };
+        }else{
+            throw new Error(`Table ${table.name} has no primary key`);
+        }
+        table.uniqueKeys = tableConstraints.filter(c => c.constraintType === 'UNIQUE').map(c => ({
+            name: c.constraintName,
+            columns: tableConstraints.filter(c => c.constraintType === 'UNIQUE').map(c => c.columnName),
+        }));
+    }
+
     tables.sort((a, b) => a.name.localeCompare(b.name));
     for (const table of tables) {
         table.columns.sort((a, b) => a.position - b.position);
+        table.uniqueKeys.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return {
