@@ -61,6 +61,11 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         })
     }
 
+    tables.sort((a, b) => a.name.localeCompare(b.name));
+    for (const table of tables) {
+        table.columns.sort((a, b) => a.position - b.position);
+    }
+
     return {
         schemaName,
         scannedAt: time,
