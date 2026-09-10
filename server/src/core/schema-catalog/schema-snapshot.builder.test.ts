@@ -1,11 +1,11 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { schemaSnapshotBuilder } from './schema-snapshot.builder';
 import type { InformationSchemaTableRow, InformationSchemaColumnRow } from './information-schema.types';
 
 type MockTableRow = {
     schemaName?: string;
     tableName: string;
-    tableType?: 'BASE TABLE' | 'VIEW';
+    tableType?: 'BASE TABLE' | 'VIEW' | string;
     engine?: string | null;
     tableComment?: string;
 };
@@ -80,6 +80,9 @@ describe('schemaSnapshotBuilder', () => {
                 tableName: 'orders',
                 columnName: 'id',
                 dataType: 'bigint',
+                columnType: 'bigint',
+                numericPrecision: 19,
+                numericScale: 0,
                 isNullable: 'NO',
                 extra: 'auto_increment',
                 ordinalPosition: 1,
@@ -88,6 +91,9 @@ describe('schemaSnapshotBuilder', () => {
                 tableName: 'orders',
                 columnName: 'total',
                 dataType: 'decimal',
+                columnType: 'decimal(10,2)',
+                numericPrecision: 10,
+                numericScale: 2,
                 isNullable: 'NO',
                 extra: '',
                 ordinalPosition: 2,
@@ -126,6 +132,15 @@ describe('schemaSnapshotBuilder', () => {
         // NO превратилось в nullable: false
         expect(idCol?.nullable).toBe(false);
         expect(totalCol?.nullable).toBe(false);
+
+        // columnType, precision и scale согласованы
+        expect(idCol?.columnType).toBe('bigint');
+        expect(idCol?.numericPrecision).toBe(19);
+        expect(idCol?.numericScale).toBe(0);
+
+        expect(totalCol?.columnType).toBe('decimal(10,2)');
+        expect(totalCol?.numericPrecision).toBe(10);
+        expect(totalCol?.numericScale).toBe(2);
     });
 
     // ---------------------------------------------------------------------------
@@ -335,7 +350,7 @@ describe('schemaSnapshotBuilder', () => {
                     tables: [
                         createTableRow({
                             tableName: 'unknown_type_table',
-                            tableType: 'UNKNOWN' as any,
+                            tableType: 'UNKNOWN',
                         }),
                     ],
                     columns: [],
@@ -357,7 +372,7 @@ describe('schemaSnapshotBuilder', () => {
 
             const col = snapshot.tables[0]?.columns[0];
             expect(col?.generated.isGenerated).toBe(false);
-            expect(col?.generated.generationExpression).toBe('   ');
+            expect(col?.generated.generationExpression).toBeNull();
         });
     });
 });

@@ -51,7 +51,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             defaultValue: column.columnDefault,
             generated: {
                 isGenerated: trimmedExpression !== '',
-                generationExpression: column.generationExpression || null,
+                generationExpression: trimmedExpression || null,
             },
             autoIncrement: column.extra.toLowerCase().includes('auto_increment'),
             extra: column.extra,
