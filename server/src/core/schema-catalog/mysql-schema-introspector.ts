@@ -3,17 +3,21 @@ import type { DbExecutor } from "../../db";
 import type { InformationSchemaColumnRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
-    const [rows] = await executor.query<InformationSchemaTableRow[]>(`
-        SELECT 
-            TABLE_SCHEMA AS schemaName,
-            TABLE_NAME AS tableName,
-            TABLE_TYPE AS tableType,
-            ENGINE AS engine,
-            TABLE_COMMENT AS tableComment
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = ?
-        ORDER BY TABLE_NAME
-    `, [schemaName]);
+    const [rows] = await executor.query<InformationSchemaTableRow[]>({
+        sql: `
+            SELECT 
+                TABLE_SCHEMA AS schemaName,
+                TABLE_NAME AS tableName,
+                TABLE_TYPE AS tableType,
+                ENGINE AS engine,
+                TABLE_COMMENT AS tableComment
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME
+        `,
+        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+        values: [schemaName],
+    });
 
     return rows;
 }
