@@ -61,39 +61,64 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         })
     }
 
-    const constraints = [...schema.keyConstraints];
-    const groupedConstraints = constraints.reduce((acc: Record<string, InformationSchemaKeyConstraintRow[]>, item: InformationSchemaKeyConstraintRow) => {
-        const existing = acc[item.tableName];
-        if (existing) {
-            existing.push(item);
-        } else {
-            acc[item.tableName] = [item];
-        }
-        return acc;
-    }, {});
+    const groupedConstraints = new Map<
+        string,
+        Map<string, InformationSchemaKeyConstraintRow[]>
+    >();
 
-    for (const key of Object.values(groupedConstraints)) {
-        key.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
+    for (const row of schema.keyConstraints) {
+        let tableGroups = groupedConstraints.get(row.tableName);
+
+        if (!tableGroups) {
+            tableGroups = new Map();
+            groupedConstraints.set(row.tableName, tableGroups);
+        }
+
+        let constraintRows = tableGroups.get(row.constraintName);
+
+        if (!constraintRows) {
+            constraintRows = [];
+            tableGroups.set(row.constraintName, constraintRows);
+        }
+
+        constraintRows.push(row);
     }
 
-    for (const table of tables) {
-        const tableConstraints = groupedConstraints[table.name];
-        if (!tableConstraints) {
-            throw new Error(`Table ${table.name} not found for constraints`);
+    for (const [tableName, constraintsByName] of groupedConstraints) {
+        const table = tablesMap.get(tableName);
+
+        if (!table) {
+            throw new Error(`Table ${tableName} not found for constraints`);
         }
-        const primaryKey = tableConstraints.find(c => c.constraintType === 'PRIMARY KEY');
-        if (primaryKey) {
-            table.primaryKey = {
-                name: primaryKey.constraintName,
-                columns: tableConstraints.filter(c => c.constraintType === 'PRIMARY KEY').map(c => c.columnName),
+
+        for (const [constraintName, rows] of constraintsByName) {
+            rows.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
+
+            const key = {
+                name: constraintName,
+                columns: rows.map(row => row.columnName),
             };
-        }else{
-            throw new Error(`Table ${table.name} has no primary key`);
+
+            const constraintType = rows[0]?.constraintType;
+
+            if (!constraintType) {
+                throw new Error(`Constraint ${constraintName} has no columns`);
+            }
+
+            switch (constraintType) {
+                case 'PRIMARY KEY':
+                    if (table.primaryKey !== null) {
+                        throw new Error(`Table ${tableName} has multiple primary keys`);
+                    }
+
+                    table.primaryKey = key;
+                    break;
+
+                case 'UNIQUE':
+                    table.uniqueKeys.push(key);
+                    break;
+            }
         }
-        table.uniqueKeys = tableConstraints.filter(c => c.constraintType === 'UNIQUE').map(c => ({
-            name: c.constraintName,
-            columns: tableConstraints.filter(c => c.constraintType === 'UNIQUE').map(c => c.columnName),
-        }));
     }
 
     tables.sort((a, b) => a.name.localeCompare(b.name));
