@@ -24,7 +24,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             primaryKey: null,
             uniqueKeys: [],
             foreignKeys: [],
-            isServiceTable: table.tableName.startsWith(SERVICES_TABLE_PREFIX) ? true : false,
+            isServiceTable: table.tableName.startsWith(SERVICES_TABLE_PREFIX),
             comment: table.tableComment || null,
             indexes: [],
         }
@@ -37,6 +37,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         if (!table) {
             throw new Error(`Table ${column.tableName} not found for column ${column.columnName}`);
         }
+        const trimmedExpression = column.generationExpression.trim()
         table.columns.push({
             name: column.columnName,
             position: column.ordinalPosition,
@@ -49,8 +50,8 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             nullable: column.isNullable === 'YES' ? true : false,
             defaultValue: column.columnDefault,
             generated: {
-                isGenerated: column.generationExpression.trim() !== '',
-                generationExpression: column.generationExpression,
+                isGenerated: trimmedExpression !== '',
+                generationExpression: column.generationExpression || null,
             },
             autoIncrement: column.extra.toLowerCase().includes('auto_increment'),
             extra: column.extra,
