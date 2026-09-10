@@ -26,3 +26,8 @@ export interface InformationSchemaColumnRow extends RowDataPacket {
     collationName: string | null;
     columnComment: string;
 }
+
+export interface InformationSchemaRows {
+    tables: InformationSchemaTableRow[];
+    columns: InformationSchemaColumnRow[];
+}

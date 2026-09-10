@@ -1,6 +1,6 @@
 import { envConfig } from "../../config/env";
 import type { DbExecutor } from "../../db";
-import type { InformationSchemaColumnRow, InformationSchemaTableRow } from "./information-schema.types";
+import type { InformationSchemaColumnRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>(`
@@ -47,4 +47,13 @@ const readColumnRows = async (executor: DbExecutor, schemaName: string): Promise
     });
 
     return rows;
+}
+
+export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
+    const [tables, columns] = await Promise.all([
+        readTableRows(executor, schemaName),
+        readColumnRows(executor, schemaName),
+    ]);
+
+    return { tables, columns };
 }
