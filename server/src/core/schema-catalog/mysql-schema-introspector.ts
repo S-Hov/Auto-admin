@@ -58,19 +58,24 @@ const readKeyConstraintRows = async (executor: DbExecutor, schemaName: string): 
     const [rows] = await executor.query<InformationSchemaKeyConstraintRow[]>({
         sql: `
             SELECT
-                TABLE_NAME AS tableName,
-                CONSTRAINT_NAME AS constraintName,
-                CONSTRAINT_TYPE AS constraintType,
-                COLUMN_NAME AS columnName,
-                ORDINAL_POSITION AS ordinalPosition
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-            WHERE TABLE_SCHEMA = ?
-            AND CONSTRAINT_TYPE IN ('PRIMARY KEY', 'UNIQUE')
-            AND TABLE_NAME NOT LIKE ?
-            ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION
+                tc.TABLE_NAME AS tableName,
+                tc.CONSTRAINT_NAME AS constraintName,
+                tc.CONSTRAINT_TYPE AS constraintType,
+                kcu.COLUMN_NAME AS columnName,
+                kcu.ORDINAL_POSITION AS ordinalPosition
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc
+
+            JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+                ON kcu.CONSTRAINT_SCHEMA = tc.CONSTRAINT_SCHEMA
+                AND kcu.TABLE_SCHEMA = tc.TABLE_SCHEMA
+                AND kcu.TABLE_NAME = tc.TABLE_NAME
+                AND kcu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+            WHERE tc.TABLE_SCHEMA = ?
+            AND tc.CONSTRAINT_TYPE IN ('PRIMARY KEY', 'UNIQUE')
+            ORDER BY tc.TABLE_NAME, tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
         `,
         timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-        values: [schemaName, `${SERVICES_TABLE_PREFIX}%`],
+        values: [schemaName],
     });
 
     return rows;
