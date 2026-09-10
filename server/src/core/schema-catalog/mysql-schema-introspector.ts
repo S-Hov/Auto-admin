@@ -1,6 +1,7 @@
 import { envConfig } from "../../config/env";
 import type { DbExecutor } from "../../db";
-import type { InformationSchemaColumnRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
+import type { InformationSchemaColumnRow, InformationSchemaKeyConstraintRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
+import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>({
@@ -53,11 +54,34 @@ const readColumnRows = async (executor: DbExecutor, schemaName: string): Promise
     return rows;
 }
 
+const readKeyConstraintRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaKeyConstraintRow[]> => {
+    const [rows] = await executor.query<InformationSchemaKeyConstraintRow[]>({
+        sql: `
+            SELECT
+                TABLE_NAME AS tableName,
+                CONSTRAINT_NAME AS constraintName,
+                CONSTRAINT_TYPE AS constraintType,
+                COLUMN_NAME AS columnName,
+                ORDINAL_POSITION AS ordinalPosition
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = ?
+            AND CONSTRAINT_TYPE IN ('PRIMARY KEY', 'UNIQUE')
+            AND TABLE_NAME NOT LIKE ?
+            ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION
+        `,
+        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+        values: [schemaName, `${SERVICES_TABLE_PREFIX}%`],
+    });
+
+    return rows;
+}
+
 export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
-    const [tables, columns] = await Promise.all([
+    const [tables, columns, keyConstraints] = await Promise.all([
         readTableRows(executor, schemaName),
         readColumnRows(executor, schemaName),
+        readKeyConstraintRows(executor, schemaName),
     ]);
 
-    return { tables, columns };
+    return { tables, columns, keyConstraints };
 }

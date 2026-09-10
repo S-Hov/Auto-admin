@@ -33,7 +33,7 @@ export interface InformationSchemaRows {
     keyConstraints: InformationSchemaKeyConstraintRow[];
 }
 
-export interface InformationSchemaKeyConstraintRow {
+export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
     tableName: string;
     constraintName: string;
     constraintType: 'PRIMARY KEY' | 'UNIQUE';
