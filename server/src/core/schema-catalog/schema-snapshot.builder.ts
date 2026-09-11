@@ -184,7 +184,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
                     || elem.deleteRule !== rows[0].deleteRule
                 )
             ) {
-                throw new Error(`Foreign key constraint ${constraintName} has different referenced tables for different columns`);
+                throw new Error(`Foreign key constraint ${constraintName} has inconsistent metadata`);
             }
 
             rows.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
