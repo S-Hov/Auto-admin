@@ -1,6 +1,6 @@
 import { envConfig } from "../../config/env";
 import type { DbExecutor } from "../../db";
-import type { InformationSchemaColumnRow, InformationSchemaKeyConstraintRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
+import type { InformationSchemaColumnRow, InformationSchemaForeignKeyRow, InformationSchemaKeyConstraintRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>({
@@ -80,12 +80,43 @@ const readKeyConstraintRows = async (executor: DbExecutor, schemaName: string): 
     return rows;
 }
 
+const readForeignKeyRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaForeignKeyRow[]> => {
+    const [rows] = await executor.query<InformationSchemaForeignKeyRow[]>(
+        {
+            sql: `
+                SELECT
+                    kcu.TABLE_NAME AS tableName,
+                    kcu.CONSTRAINT_NAME AS constraintName,
+                    kcu.COLUMN_NAME AS columnName,
+                    kcu.ORDINAL_POSITION AS ordinalPosition,
+                    kcu.REFERENCED_TABLE_SCHEMA AS referencedSchemaName,
+                    kcu.REFERENCED_TABLE_NAME AS referencedTableName,
+                    kcu.REFERENCED_COLUMN_NAME AS referencedColumnName,
+                    rc.UPDATE_RULE AS updateRule,
+                    rc.DELETE_RULE AS deleteRule
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+                JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS rc
+                    ON kcu.TABLE_SCHEMA = rc.CONSTRAINT_SCHEMA
+                    AND kcu.TABLE_NAME = rc.TABLE_NAME
+                    AND kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+                WHERE kcu.TABLE_SCHEMA = ?
+                    AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+                ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+            `,
+            timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+            values: [schemaName],
+        }
+    )
+    return rows;
+}
+
 export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
-    const [tables, columns, keyConstraints] = await Promise.all([
+    const [tables, columns, keyConstraints, foreignKeys] = await Promise.all([
         readTableRows(executor, schemaName),
         readColumnRows(executor, schemaName),
         readKeyConstraintRows(executor, schemaName),
+        readForeignKeyRows(executor, schemaName),
     ]);
 
-    return { tables, columns, keyConstraints };
+    return { tables, columns, keyConstraints, foreignKeys };
 }

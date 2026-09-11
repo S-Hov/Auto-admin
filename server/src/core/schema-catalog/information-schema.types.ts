@@ -31,6 +31,7 @@ export interface InformationSchemaRows {
     tables: InformationSchemaTableRow[];
     columns: InformationSchemaColumnRow[];
     keyConstraints: InformationSchemaKeyConstraintRow[];
+    foreignKeys: InformationSchemaForeignKeyRow[];
 }
 
 export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
@@ -40,3 +41,17 @@ export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
     columnName: string;
     ordinalPosition: number;
 }
+
+export interface InformationSchemaForeignKeyRow extends RowDataPacket {
+    tableName: string;
+    constraintName: string;
+    columnName: string;
+    ordinalPosition: number;
+    referencedSchemaName: string;
+    referencedTableName: string;
+    referencedColumnName: string;
+    updateRule: InformationSchemaReferentialAction;
+    deleteRule: InformationSchemaReferentialAction;
+}
+
+export type InformationSchemaReferentialAction = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION' | 'SET DEFAULT';
