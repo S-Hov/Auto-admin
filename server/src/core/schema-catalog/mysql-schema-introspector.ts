@@ -118,19 +118,19 @@ const readForeignKeyRows = async (executor: DbExecutor, schemaName: string): Pro
 }
 
 const readIndexRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaIndexRow[]> => {
-    const [rows] = await executor.query({
+    const [rows] = await executor.query<InformationSchemaIndexRow[]>({
         sql: `
             SELECT
-                TABLE_NAME AS tableName
-                INDEX_NAME AS indexName
-                NON_UNIQUE AS nonUnique
-                SEQ_IN_INDEX AS sequenceInIndex
-                COLUMN_NAME AS columnName
-                EXPRESSION AS expression
-                INDEX_TYPE AS indexType
-                COLLATION AS collation
-                SUB_PART AS subPart
-                IS_VISIBLE AS isVisible
+                TABLE_NAME AS tableName,
+                INDEX_NAME AS indexName,
+                NON_UNIQUE AS nonUnique,
+                SEQ_IN_INDEX AS sequenceInIndex,
+                COLUMN_NAME AS columnName,
+                EXPRESSION AS expression,
+                INDEX_TYPE AS indexType,
+                COLLATION AS collation,
+                SUB_PART AS subPart,
+                IS_VISIBLE AS isVisible,
                 INDEX_COMMENT AS indexComment
             FROM INFORMATION_SCHEMA.STATISTICS
             WHERE TABLE_SCHEMA = ?
@@ -139,7 +139,7 @@ const readIndexRows = async (executor: DbExecutor, schemaName: string): Promise<
         timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
         values: [schemaName],
     })
-    return rows as unknown as InformationSchemaIndexRow[];
+    return rows;
 }
 
 export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
