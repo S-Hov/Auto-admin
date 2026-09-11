@@ -1,4 +1,4 @@
-import type { InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
+import type { InformationSchemaForeignKeyRow, InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
 import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 import type { DBSnapshot, DBTable } from "./schema-catalog.types";
 
@@ -131,6 +131,72 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
     for (const table of tables) {
         table.columns.sort((a, b) => a.position - b.position);
         table.uniqueKeys.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    const groupedForeignKeys = new Map<
+        string,
+        Map<string, InformationSchemaForeignKeyRow[]>
+    >();
+
+    for (const row of schema.foreignKeys) {
+        let tableGroup = groupedForeignKeys.get(row.tableName);
+
+        if (!tableGroup) {
+            tableGroup = new Map();
+            groupedForeignKeys.set(row.tableName, tableGroup);
+        }
+
+        let constraintRows = tableGroup.get(row.constraintName);
+
+        if (!constraintRows) {
+            constraintRows = [];
+            tableGroup.set(row.constraintName, constraintRows);
+        }
+
+        constraintRows.push(row);
+    }
+
+    for (const [tableName, constraintsByName] of groupedForeignKeys) {
+        const table = tablesMap.get(tableName);
+
+        if (!table) {
+            throw new Error(`Table ${tableName} not found for foreign key constraints`);
+        }
+
+        for (const [constraintName, rows] of constraintsByName) {
+            for (const row of rows) {
+                if (!table.columns.find(column => column.name === row.columnName)) {
+                    throw new Error(`Column ${row.columnName} not found for table ${tableName}`);
+                }
+            }
+
+            for (const row of rows) {
+                if (row.referencedSchemaName === schemaName) {
+                    const referencedTable = tablesMap.get(row.referencedTableName);
+                    if (!referencedTable) {
+                        throw new Error(`Table ${row.referencedTableName} not found for foreign key constraints`);
+                    }
+                    const referencedColumn = referencedTable.columns.find(column => column.name === row.referencedColumnName);
+                    if (!referencedColumn) {
+                        throw new Error(`Column ${row.referencedColumnName} not found for table ${row.referencedTableName}`);
+                    }
+                }
+            }
+            if (
+                !rows.some((elem) => elem.referencedSchemaName === schemaName && elem.referencedTableName === tableName && elem.updateRule === rows[0].updateRule && elem.deleteRule === rows[0].deleteRule)
+            ) {
+                throw new Error(`Foreign key constraint ${constraintName} has different referenced tables for different columns`);
+            }
+            table.foreignKeys.push({
+                name: constraintName,
+                columns: rows.map(row => row.columnName),
+                referencedSchemaName: rows[0].referencedSchemaName,
+                referencedTableName: rows[0].referencedTableName,
+                referencedColumns: rows.map(row => row.referencedColumnName),
+                onUpdate: rows[0].updateRule,
+                onDelete: rows[0].deleteRule,
+            });
+        }
     }
 
     return {
