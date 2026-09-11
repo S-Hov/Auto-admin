@@ -6,6 +6,7 @@ import type {
   InformationSchemaKeyConstraintRow,
   InformationSchemaForeignKeyRow,
   InformationSchemaReferentialAction,
+  InformationSchemaRows,
 } from './information-schema.types';
 
 type MockTableRow = {
@@ -55,6 +56,14 @@ type MockForeignKeyRow = {
   deleteRule?: InformationSchemaReferentialAction;
 };
 
+type MockInformationSchemaRows = {
+  tables?: InformationSchemaTableRow[];
+  columns?: InformationSchemaColumnRow[];
+  keyConstraints?: InformationSchemaKeyConstraintRow[];
+  foreignKeys?: InformationSchemaForeignKeyRow[];
+  indexes?: any[];
+};
+
 const createTableRow = (overrides: MockTableRow): InformationSchemaTableRow => {
   return {
     schemaName: 'test_schema',
@@ -102,10 +111,25 @@ const createForeignKeyRow = (overrides: MockForeignKeyRow): InformationSchemaFor
   } as unknown as InformationSchemaForeignKeyRow;
 };
 
+const createInformationSchemaRows = (
+  overrides: MockInformationSchemaRows = {},
+): InformationSchemaRows => {
+  return {
+    tables: [],
+    columns: [],
+    keyConstraints: [],
+    foreignKeys: [],
+    ...overrides,
+  } as InformationSchemaRows;
+};
+
 describe('schemaSnapshotBuilder', () => {
   const schemaName = 'test_schema';
   const scannedAt = new Date('2026-09-10T12:00:00.000Z');
 
+  // ---------------------------------------------------------------------------
+  // 1. Сборка таблицы с колонками
+  // ---------------------------------------------------------------------------
   it('1. Сборка таблицы с колонками: сохраняет schemaName, scannedAt, трансформирует тип, engine и свойства колонок', () => {
     const rawTables = [
       createTableRow({
@@ -140,12 +164,14 @@ describe('schemaSnapshotBuilder', () => {
       }),
     ];
 
-    const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-      tables: rawTables,
-      columns: rawColumns,
-      keyConstraints: [],
-      foreignKeys: [],
-    });
+    const snapshot = schemaSnapshotBuilder(
+      schemaName,
+      scannedAt,
+      createInformationSchemaRows({
+        tables: rawTables,
+        columns: rawColumns,
+      }),
+    );
 
     // schemaName и scannedAt сохранились
     expect(snapshot.schemaName).toBe(schemaName);
@@ -190,6 +216,9 @@ describe('schemaSnapshotBuilder', () => {
     expect(ordersTable?.foreignKeys).toEqual([]);
   });
 
+  // ---------------------------------------------------------------------------
+  // 2. Нормализация view, комментариев и generated
+  // ---------------------------------------------------------------------------
   it('2. Нормализация view, комментариев и generated: нормализует пустые строки в null/false и сохраняет выражения', () => {
     const rawTables = [
       createTableRow({
@@ -221,12 +250,14 @@ describe('schemaSnapshotBuilder', () => {
       }),
     ];
 
-    const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-      tables: rawTables,
-      columns: rawColumns,
-      keyConstraints: [],
-      foreignKeys: [],
-    });
+    const snapshot = schemaSnapshotBuilder(
+      schemaName,
+      scannedAt,
+      createInformationSchemaRows({
+        tables: rawTables,
+        columns: rawColumns,
+      }),
+    );
 
     const reportView = snapshot.tables.find((t) => t.name === 'report');
     expect(reportView).toBeDefined();
@@ -251,6 +282,9 @@ describe('schemaSnapshotBuilder', () => {
     expect(generatedCol?.generated.generationExpression).toBe('CONCAT(title, " [v1]")');
   });
 
+  // ---------------------------------------------------------------------------
+  // 3. Служебная таблица (Auto_Admin__)
+  // ---------------------------------------------------------------------------
   it('3. Служебная таблица: помечает Auto_Admin__* как isServiceTable: true, а обычную users как false', () => {
     const rawTables = [
       createTableRow({
@@ -276,12 +310,14 @@ describe('schemaSnapshotBuilder', () => {
       }),
     ];
 
-    const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-      tables: rawTables,
-      columns: rawColumns,
-      keyConstraints: [],
-      foreignKeys: [],
-    });
+    const snapshot = schemaSnapshotBuilder(
+      schemaName,
+      scannedAt,
+      createInformationSchemaRows({
+        tables: rawTables,
+        columns: rawColumns,
+      }),
+    );
 
     const serviceTable = snapshot.tables.find((t) => t.name === 'Auto_Admin__users');
     const regularTable = snapshot.tables.find((t) => t.name === 'users');
@@ -294,8 +330,10 @@ describe('schemaSnapshotBuilder', () => {
     expect(regularTable?.isServiceTable).toBe(false);
   });
 
+  // ---------------------------------------------------------------------------
+  // 4. Колонка неизвестной таблицы
+  // ---------------------------------------------------------------------------
   it('4. Колонка неизвестной таблицы: синхронно выбрасывает ошибку при отсутствии таблицы', () => {
-    const rawTables: InformationSchemaTableRow[] = [];
     const rawColumns = [
       createColumnRow({
         tableName: 'ghost_table',
@@ -306,15 +344,19 @@ describe('schemaSnapshotBuilder', () => {
 
     // Синхронный вызов builder без async/await/rejects
     expect(() =>
-      schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: [],
-        foreignKeys: [],
-      }),
+      schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          columns: rawColumns,
+        }),
+      ),
     ).toThrowError('Table ghost_table not found for column id');
   });
 
+  // ---------------------------------------------------------------------------
+  // 5. Тесты для keyConstraints (Primary keys & Unique keys)
+  // ---------------------------------------------------------------------------
   describe('keyConstraints (Primary & Unique keys)', () => {
     it('обрабатывает обычный primary key (PRIMARY -> id)', () => {
       const rawTables = [createTableRow({ tableName: 'users' })];
@@ -332,12 +374,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: rawConstraints,
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: rawConstraints,
+        }),
+      );
 
       const userTable = snapshot.tables.find((t) => t.name === 'users');
       expect(userTable?.primaryKey).toEqual({
@@ -371,12 +416,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: rawConstraints,
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: rawConstraints,
+        }),
+      );
 
       const table = snapshot.tables.find((t) => t.name === 'tenant_orders');
       // Ожидаемый результат: tenant_id, order_id
@@ -412,12 +460,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: rawConstraints,
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: rawConstraints,
+        }),
+      );
 
       const userTable = snapshot.tables.find((t) => t.name === 'users');
       expect(userTable?.uniqueKeys).toEqual([
@@ -446,12 +497,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: rawConstraints,
-          foreignKeys: [],
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            keyConstraints: rawConstraints,
+          }),
+        ),
       ).toThrowError('Table unknown_table not found for constraints');
     });
 
@@ -469,12 +523,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: rawConstraints,
-          foreignKeys: [],
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            keyConstraints: rawConstraints,
+          }),
+        ),
       ).toThrowError('Column ghost_column not found for table users');
     });
 
@@ -502,16 +559,22 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: rawConstraints,
-          foreignKeys: [],
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            keyConstraints: rawConstraints,
+          }),
+        ),
       ).toThrowError('Table users has multiple primary keys');
     });
   });
 
+  // ---------------------------------------------------------------------------
+  // 6. Тесты для foreignKeys (Внешние ключи)
+  // ---------------------------------------------------------------------------
   describe('foreignKeys', () => {
     it('1. Обычная внутренняя связь (orders.user_id -> users.id)', () => {
       const rawTables = [
@@ -537,12 +600,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: [],
-        foreignKeys: rawForeignKeys,
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          foreignKeys: rawForeignKeys,
+        }),
+      );
 
       const ordersTable = snapshot.tables.find((t) => t.name === 'orders');
       expect(ordersTable?.foreignKeys).toEqual([
@@ -596,12 +662,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: [],
-        foreignKeys: rawForeignKeys,
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          foreignKeys: rawForeignKeys,
+        }),
+      );
 
       const itemsTable = snapshot.tables.find((t) => t.name === 'order_items');
       expect(itemsTable?.foreignKeys).toEqual([
@@ -637,12 +706,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: [],
-        foreignKeys: rawForeignKeys,
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          foreignKeys: rawForeignKeys,
+        }),
+      );
 
       const categoriesTable = snapshot.tables.find((t) => t.name === 'categories');
       expect(categoriesTable?.foreignKeys).toEqual([
@@ -678,12 +750,15 @@ describe('schemaSnapshotBuilder', () => {
         }),
       ];
 
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: rawTables,
-        columns: rawColumns,
-        keyConstraints: [],
-        foreignKeys: rawForeignKeys,
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          foreignKeys: rawForeignKeys,
+        }),
+      );
 
       const ordersTable = snapshot.tables.find((t) => t.name === 'orders');
       expect(ordersTable?.foreignKeys).toEqual([
@@ -715,12 +790,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Table non_existent_users not found for foreign key constraints');
     });
 
@@ -746,12 +824,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Column non_existent_id not found for table users');
     });
 
@@ -793,12 +874,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Foreign key constraint fk_inconsistent has inconsistent metadata');
     });
 
@@ -839,12 +923,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Foreign key constraint fk_diff_actions has inconsistent metadata');
     });
 
@@ -862,12 +949,15 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Table ghost_table not found for foreign key constraints');
     });
 
@@ -891,30 +981,38 @@ describe('schemaSnapshotBuilder', () => {
       ];
 
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: rawTables,
-          columns: rawColumns,
-          keyConstraints: [],
-          foreignKeys: rawForeignKeys,
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: rawTables,
+            columns: rawColumns,
+            foreignKeys: rawForeignKeys,
+          }),
+        ),
       ).toThrowError('Column non_existent_col not found for table orders');
     });
   });
 
+  // ---------------------------------------------------------------------------
+  // Второстепенные граничные сценарии
+  // ---------------------------------------------------------------------------
   describe('Второстепенные граничные сценарии', () => {
     it('преобразует isNullable: "YES" в nullable: true', () => {
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: [createTableRow({ tableName: 'posts' })],
-        columns: [
-          createColumnRow({
-            tableName: 'posts',
-            columnName: 'description',
-            isNullable: 'YES',
-          }),
-        ],
-        keyConstraints: [],
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [createTableRow({ tableName: 'posts' })],
+          columns: [
+            createColumnRow({
+              tableName: 'posts',
+              columnName: 'description',
+              isNullable: 'YES',
+            }),
+          ],
+        }),
+      );
 
       const postTable = snapshot.tables.find((t) => t.name === 'posts');
       const descCol = postTable?.columns.find((c) => c.name === 'description');
@@ -922,23 +1020,25 @@ describe('schemaSnapshotBuilder', () => {
     });
 
     it('сохраняет непустые комментарии для таблицы и колонки без изменений', () => {
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: [
-          createTableRow({
-            tableName: 'accounts',
-            tableComment: 'Таблица пользовательских счетов',
-          }),
-        ],
-        columns: [
-          createColumnRow({
-            tableName: 'accounts',
-            columnName: 'balance',
-            columnComment: 'Баланс в валюте',
-          }),
-        ],
-        keyConstraints: [],
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [
+            createTableRow({
+              tableName: 'accounts',
+              tableComment: 'Таблица пользовательских счетов',
+            }),
+          ],
+          columns: [
+            createColumnRow({
+              tableName: 'accounts',
+              columnName: 'balance',
+              columnComment: 'Баланс в валюте',
+            }),
+          ],
+        }),
+      );
 
       const accountTable = snapshot.tables.find((t) => t.name === 'accounts');
       const balanceCol = accountTable?.columns.find((c) => c.name === 'balance');
@@ -948,26 +1048,28 @@ describe('schemaSnapshotBuilder', () => {
     });
 
     it('сортирует таблицы по алфавиту и колонки по position (ordinalPosition)', () => {
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: [
-          createTableRow({ tableName: 'zebra' }),
-          createTableRow({ tableName: 'alpha' }),
-        ],
-        columns: [
-          createColumnRow({
-            tableName: 'alpha',
-            columnName: 'col_second',
-            ordinalPosition: 2,
-          }),
-          createColumnRow({
-            tableName: 'alpha',
-            columnName: 'col_first',
-            ordinalPosition: 1,
-          }),
-        ],
-        keyConstraints: [],
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [
+            createTableRow({ tableName: 'zebra' }),
+            createTableRow({ tableName: 'alpha' }),
+          ],
+          columns: [
+            createColumnRow({
+              tableName: 'alpha',
+              columnName: 'col_second',
+              ordinalPosition: 2,
+            }),
+            createColumnRow({
+              tableName: 'alpha',
+              columnName: 'col_first',
+              ordinalPosition: 1,
+            }),
+          ],
+        }),
+      );
 
       // Таблицы отсортированы по имени (localeCompare)
       expect(snapshot.tables.map((t) => t.name)).toEqual(['alpha', 'zebra']);
@@ -979,33 +1081,36 @@ describe('schemaSnapshotBuilder', () => {
 
     it('выбрасывает ошибку при неизвестном tableType', () => {
       expect(() =>
-        schemaSnapshotBuilder(schemaName, scannedAt, {
-          tables: [
-            createTableRow({
-              tableName: 'unknown_type_table',
-              tableType: 'UNKNOWN',
-            }),
-          ],
-          columns: [],
-          keyConstraints: [],
-          foreignKeys: [],
-        }),
+        schemaSnapshotBuilder(
+          schemaName,
+          scannedAt,
+          createInformationSchemaRows({
+            tables: [
+              createTableRow({
+                tableName: 'unknown_type_table',
+                tableType: 'UNKNOWN',
+              }),
+            ],
+          }),
+        ),
       ).toThrowError(/Unknown table type: UNKNOWN/);
     });
 
     it('трактует generationExpression состоящее только из пробелов как не-generated (trimmedExpression !== "")', () => {
-      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
-        tables: [createTableRow({ tableName: 'test_table' })],
-        columns: [
-          createColumnRow({
-            tableName: 'test_table',
-            columnName: 'whitespace_expr',
-            generationExpression: '   ',
-          }),
-        ],
-        keyConstraints: [],
-        foreignKeys: [],
-      });
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [createTableRow({ tableName: 'test_table' })],
+          columns: [
+            createColumnRow({
+              tableName: 'test_table',
+              columnName: 'whitespace_expr',
+              generationExpression: '   ',
+            }),
+          ],
+        }),
+      );
 
       const col = snapshot.tables[0]?.columns[0];
       expect(col?.generated.isGenerated).toBe(false);
