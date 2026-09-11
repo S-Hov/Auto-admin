@@ -5,6 +5,7 @@ import type {
   InformationSchemaColumnRow,
   InformationSchemaKeyConstraintRow,
   InformationSchemaForeignKeyRow,
+  InformationSchemaIndexRow,
   InformationSchemaReferentialAction,
   InformationSchemaRows,
 } from './information-schema.types';
@@ -56,13 +57,7 @@ type MockForeignKeyRow = {
   deleteRule?: InformationSchemaReferentialAction;
 };
 
-type MockInformationSchemaRows = {
-  tables?: InformationSchemaTableRow[];
-  columns?: InformationSchemaColumnRow[];
-  keyConstraints?: InformationSchemaKeyConstraintRow[];
-  foreignKeys?: InformationSchemaForeignKeyRow[];
-  indexes?: any[];
-};
+type MockInformationSchemaRows = Partial<InformationSchemaRows>;
 
 const createTableRow = (overrides: MockTableRow): InformationSchemaTableRow => {
   return {
@@ -119,8 +114,9 @@ const createInformationSchemaRows = (
     columns: [],
     keyConstraints: [],
     foreignKeys: [],
+    indexes: [],
     ...overrides,
-  } as InformationSchemaRows;
+  };
 };
 
 describe('schemaSnapshotBuilder', () => {
