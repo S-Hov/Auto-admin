@@ -1,6 +1,13 @@
 import { envConfig } from "../../config/env";
 import type { DbExecutor } from "../../db";
-import type { InformationSchemaColumnRow, InformationSchemaForeignKeyRow, InformationSchemaKeyConstraintRow, InformationSchemaRows, InformationSchemaTableRow } from "./information-schema.types";
+import type {
+    InformationSchemaColumnRow,
+    InformationSchemaForeignKeyRow,
+    InformationSchemaIndexRow,
+    InformationSchemaKeyConstraintRow,
+    InformationSchemaRows,
+    InformationSchemaTableRow
+} from "./information-schema.types";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>({
@@ -110,13 +117,39 @@ const readForeignKeyRows = async (executor: DbExecutor, schemaName: string): Pro
     return rows;
 }
 
+const readIndexRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaIndexRow[]> => {
+    const [rows] = await executor.query({
+        sql: `
+            SELECT
+                TABLE_NAME AS tableName
+                INDEX_NAME AS indexName
+                NON_UNIQUE AS nonUnique
+                SEQ_IN_INDEX AS sequenceInIndex
+                COLUMN_NAME AS columnName
+                EXPRESSION AS expression
+                INDEX_TYPE AS indexType
+                COLLATION AS collation
+                SUB_PART AS subPart
+                IS_VISIBLE AS isVisible
+                INDEX_COMMENT AS indexComment
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX
+        `,
+        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+        values: [schemaName],
+    })
+    return rows as unknown as InformationSchemaIndexRow[];
+}
+
 export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
-    const [tables, columns, keyConstraints, foreignKeys] = await Promise.all([
+    const [tables, columns, keyConstraints, foreignKeys, indexes] = await Promise.all([
         readTableRows(executor, schemaName),
         readColumnRows(executor, schemaName),
         readKeyConstraintRows(executor, schemaName),
         readForeignKeyRows(executor, schemaName),
+        readIndexRows(executor, schemaName),
     ]);
 
-    return { tables, columns, keyConstraints, foreignKeys };
+    return { tables, columns, keyConstraints, foreignKeys, indexes };
 }
