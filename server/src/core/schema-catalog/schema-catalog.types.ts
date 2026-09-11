@@ -60,7 +60,29 @@ export interface DBColumn {
 
 export interface DBIndex {
     name: string;
-    columns: string[];
+    parts: DBIndexPart[];
     isUnique: boolean;
     indexType: string;
+    isVisible: boolean;
+    comment: string | null;
+}
+
+export type DBIndexPart = DBIndexColumnPart | DBIndexExpressionPart;
+
+interface DBIndexPartBase {
+    position: number;
+    prefixLength: number | null;
+    sortDirection: 'ASC' | 'DESC' | null;
+}
+
+interface DBIndexColumnPart extends DBIndexPartBase {
+    kind: 'column';
+    columnName: string;
+    expression: null;
+}
+
+interface DBIndexExpressionPart extends DBIndexPartBase {
+    kind: 'expression';
+    columnName: null;
+    expression: string;
 }
