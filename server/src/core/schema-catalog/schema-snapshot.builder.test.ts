@@ -1,9 +1,11 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { schemaSnapshotBuilder } from './schema-snapshot.builder';
 import type {
   InformationSchemaTableRow,
   InformationSchemaColumnRow,
   InformationSchemaKeyConstraintRow,
+  InformationSchemaForeignKeyRow,
+  InformationSchemaReferentialAction,
 } from './information-schema.types';
 
 type MockTableRow = {
@@ -39,6 +41,18 @@ type MockKeyConstraintRow = {
   constraintType: 'PRIMARY KEY' | 'UNIQUE';
   columnName: string;
   ordinalPosition?: number;
+};
+
+type MockForeignKeyRow = {
+  tableName: string;
+  constraintName: string;
+  columnName: string;
+  ordinalPosition?: number;
+  referencedSchemaName?: string;
+  referencedTableName: string;
+  referencedColumnName: string;
+  updateRule?: InformationSchemaReferentialAction;
+  deleteRule?: InformationSchemaReferentialAction;
 };
 
 const createTableRow = (overrides: MockTableRow): InformationSchemaTableRow => {
@@ -78,13 +92,20 @@ const createKeyConstraintRow = (overrides: MockKeyConstraintRow): InformationSch
   } as unknown as InformationSchemaKeyConstraintRow;
 };
 
+const createForeignKeyRow = (overrides: MockForeignKeyRow): InformationSchemaForeignKeyRow => {
+  return {
+    ordinalPosition: 1,
+    referencedSchemaName: 'test_schema',
+    updateRule: 'NO ACTION',
+    deleteRule: 'NO ACTION',
+    ...overrides,
+  } as unknown as InformationSchemaForeignKeyRow;
+};
+
 describe('schemaSnapshotBuilder', () => {
   const schemaName = 'test_schema';
   const scannedAt = new Date('2026-09-10T12:00:00.000Z');
 
-  // ---------------------------------------------------------------------------
-  // 1. Сборка таблицы с колонками
-  // ---------------------------------------------------------------------------
   it('1. Сборка таблицы с колонками: сохраняет schemaName, scannedAt, трансформирует тип, engine и свойства колонок', () => {
     const rawTables = [
       createTableRow({
@@ -123,6 +144,7 @@ describe('schemaSnapshotBuilder', () => {
       tables: rawTables,
       columns: rawColumns,
       keyConstraints: [],
+      foreignKeys: [],
     });
 
     // schemaName и scannedAt сохранились
@@ -162,14 +184,12 @@ describe('schemaSnapshotBuilder', () => {
     expect(totalCol?.numericPrecision).toBe(10);
     expect(totalCol?.numericScale).toBe(2);
 
-    // primaryKey и uniqueKeys по умолчанию пусты
+    // primaryKey, uniqueKeys и foreignKeys по умолчанию пусты
     expect(ordersTable?.primaryKey).toBeNull();
     expect(ordersTable?.uniqueKeys).toEqual([]);
+    expect(ordersTable?.foreignKeys).toEqual([]);
   });
 
-  // ---------------------------------------------------------------------------
-  // 2. Нормализация view, комментариев и generated
-  // ---------------------------------------------------------------------------
   it('2. Нормализация view, комментариев и generated: нормализует пустые строки в null/false и сохраняет выражения', () => {
     const rawTables = [
       createTableRow({
@@ -205,6 +225,7 @@ describe('schemaSnapshotBuilder', () => {
       tables: rawTables,
       columns: rawColumns,
       keyConstraints: [],
+      foreignKeys: [],
     });
 
     const reportView = snapshot.tables.find((t) => t.name === 'report');
@@ -230,9 +251,6 @@ describe('schemaSnapshotBuilder', () => {
     expect(generatedCol?.generated.generationExpression).toBe('CONCAT(title, " [v1]")');
   });
 
-  // ---------------------------------------------------------------------------
-  // 3. Служебная таблица (Auto_Admin__)
-  // ---------------------------------------------------------------------------
   it('3. Служебная таблица: помечает Auto_Admin__* как isServiceTable: true, а обычную users как false', () => {
     const rawTables = [
       createTableRow({
@@ -262,6 +280,7 @@ describe('schemaSnapshotBuilder', () => {
       tables: rawTables,
       columns: rawColumns,
       keyConstraints: [],
+      foreignKeys: [],
     });
 
     const serviceTable = snapshot.tables.find((t) => t.name === 'Auto_Admin__users');
@@ -294,13 +313,11 @@ describe('schemaSnapshotBuilder', () => {
         tables: rawTables,
         columns: rawColumns,
         keyConstraints: [],
+        foreignKeys: [],
       }),
     ).toThrowError('Table ghost_table not found for column id');
   });
 
-  // ---------------------------------------------------------------------------
-  // 5. Тесты для keyConstraints (Primary keys & Unique keys)
-  // ---------------------------------------------------------------------------
   describe('keyConstraints (Primary & Unique keys)', () => {
     it('обрабатывает обычный primary key (PRIMARY -> id)', () => {
       const rawTables = [createTableRow({ tableName: 'users' })];
@@ -322,6 +339,7 @@ describe('schemaSnapshotBuilder', () => {
         tables: rawTables,
         columns: rawColumns,
         keyConstraints: rawConstraints,
+        foreignKeys: [],
       });
 
       const userTable = snapshot.tables.find((t) => t.name === 'users');
@@ -360,6 +378,7 @@ describe('schemaSnapshotBuilder', () => {
         tables: rawTables,
         columns: rawColumns,
         keyConstraints: rawConstraints,
+        foreignKeys: [],
       });
 
       const table = snapshot.tables.find((t) => t.name === 'tenant_orders');
@@ -400,6 +419,7 @@ describe('schemaSnapshotBuilder', () => {
         tables: rawTables,
         columns: rawColumns,
         keyConstraints: rawConstraints,
+        foreignKeys: [],
       });
 
       const userTable = snapshot.tables.find((t) => t.name === 'users');
@@ -433,6 +453,7 @@ describe('schemaSnapshotBuilder', () => {
           tables: rawTables,
           columns: rawColumns,
           keyConstraints: rawConstraints,
+          foreignKeys: [],
         }),
       ).toThrowError('Table unknown_table not found for constraints');
     });
@@ -455,6 +476,7 @@ describe('schemaSnapshotBuilder', () => {
           tables: rawTables,
           columns: rawColumns,
           keyConstraints: rawConstraints,
+          foreignKeys: [],
         }),
       ).toThrowError('Column ghost_column not found for table users');
     });
@@ -487,14 +509,401 @@ describe('schemaSnapshotBuilder', () => {
           tables: rawTables,
           columns: rawColumns,
           keyConstraints: rawConstraints,
+          foreignKeys: [],
         }),
       ).toThrowError('Table users has multiple primary keys');
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Второстепенные граничные сценарии
-  // ---------------------------------------------------------------------------
+  describe('foreignKeys', () => {
+    it('1. Обычная внутренняя связь (orders.user_id -> users.id)', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'orders' }),
+        createTableRow({ tableName: 'users' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'orders', columnName: 'id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'orders', columnName: 'user_id', ordinalPosition: 2 }),
+        createColumnRow({ tableName: 'users', columnName: 'id', ordinalPosition: 1 }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_orders_user',
+          columnName: 'user_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'users',
+          referencedColumnName: 'id',
+          updateRule: 'CASCADE',
+          deleteRule: 'RESTRICT',
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
+        tables: rawTables,
+        columns: rawColumns,
+        keyConstraints: [],
+        foreignKeys: rawForeignKeys,
+      });
+
+      const ordersTable = snapshot.tables.find((t) => t.name === 'orders');
+      expect(ordersTable?.foreignKeys).toEqual([
+        {
+          name: 'fk_orders_user',
+          columns: ['user_id'],
+          referencedSchemaName: schemaName,
+          referencedTableName: 'users',
+          referencedColumns: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT',
+        },
+      ]);
+    });
+
+    it('2. Составная связь с перепутанным порядком raw-строк', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'order_items' }),
+        createTableRow({ tableName: 'orders' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'order_items', columnName: 'tenant_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'order_items', columnName: 'order_id', ordinalPosition: 2 }),
+        createColumnRow({ tableName: 'orders', columnName: 'tenant_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'orders', columnName: 'id', ordinalPosition: 2 }),
+      ];
+
+      // Передаем order_id (ordinalPosition: 2) перед tenant_id (ordinalPosition: 1)
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'order_items',
+          constraintName: 'fk_order_items_order',
+          columnName: 'order_id',
+          ordinalPosition: 2,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'orders',
+          referencedColumnName: 'id',
+          updateRule: 'CASCADE',
+          deleteRule: 'CASCADE',
+        }),
+        createForeignKeyRow({
+          tableName: 'order_items',
+          constraintName: 'fk_order_items_order',
+          columnName: 'tenant_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'orders',
+          referencedColumnName: 'tenant_id',
+          updateRule: 'CASCADE',
+          deleteRule: 'CASCADE',
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
+        tables: rawTables,
+        columns: rawColumns,
+        keyConstraints: [],
+        foreignKeys: rawForeignKeys,
+      });
+
+      const itemsTable = snapshot.tables.find((t) => t.name === 'order_items');
+      expect(itemsTable?.foreignKeys).toEqual([
+        {
+          name: 'fk_order_items_order',
+          columns: ['tenant_id', 'order_id'],
+          referencedSchemaName: schemaName,
+          referencedTableName: 'orders',
+          referencedColumns: ['tenant_id', 'id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+        },
+      ]);
+    });
+
+    it('3. Self-reference (categories.parent_id -> categories.id)', () => {
+      const rawTables = [createTableRow({ tableName: 'categories' })];
+      const rawColumns = [
+        createColumnRow({ tableName: 'categories', columnName: 'id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'categories', columnName: 'parent_id', ordinalPosition: 2 }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'categories',
+          constraintName: 'fk_categories_parent',
+          columnName: 'parent_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'categories',
+          referencedColumnName: 'id',
+          updateRule: 'CASCADE',
+          deleteRule: 'SET NULL',
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
+        tables: rawTables,
+        columns: rawColumns,
+        keyConstraints: [],
+        foreignKeys: rawForeignKeys,
+      });
+
+      const categoriesTable = snapshot.tables.find((t) => t.name === 'categories');
+      expect(categoriesTable?.foreignKeys).toEqual([
+        {
+          name: 'fk_categories_parent',
+          columns: ['parent_id'],
+          referencedSchemaName: schemaName,
+          referencedTableName: 'categories',
+          referencedColumns: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL',
+        },
+      ]);
+    });
+
+    it('4. Cross-schema FK сохраняется, даже если referenced table отсутствует в snapshot', () => {
+      const rawTables = [createTableRow({ tableName: 'orders' })];
+      const rawColumns = [
+        createColumnRow({ tableName: 'orders', columnName: 'id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'orders', columnName: 'account_id', ordinalPosition: 2 }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_orders_account',
+          columnName: 'account_id',
+          ordinalPosition: 1,
+          referencedSchemaName: 'auth_schema',
+          referencedTableName: 'accounts',
+          referencedColumnName: 'id',
+          updateRule: 'NO ACTION',
+          deleteRule: 'NO ACTION',
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
+        tables: rawTables,
+        columns: rawColumns,
+        keyConstraints: [],
+        foreignKeys: rawForeignKeys,
+      });
+
+      const ordersTable = snapshot.tables.find((t) => t.name === 'orders');
+      expect(ordersTable?.foreignKeys).toEqual([
+        {
+          name: 'fk_orders_account',
+          columns: ['account_id'],
+          referencedSchemaName: 'auth_schema',
+          referencedTableName: 'accounts',
+          referencedColumns: ['id'],
+          onUpdate: 'NO ACTION',
+          onDelete: 'NO ACTION',
+        },
+      ]);
+    });
+
+    it('5. Внутренняя referenced table отсутствует — ошибка', () => {
+      const rawTables = [createTableRow({ tableName: 'orders' })];
+      const rawColumns = [createColumnRow({ tableName: 'orders', columnName: 'user_id' })];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_orders_user',
+          columnName: 'user_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'non_existent_users',
+          referencedColumnName: 'id',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Table non_existent_users not found for foreign key constraints');
+    });
+
+    it('6. Внутренняя referenced column отсутствует — ошибка', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'orders' }),
+        createTableRow({ tableName: 'users' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'orders', columnName: 'user_id' }),
+        createColumnRow({ tableName: 'users', columnName: 'id' }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_orders_user',
+          columnName: 'user_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'users',
+          referencedColumnName: 'non_existent_id',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Column non_existent_id not found for table users');
+    });
+
+    it('7. Строки одной группы FK указывают на разные таблицы — ошибка', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'orders' }),
+        createTableRow({ tableName: 'users' }),
+        createTableRow({ tableName: 'customers' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'orders', columnName: 'col1', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'orders', columnName: 'col2', ordinalPosition: 2 }),
+        createColumnRow({ tableName: 'users', columnName: 'id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'customers', columnName: 'id', ordinalPosition: 1 }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_inconsistent',
+          columnName: 'col1',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'users',
+          referencedColumnName: 'id',
+          updateRule: 'CASCADE',
+          deleteRule: 'CASCADE',
+        }),
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_inconsistent',
+          columnName: 'col2',
+          ordinalPosition: 2,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'customers',
+          referencedColumnName: 'id',
+          updateRule: 'CASCADE',
+          deleteRule: 'CASCADE',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Foreign key constraint fk_inconsistent has inconsistent metadata');
+    });
+
+    it('7b. Строки одной группы FK имеют разные referential actions (updateRule/deleteRule) — ошибка', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'order_items' }),
+        createTableRow({ tableName: 'orders' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'order_items', columnName: 'tenant_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'order_items', columnName: 'order_id', ordinalPosition: 2 }),
+        createColumnRow({ tableName: 'orders', columnName: 'tenant_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'orders', columnName: 'id', ordinalPosition: 2 }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'order_items',
+          constraintName: 'fk_diff_actions',
+          columnName: 'tenant_id',
+          ordinalPosition: 1,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'orders',
+          referencedColumnName: 'tenant_id',
+          updateRule: 'CASCADE',
+          deleteRule: 'CASCADE',
+        }),
+        createForeignKeyRow({
+          tableName: 'order_items',
+          constraintName: 'fk_diff_actions',
+          columnName: 'order_id',
+          ordinalPosition: 2,
+          referencedSchemaName: schemaName,
+          referencedTableName: 'orders',
+          referencedColumnName: 'id',
+          updateRule: 'RESTRICT',
+          deleteRule: 'CASCADE',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Foreign key constraint fk_diff_actions has inconsistent metadata');
+    });
+
+    it('выбрасывает ошибку, если исходная таблица для FK отсутствует', () => {
+      const rawTables = [createTableRow({ tableName: 'users' })];
+      const rawColumns = [createColumnRow({ tableName: 'users', columnName: 'id' })];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'ghost_table',
+          constraintName: 'fk_ghost',
+          columnName: 'id',
+          referencedTableName: 'users',
+          referencedColumnName: 'id',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Table ghost_table not found for foreign key constraints');
+    });
+
+    it('выбрасывает ошибку, если колонка в исходной таблице для FK отсутствует', () => {
+      const rawTables = [
+        createTableRow({ tableName: 'orders' }),
+        createTableRow({ tableName: 'users' }),
+      ];
+      const rawColumns = [
+        createColumnRow({ tableName: 'orders', columnName: 'id' }),
+        createColumnRow({ tableName: 'users', columnName: 'id' }),
+      ];
+      const rawForeignKeys = [
+        createForeignKeyRow({
+          tableName: 'orders',
+          constraintName: 'fk_orders_user',
+          columnName: 'non_existent_col',
+          referencedTableName: 'users',
+          referencedColumnName: 'id',
+        }),
+      ];
+
+      expect(() =>
+        schemaSnapshotBuilder(schemaName, scannedAt, {
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: [],
+          foreignKeys: rawForeignKeys,
+        }),
+      ).toThrowError('Column non_existent_col not found for table orders');
+    });
+  });
+
   describe('Второстепенные граничные сценарии', () => {
     it('преобразует isNullable: "YES" в nullable: true', () => {
       const snapshot = schemaSnapshotBuilder(schemaName, scannedAt, {
@@ -507,6 +916,7 @@ describe('schemaSnapshotBuilder', () => {
           }),
         ],
         keyConstraints: [],
+        foreignKeys: [],
       });
 
       const postTable = snapshot.tables.find((t) => t.name === 'posts');
@@ -530,6 +940,7 @@ describe('schemaSnapshotBuilder', () => {
           }),
         ],
         keyConstraints: [],
+        foreignKeys: [],
       });
 
       const accountTable = snapshot.tables.find((t) => t.name === 'accounts');
@@ -558,6 +969,7 @@ describe('schemaSnapshotBuilder', () => {
           }),
         ],
         keyConstraints: [],
+        foreignKeys: [],
       });
 
       // Таблицы отсортированы по имени (localeCompare)
@@ -579,6 +991,7 @@ describe('schemaSnapshotBuilder', () => {
           ],
           columns: [],
           keyConstraints: [],
+          foreignKeys: [],
         }),
       ).toThrowError(/Unknown table type: UNKNOWN/);
     });
@@ -594,6 +1007,7 @@ describe('schemaSnapshotBuilder', () => {
           }),
         ],
         keyConstraints: [],
+        foreignKeys: [],
       });
 
       const col = snapshot.tables[0]?.columns[0];
