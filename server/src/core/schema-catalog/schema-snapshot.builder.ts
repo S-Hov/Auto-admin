@@ -127,12 +127,6 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         }
     }
 
-    tables.sort((a, b) => a.name.localeCompare(b.name));
-    for (const table of tables) {
-        table.columns.sort((a, b) => a.position - b.position);
-        table.uniqueKeys.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
     const groupedForeignKeys = new Map<
         string,
         Map<string, InformationSchemaForeignKeyRow[]>
@@ -183,10 +177,18 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
                 }
             }
             if (
-                !rows.some((elem) => elem.referencedSchemaName === schemaName && elem.referencedTableName === tableName && elem.updateRule === rows[0].updateRule && elem.deleteRule === rows[0].deleteRule)
+                rows.some((elem) =>
+                    elem.referencedSchemaName !== rows[0].referencedSchemaName
+                    || elem.referencedTableName !== rows[0].referencedTableName
+                    || elem.updateRule !== rows[0].updateRule
+                    || elem.deleteRule !== rows[0].deleteRule
+                )
             ) {
                 throw new Error(`Foreign key constraint ${constraintName} has different referenced tables for different columns`);
             }
+
+            rows.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
+
             table.foreignKeys.push({
                 name: constraintName,
                 columns: rows.map(row => row.columnName),
@@ -197,6 +199,13 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
                 onDelete: rows[0].deleteRule,
             });
         }
+    }
+
+    tables.sort((a, b) => a.name.localeCompare(b.name));
+    for (const table of tables) {
+        table.columns.sort((a, b) => a.position - b.position);
+        table.uniqueKeys.sort((a, b) => a.name.localeCompare(b.name));
+        table.foreignKeys.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return {
