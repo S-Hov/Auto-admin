@@ -32,6 +32,7 @@ export interface InformationSchemaRows {
     columns: InformationSchemaColumnRow[];
     keyConstraints: InformationSchemaKeyConstraintRow[];
     foreignKeys: InformationSchemaForeignKeyRow[];
+    indexes: InformationSchemaIndexRow[];
 }
 
 export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
@@ -55,3 +56,17 @@ export interface InformationSchemaForeignKeyRow extends RowDataPacket {
 }
 
 export type InformationSchemaReferentialAction = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION' | 'SET DEFAULT';
+
+export interface InformationSchemaIndexRow extends RowDataPacket {
+    tableName: string;
+    indexName: string;
+    nonUnique: 0 | 1;
+    sequenceInIndex: number;
+    columnName: string | null;
+    expression: string | null;
+    indexType: string;
+    collation: 'A' | 'D' | null;
+    subPart: number | null;
+    isVisible: 'YES' | 'NO';
+    indexComment: string;
+}
