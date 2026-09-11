@@ -96,7 +96,7 @@ const readForeignKeyRows = async (executor: DbExecutor, schemaName: string): Pro
                     rc.DELETE_RULE AS deleteRule
                 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
                 JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS rc
-                    ON kcu.TABLE_SCHEMA = rc.CONSTRAINT_SCHEMA
+                    ON kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
                     AND kcu.TABLE_NAME = rc.TABLE_NAME
                     AND kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
                 WHERE kcu.TABLE_SCHEMA = ?
