@@ -92,6 +92,12 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         }
 
         for (const [constraintName, rows] of constraintsByName) {
+            for (const row of rows) {
+                if (!table.columns.find(column => column.name === row.columnName)) {
+                    throw new Error(`Column ${row.columnName} not found for table ${tableName}`);
+                }
+            }
+
             rows.sort((a, b) => a.ordinalPosition - b.ordinalPosition);
 
             const key = {
