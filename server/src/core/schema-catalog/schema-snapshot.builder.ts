@@ -29,7 +29,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             primaryKey: null,
             uniqueKeys: [],
             foreignKeys: [],
-            isServiceTable: table.tableName.startsWith(SERVICES_TABLE_PREFIX),
+            isServiceTable: table.tableName.toLowerCase().startsWith(SERVICES_TABLE_PREFIX.toLowerCase()),
             comment: table.tableComment || null,
             indexes: [],
         }
@@ -55,7 +55,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             nullable: column.isNullable === 'YES' ? true : false,
             defaultValue: column.columnDefault,
             generated: {
-                isGenerated: trimmedExpression !== '',
+                isGenerated: column.extra.includes('GENERATED'),
                 generationExpression: trimmedExpression || null,
             },
             autoIncrement: column.extra.toLowerCase().includes('auto_increment'),
