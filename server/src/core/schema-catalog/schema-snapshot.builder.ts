@@ -55,7 +55,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             nullable: column.isNullable === 'YES' ? true : false,
             defaultValue: column.columnDefault,
             generated: {
-                isGenerated: column.extra.includes('GENERATED'),
+                isGenerated: column.extra.toUpperCase().includes('VIRTUAL GENERATED') || column.extra.toUpperCase().includes('STORED GENERATED'),
                 generationExpression: trimmedExpression || null,
             },
             autoIncrement: column.extra.toLowerCase().includes('auto_increment'),

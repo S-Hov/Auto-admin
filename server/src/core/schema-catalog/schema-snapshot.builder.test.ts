@@ -265,6 +265,7 @@ describe('schemaSnapshotBuilder', () => {
         isNullable: 'YES',
         columnComment: 'Generated header',
         generationExpression: 'CONCAT(title, " [v1]")',
+        extra: 'VIRTUAL GENERATED',
         ordinalPosition: 2,
       }),
     ];
@@ -301,10 +302,60 @@ describe('schemaSnapshotBuilder', () => {
     expect(generatedCol?.generated.generationExpression).toBe('CONCAT(title, " [v1]")');
   });
 
-  it('3. Служебная таблица: помечает Auto_Admin__* как isServiceTable: true, а обычную users как false', () => {
+  it('обрабатывает STORED GENERATED колонку как isGenerated: true', () => {
+    const snapshot = schemaSnapshotBuilder(
+      schemaName,
+      scannedAt,
+      createInformationSchemaRows({
+        tables: [createTableRow({ tableName: 'products' })],
+        columns: [
+          createColumnRow({
+            tableName: 'products',
+            columnName: 'stored_total',
+            extra: 'STORED GENERATED',
+            generationExpression: 'price * quantity',
+            ordinalPosition: 1,
+          }),
+        ],
+      }),
+    );
+
+    const col = snapshot.tables[0]?.columns[0];
+    expect(col?.generated.isGenerated).toBe(true);
+    expect(col?.generated.generationExpression).toBe('price * quantity');
+  });
+
+  it('защитный тест: extra "DEFAULT_GENERATED" при пустом generationExpression дает isGenerated: false', () => {
+    const snapshot = schemaSnapshotBuilder(
+      schemaName,
+      scannedAt,
+      createInformationSchemaRows({
+        tables: [createTableRow({ tableName: 'events' })],
+        columns: [
+          createColumnRow({
+            tableName: 'events',
+            columnName: 'uuid',
+            extra: 'DEFAULT_GENERATED',
+            generationExpression: '',
+            ordinalPosition: 1,
+          }),
+        ],
+      }),
+    );
+
+    const col = snapshot.tables[0]?.columns[0];
+    expect(col?.generated.isGenerated).toBe(false);
+    expect(col?.generated.generationExpression).toBeNull();
+  });
+
+  it('3. Служебная таблица: помечает Auto_Admin__* (включая регистронезависимые имена вроде auto_admin__*) как isServiceTable: true, а обычную users как false', () => {
     const rawTables = [
       createTableRow({
         tableName: 'Auto_Admin__users',
+        tableType: 'BASE TABLE',
+      }),
+      createTableRow({
+        tableName: 'auto_admin__sessions',
         tableType: 'BASE TABLE',
       }),
       createTableRow({
@@ -316,6 +367,11 @@ describe('schemaSnapshotBuilder', () => {
     const rawColumns = [
       createColumnRow({
         tableName: 'Auto_Admin__users',
+        columnName: 'id',
+        ordinalPosition: 1,
+      }),
+      createColumnRow({
+        tableName: 'auto_admin__sessions',
         columnName: 'id',
         ordinalPosition: 1,
       }),
@@ -335,14 +391,17 @@ describe('schemaSnapshotBuilder', () => {
       }),
     );
 
-    const serviceTable = snapshot.tables.find((t) => t.name === 'Auto_Admin__users');
+    const serviceTable1 = snapshot.tables.find((t) => t.name === 'Auto_Admin__users');
+    const serviceTable2 = snapshot.tables.find((t) => t.name === 'auto_admin__sessions');
     const regularTable = snapshot.tables.find((t) => t.name === 'users');
 
-    expect(serviceTable).toBeDefined();
+    expect(serviceTable1).toBeDefined();
+    expect(serviceTable2).toBeDefined();
     expect(regularTable).toBeDefined();
 
-    // Проверка для безопасности: служебная таблица не должна попасть в generic CRUD
-    expect(serviceTable?.isServiceTable).toBe(true);
+    // Проверка для безопасности: служебные таблицы не должны попасть в generic CRUD
+    expect(serviceTable1?.isServiceTable).toBe(true);
+    expect(serviceTable2?.isServiceTable).toBe(true);
     expect(regularTable?.isServiceTable).toBe(false);
   });
 
@@ -1835,6 +1894,46 @@ describe('schemaSnapshotBuilder', () => {
       const col = snapshot.tables[0]?.columns[0];
       expect(col?.generated.isGenerated).toBe(false);
       expect(col?.generated.generationExpression).toBeNull();
+    });
+
+    it('полностью пустая база возвращает tables: []', () => {
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [],
+          columns: [],
+          keyConstraints: [],
+          foreignKeys: [],
+          indexes: [],
+        }),
+      );
+
+      expect(snapshot.schemaName).toBe(schemaName);
+      expect(snapshot.scannedAt).toEqual(scannedAt);
+      expect(snapshot.tables).toEqual([]);
+    });
+
+    it('defaultValue, например CURRENT_TIMESTAMP, сохраняется без изменений', () => {
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: [createTableRow({ tableName: 'orders' })],
+          columns: [
+            createColumnRow({
+              tableName: 'orders',
+              columnName: 'created_at',
+              columnDefault: 'CURRENT_TIMESTAMP',
+              ordinalPosition: 1,
+            }),
+          ],
+        }),
+      );
+
+      const orderTable = snapshot.tables.find((t) => t.name === 'orders');
+      const createdAtCol = orderTable?.columns.find((c) => c.name === 'created_at');
+      expect(createdAtCol?.defaultValue).toBe('CURRENT_TIMESTAMP');
     });
   });
 });
