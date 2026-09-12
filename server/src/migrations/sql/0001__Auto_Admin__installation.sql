@@ -4,4 +4,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__installation (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT chk_only_one_row CHECK (id = 1)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

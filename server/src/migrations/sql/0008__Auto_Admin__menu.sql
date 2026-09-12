@@ -18,4 +18,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__menu (
         REFERENCES Auto_Admin__users(id) ON DELETE SET NULL,
         
     INDEX idx_menu_parent_order (parent_id, sort_order)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

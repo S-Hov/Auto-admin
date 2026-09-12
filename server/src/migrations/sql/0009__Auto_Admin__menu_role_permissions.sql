@@ -14,4 +14,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__menu_role_permissions (
         REFERENCES Auto_Admin__roles(id) ON DELETE CASCADE,
         
     UNIQUE KEY uq_menu_role (menu_id, role_id)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

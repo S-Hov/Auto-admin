@@ -9,4 +9,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES Auto_Admin__roles(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     INDEX idx_users_role_id (role_id)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

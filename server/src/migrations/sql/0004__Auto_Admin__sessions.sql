@@ -12,4 +12,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__sessions (
     UNIQUE KEY uq_sessions_token_hash (token_hash),
     INDEX idx_user_id (user_id),
     INDEX idx_expires_at (expires_at)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

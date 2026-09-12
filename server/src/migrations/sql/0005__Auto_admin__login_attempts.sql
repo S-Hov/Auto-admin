@@ -7,4 +7,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__login_attempts (
     INDEX idx_user_ip_time (username, ip_address, created_at),
     INDEX idx_ip_time (ip_address, created_at),
     INDEX idx_user_time (username, created_at)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;

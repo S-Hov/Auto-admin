@@ -8,4 +8,6 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__auth_logs (
     CONSTRAINT fk_auth_logs_user FOREIGN KEY (user_id) REFERENCES Auto_Admin__users(id) ON DELETE SET NULL ON UPDATE CASCADE,
     INDEX idx_auth_logs_user_id (user_id),
     INDEX idx_auth_logs_created_at (created_at)
-);
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
