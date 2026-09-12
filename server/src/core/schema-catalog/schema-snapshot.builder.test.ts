@@ -493,6 +493,50 @@ describe('schemaSnapshotBuilder', () => {
       ]);
     });
 
+    it('обрабатывает составной unique key и сортирует его колонки по ordinalPosition при перепутанном порядке', () => {
+      const rawTables = [createTableRow({ tableName: 'memberships' })];
+      const rawColumns = [
+        createColumnRow({ tableName: 'memberships', columnName: 'organization_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'memberships', columnName: 'user_id', ordinalPosition: 2 }),
+      ];
+
+      // Передаем user_id (position 2) перед organization_id (position 1)
+      const rawConstraints = [
+        createKeyConstraintRow({
+          tableName: 'memberships',
+          constraintName: 'uq_org_user',
+          constraintType: 'UNIQUE',
+          columnName: 'user_id',
+          ordinalPosition: 2,
+        }),
+        createKeyConstraintRow({
+          tableName: 'memberships',
+          constraintName: 'uq_org_user',
+          constraintType: 'UNIQUE',
+          columnName: 'organization_id',
+          ordinalPosition: 1,
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          keyConstraints: rawConstraints,
+        }),
+      );
+
+      const table = snapshot.tables.find((t) => t.name === 'memberships');
+      expect(table?.uniqueKeys).toEqual([
+        {
+          name: 'uq_org_user',
+          columns: ['organization_id', 'user_id'],
+        },
+      ]);
+    });
+
     it('выбрасывает ошибку, если constraint указывает на неизвестную таблицу', () => {
       const rawTables = [createTableRow({ tableName: 'users' })];
       const rawColumns = [createColumnRow({ tableName: 'users', columnName: 'id' })];
@@ -1147,6 +1191,47 @@ describe('schemaSnapshotBuilder', () => {
 
       const userTable = snapshot.tables.find((t) => t.name === 'users');
       expect(userTable?.indexes[0]?.isUnique).toBe(true);
+    });
+
+    it('3b. Составной unique index: преобразует nonUnique: 0 в isUnique: true и сохраняет порядок частей', () => {
+      const rawTables = [createTableRow({ tableName: 'memberships' })];
+      const rawColumns = [
+        createColumnRow({ tableName: 'memberships', columnName: 'org_id', ordinalPosition: 1 }),
+        createColumnRow({ tableName: 'memberships', columnName: 'user_id', ordinalPosition: 2 }),
+      ];
+      // Передаем строки с sequenceInIndex 2 перед 1
+      const rawIndexes = [
+        createIndexRow({
+          tableName: 'memberships',
+          indexName: 'uniq_org_user',
+          columnName: 'user_id',
+          sequenceInIndex: 2,
+          nonUnique: 0,
+        }),
+        createIndexRow({
+          tableName: 'memberships',
+          indexName: 'uniq_org_user',
+          columnName: 'org_id',
+          sequenceInIndex: 1,
+          nonUnique: 0,
+        }),
+      ];
+
+      const snapshot = schemaSnapshotBuilder(
+        schemaName,
+        scannedAt,
+        createInformationSchemaRows({
+          tables: rawTables,
+          columns: rawColumns,
+          indexes: rawIndexes,
+        }),
+      );
+
+      const table = snapshot.tables.find((t) => t.name === 'memberships');
+      const uniqIndex = table?.indexes.find((i) => i.name === 'uniq_org_user');
+      expect(uniqIndex).toBeDefined();
+      expect(uniqIndex?.isUnique).toBe(true);
+      expect(uniqIndex?.parts.map((p) => p.columnName)).toEqual(['org_id', 'user_id']);
     });
 
     it('4. Functional index: поддерживает выражение при columnName === null и формирует DBIndexExpressionPart', () => {
