@@ -232,17 +232,12 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         }
 
         for (const [indexName, rows] of indexesByName) {
-            for (const row of rows) {
-                if (!table.columns.find(column => column.name === row.columnName)) {
-                    throw new Error(`Column ${row.columnName} not found for table ${tableName}`);
-                }
-            }
             if (
                 rows.some((elem) =>
                     elem.nonUnique !== rows[0].nonUnique
-                    || elem.indexName !== rows[0].indexName
-                    || elem.nonUnique !== rows[0].nonUnique
                     || elem.isVisible !== rows[0].isVisible
+                    || elem.indexType !== rows[0].indexType
+                    || elem.indexComment !== rows[0].indexComment
                 )
             ) {
                 throw new Error(`Index constraint ${indexName} has inconsistent metadata`);
@@ -255,11 +250,17 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
             for (const row of rows) {
                 let kind: 'column' | 'expression';
                 if (row.columnName != null && row.expression == null) {
+                    if (!table.columns.find(column => column.name === row.columnName)) {
+                        throw new Error(`Column ${row.columnName} not found for table ${tableName}`);
+                    }
                     kind = 'column';
                 } else if (row.columnName == null && row.expression != null) {
+                    if (row.expression.trim() === '') {
+                        throw new Error(`Invalid index part for index ${indexName}: expression is empty`);
+                    }
                     kind = 'expression';
                 } else {
-                    throw new Error(`Invalid index part for index ${indexName}`);
+                    throw new Error(`Invalid index part for index ${indexName}: both column name and expression are null or not null`);
                 }
                 const baseIndex: DBIndexPartBase = {
                     position: row.sequenceInIndex,
@@ -267,19 +268,19 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
                     sortDirection: row.collation ? (row.collation === 'A' ? 'ASC' : 'DESC') : null,
                 };
 
-                if (kind === 'column') {
+                if (row.columnName && kind === 'column') {
                     parts.push({
                         ...baseIndex,
                         kind: 'column',
-                        columnName: row.columnName!,
+                        columnName: row.columnName,
                         expression: null,
                     });
-                } else if (kind === 'expression') {
+                } else if (row.expression && kind === 'expression') {
                     parts.push({
                         ...baseIndex,
                         kind: 'expression',
                         columnName: null,
-                        expression: row.expression!,
+                        expression: row.expression,
                     });
                 } else {
                     throw new Error(`Invalid index part kind: ${kind}`);
@@ -292,7 +293,7 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
                 isUnique: rows[0].nonUnique === 0,
                 indexType: rows[0].indexType,
                 isVisible: rows[0].isVisible === 'YES',
-                comment: rows[0].indexComment,
+                comment: rows[0].indexComment || null,
             });
         }
     }
