@@ -69,7 +69,7 @@ export interface DBIndex {
 
 export type DBIndexPart = DBIndexColumnPart | DBIndexExpressionPart;
 
-interface DBIndexPartBase {
+export interface DBIndexPartBase {
     position: number;
     prefixLength: number | null;
     sortDirection: 'ASC' | 'DESC' | null;

@@ -1,6 +1,6 @@
-import type { InformationSchemaForeignKeyRow, InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
+import type { InformationSchemaForeignKeyRow, InformationSchemaIndexRow, InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
 import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
-import type { DBSnapshot, DBTable } from "./schema-catalog.types";
+import type { DBIndexPart, DBIndexPartBase, DBSnapshot, DBTable } from "./schema-catalog.types";
 
 export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: InformationSchemaRows): DBSnapshot => {
     const tables: DBTable[] = [];
@@ -201,11 +201,108 @@ export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: In
         }
     }
 
+    const groupedIndexes = new Map<
+        string,
+        Map<string, InformationSchemaIndexRow[]>
+    >();
+
+    for (const row of schema.indexes) {
+        let tableGroup = groupedIndexes.get(row.tableName);
+
+        if (!tableGroup) {
+            tableGroup = new Map();
+            groupedIndexes.set(row.tableName, tableGroup);
+        }
+
+        let indexRows = tableGroup.get(row.indexName);
+
+        if (!indexRows) {
+            indexRows = [];
+            tableGroup.set(row.indexName, indexRows);
+        }
+
+        indexRows.push(row);
+    }
+
+    for (const [tableName, indexesByName] of groupedIndexes) {
+        const table = tablesMap.get(tableName);
+
+        if (!table) {
+            throw new Error(`Table ${tableName} not found for index constraints`);
+        }
+
+        for (const [indexName, rows] of indexesByName) {
+            for (const row of rows) {
+                if (!table.columns.find(column => column.name === row.columnName)) {
+                    throw new Error(`Column ${row.columnName} not found for table ${tableName}`);
+                }
+            }
+            if (
+                rows.some((elem) =>
+                    elem.nonUnique !== rows[0].nonUnique
+                    || elem.indexName !== rows[0].indexName
+                    || elem.nonUnique !== rows[0].nonUnique
+                    || elem.isVisible !== rows[0].isVisible
+                )
+            ) {
+                throw new Error(`Index constraint ${indexName} has inconsistent metadata`);
+            }
+
+            rows.sort((a, b) => a.sequenceInIndex - b.sequenceInIndex);
+
+            const parts: DBIndexPart[] = [];
+
+            for (const row of rows) {
+                let kind: 'column' | 'expression';
+                if (row.columnName != null && row.expression == null) {
+                    kind = 'column';
+                } else if (row.columnName == null && row.expression != null) {
+                    kind = 'expression';
+                } else {
+                    throw new Error(`Invalid index part for index ${indexName}`);
+                }
+                const baseIndex: DBIndexPartBase = {
+                    position: row.sequenceInIndex,
+                    prefixLength: row.subPart ?? null,
+                    sortDirection: row.collation ? (row.collation === 'A' ? 'ASC' : 'DESC') : null,
+                };
+
+                if (kind === 'column') {
+                    parts.push({
+                        ...baseIndex,
+                        kind: 'column',
+                        columnName: row.columnName!,
+                        expression: null,
+                    });
+                } else if (kind === 'expression') {
+                    parts.push({
+                        ...baseIndex,
+                        kind: 'expression',
+                        columnName: null,
+                        expression: row.expression!,
+                    });
+                } else {
+                    throw new Error(`Invalid index part kind: ${kind}`);
+                }
+            }
+
+            table.indexes.push({
+                name: indexName,
+                parts,
+                isUnique: rows[0].nonUnique === 0,
+                indexType: rows[0].indexType,
+                isVisible: rows[0].isVisible === 'YES',
+                comment: rows[0].indexComment,
+            });
+        }
+    }
+
     tables.sort((a, b) => a.name.localeCompare(b.name));
     for (const table of tables) {
         table.columns.sort((a, b) => a.position - b.position);
         table.uniqueKeys.sort((a, b) => a.name.localeCompare(b.name));
         table.foreignKeys.sort((a, b) => a.name.localeCompare(b.name));
+        table.indexes.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return {
