@@ -1,4 +1,9 @@
-import type { InformationSchemaForeignKeyRow, InformationSchemaIndexRow, InformationSchemaKeyConstraintRow, InformationSchemaRows } from "./information-schema.types";
+import type {
+    InformationSchemaForeignKeyRow,
+    InformationSchemaIndexRow,
+    InformationSchemaKeyConstraintRow,
+    InformationSchemaRows
+} from "./information-schema.types";
 import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
 import type { DBIndexPart, DBIndexPartBase, DBSnapshot, DBTable } from "./schema-catalog.types";
 
