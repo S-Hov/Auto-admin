@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__constraint_fields (
         REFERENCES Auto_Admin__constraints(id) ON DELETE CASCADE,
 
     CONSTRAINT fk_constraint_fields_field FOREIGN KEY (field_id)
-        REFERENCES Auto_Admin__fields(id) ON DELETE CASCADE,
+        REFERENCES Auto_Admin__fields(id) ON DELETE RESTRICT,
 
     CONSTRAINT fk_constraint_fields_referenced_field FOREIGN KEY (referenced_field_id)
         REFERENCES Auto_Admin__fields(id) ON DELETE SET NULL,
