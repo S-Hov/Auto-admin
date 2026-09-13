@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__fields (
     generation_expression LONGTEXT NULL,
     extra VARCHAR(255) NOT NULL DEFAULT '',
     comment TEXT NULL,
-    state ENUM('present', 'missing') DEFAULT 'present',
+    state ENUM('present', 'missing') NOT NULL DEFAULT 'present',
     first_seen_scan_id BIGINT UNSIGNED NOT NULL,
     last_seen_scan_id BIGINT UNSIGNED NOT NULL,
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__fields (
     UNIQUE KEY uq_fields (resource_id, column_name),
 
     CONSTRAINT fk_fields_resource FOREIGN KEY (resource_id)
-        REFERENCES Auto_Admin__resources(id) ON DELETE RESTRICT,
+        REFERENCES Auto_Admin__resources(id) ON DELETE CASCADE,
 
     CONSTRAINT fk_fields_first_seen FOREIGN KEY (first_seen_scan_id)
         REFERENCES Auto_Admin__schema_scans(id) ON DELETE RESTRICT,
