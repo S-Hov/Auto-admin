@@ -10,7 +10,11 @@ export const AppGate = () => {
     const { status, refreshAuth } = useAuth();
 
     if (state.status === 'checking') {
-        return <div>Проверяем статус bootstrap...</div>;
+        return (
+            <div className="loader-container">
+                <div className="page-loader"></div>
+            </div>
+        );
     }
 
     if (state.status === 'error') {
