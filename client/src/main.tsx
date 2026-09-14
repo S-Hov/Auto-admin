@@ -7,6 +7,7 @@ import { AppRouter } from './app/routing/router';
 import './index.css';
 import './app/styles/global.css';
 import './app/styles/variables.css';
+import './app/styles/animation.css';
 import { AuthProvider } from './app/providers/auth/AuthProvider';
 import { BootstrapProvider } from './app/providers/bootstrap/BootstrapProvider';
 

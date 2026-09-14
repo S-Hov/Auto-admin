@@ -16,7 +16,11 @@ const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/M
 
 // Вспомогательный компонент для отображения загрузки (Spinner/Skeleton)
 const PageLoader = (component: React.ReactNode) => (
-  <Suspense fallback={<div>Загрузка страницы...</div>}>
+  <Suspense fallback={
+    <div className='loader-container'>
+      <div className="page-loader"></div>
+    </div>
+  }>
     {component}
   </Suspense>
 )
@@ -36,7 +40,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-    
+
       {
         path: '/auth',
         element: <AuthLayout />,
@@ -55,12 +59,12 @@ const router = createBrowserRouter([
             index: true,
             element: PageLoader(<InstallPage />),
           },
-    
+
           {
             path: 'register',
             element: PageLoader(<CreateAdminPage />),
           },
-          
+
           {
             path: 'runMigrations',
             element: PageLoader(<RunMigrationsPage />),
@@ -77,5 +81,5 @@ const router = createBrowserRouter([
 ])
 
 export function AppRouter() {
-    return <RouterProvider router={router} />;
+  return <RouterProvider router={router} />;
 }

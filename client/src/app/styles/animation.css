@@ -1,0 +1,62 @@
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.page-loader {
+    width: fit-content;
+    font-weight: bold;
+    font-family: monospace;
+    white-space: pre;
+    font-size: 30px;
+
+    &:before {
+        content: "Auto Admin";
+        animation: page-loader 1s infinite alternate;
+    }
+}
+
+
+@keyframes page-loader {
+    0%,
+    15%,
+    75%,
+    100% {
+        content: "Auto Admin";
+    }
+    20% {
+        content: " uto Admin"
+    }
+    25% {
+        content: "A to Admin"
+    }
+    30% {
+        content: "Au o A min"
+    }
+    35% {
+        content: "A to  d i "
+    }
+    40% {
+        content: "Auto Admin"
+    }
+    45% {
+        content: "A t  Ad i "
+    }
+    50% {
+        content: "Aut  A min"
+    }
+    55% {
+        content: "Aut  Admin"
+    }
+    60% {
+        content: " ut  Admin"
+    }
+    65% {
+        content: "A to  dm n"
+    }
+    70% {
+        content: " uto Admin"
+    }
+}
