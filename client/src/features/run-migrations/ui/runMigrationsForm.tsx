@@ -111,9 +111,9 @@ const RunMigrationsForm = () => {
         <CardForm
             headerTitle="Запуск миграций"
             headerDescription="Запустите миграции, чтобы создать служебные таблицы для Auto Admin"
-            formID="dbForm"
+            formID="runMigrationsForm"
             onSubmit={handleSubmit(onSubmit)}
-            className={`${isSubmitting ? 'isSubmitting' : ''}`}
+            className={`run-migrations-form max-h-100__percent ${isSubmitting ? 'isSubmitting' : ''}`}
         >
             {steps.length === 0 && !isFinished && (
                 <Button
