@@ -68,6 +68,89 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
         indexes: ['uq_menu_user'],
         constraints: ['fk_menu_user_perm_menu', 'fk_menu_user_perm_user'],
     },
+    '0011': {
+        table: 'Auto_Admin__schema_scans',
+        columns: [
+            'id', 'status', 'schema_name', 'started_at', 'finished_at', 'snapshot_fingerprint',
+            'added_resources', 'changed_resources', 'missing_resources',
+            'added_fields', 'changed_fields', 'missing_fields',
+            'error_code', 'created_by',
+        ],
+        indexes: ['idx_schema_scans_status_started_at'],
+        constraints: ['fk_schema_scans_created_by'],
+    },
+    '0012': {
+        table: 'Auto_Admin__resources',
+        columns: [
+            'id', 'schema_name', 'table_name', 'object_type', 'engine', 'comment',
+            'is_service', 'state', 'first_seen_scan_id', 'last_seen_scan_id',
+            'created_at', 'updated_at',
+        ],
+        indexes: ['uq_resources', 'idx_state_is_service'],
+        constraints: ['fk_resources_first_seen', 'fk_resources_last_seen'],
+    },
+    '0013': {
+        table: 'Auto_Admin__fields',
+        columns: [
+            'id', 'resource_id', 'column_name', 'ordinal_position', 'data_type', 'column_type',
+            'is_nullable', 'default_value', 'character_maximum_length', 'numeric_precision',
+            'numeric_scale', 'datetime_precision', 'character_set_name', 'collation_name',
+            'is_auto_increment', 'is_generated', 'generation_expression', 'extra', 'comment',
+            'state', 'first_seen_scan_id', 'last_seen_scan_id', 'created_at', 'updated_at',
+        ],
+        indexes: ['uq_fields', 'idx_resource_id_state_ordinal'],
+        constraints: ['fk_fields_resource', 'fk_fields_first_seen', 'fk_fields_last_seen'],
+    },
+    '0014': {
+        table: 'Auto_Admin__constraints',
+        columns: [
+            'id', 'resource_id', 'constraint_name', 'constraint_type',
+            'referenced_schema_name', 'referenced_table_name', 'referenced_resource_id',
+            'on_update', 'on_delete', 'state', 'first_seen_scan_id', 'last_seen_scan_id',
+            'created_at', 'updated_at',
+        ],
+        indexes: ['uq_constraints', 'idx_resource_id_state', 'idx_referenced_resource'],
+        constraints: [
+            'fk_constraints_resource', 'fk_constraints_referenced_resource',
+            'fk_constraints_first_seen', 'fk_constraints_last_seen',
+        ],
+    },
+    '0015': {
+        table: 'Auto_Admin__constraint_fields',
+        columns: [
+            'id', 'constraint_id', 'ordinal_position', 'field_id',
+            'referenced_field_id', 'referenced_column_name', 'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_constraint_fields_ordinal', 'uq_constraint_fields_field',
+            'idx_field_id', 'idx_referenced_field_id',
+        ],
+        constraints: [
+            'fk_constraint_fields_constraint', 'fk_constraint_fields_field',
+            'fk_constraint_fields_referenced_field',
+        ],
+    },
+    '0016': {
+        table: 'Auto_Admin__indexes',
+        columns: [
+            'id', 'resource_id', 'index_name', 'is_unique', 'index_type', 'is_visible',
+            'comment', 'state', 'first_seen_scan_id', 'last_seen_scan_id',
+            'created_at', 'updated_at',
+        ],
+        indexes: ['uq_indexes', 'idx_resource_id_state'],
+        constraints: ['fk_indexes_resource', 'fk_indexes_first_seen', 'fk_indexes_last_seen'],
+    },
+    '0017': {
+        table: 'Auto_Admin__index_parts',
+        columns: [
+            'id', 'index_id', 'ordinal_position', 'field_id', 'expression',
+            'prefix_length', 'sort_direction', 'created_at', 'updated_at',
+        ],
+        indexes: ['uq_index_parts_by_index_position'],
+        constraints: [
+            'fk_index_parts_index', 'fk_index_parts_field', 'chk_index_parts_source',
+        ],
+    },
 };
 
 const containsAll = (actual: readonly string[], expected: readonly string[]): boolean => {

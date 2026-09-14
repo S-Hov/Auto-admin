@@ -6,6 +6,8 @@ import type { MigrationDescriptor, MigrationHistoryRecord } from '../src/migrati
 import { mapZodIssue } from '../src/shared/api/validation/map-zod-issue';
 import { ERROR_CODES } from '../src/shared/api/codes/error-codes';
 import { AsyncMutex } from '../src/shared/concurrency/AsyncMutex';
+import { loadMigrationCatalog } from '../src/migrations/migration.catalog';
+import { verifyMigrationApplied } from '../src/migrations/migration.verification';
 
 const descriptor: MigrationDescriptor = {
     version: '0001',
@@ -91,4 +93,25 @@ it('AsyncMutex serializes concurrent critical sections', async () => {
 
     await Promise.all([first, second]);
     expect(order).toEqual(['first:start', 'first:end', 'second:start']);
+});
+
+it('every migration in catalog has a verification handler or table spec', async () => {
+    const catalog = await loadMigrationCatalog();
+    expect(catalog.length).toBeGreaterThan(0);
+
+    for (const migration of catalog) {
+        let queried = false;
+        const testConn = {
+            query: async () => {
+                queried = true;
+                return [[]];
+            },
+        } as any;
+
+        await verifyMigrationApplied(testConn, migration.version);
+        expect(
+            queried,
+            `Migration ${migration.version} (${migration.fileName}) does not have a verification spec or handler`,
+        ).toBe(true);
+    }
 });
