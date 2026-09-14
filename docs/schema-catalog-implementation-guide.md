@@ -159,13 +159,23 @@ fieldId 92    → shop.orders.total
 
 ```text
 server/src/core/schema-catalog/
-├─ schema-catalog.types.ts
-├─ information-schema.types.ts
-├─ mysql-schema-introspector.ts
-├─ schema-snapshot.builder.ts
-├─ schema-catalog.repository.ts
-├─ schema-catalog.synchronizer.ts
-├─ schema-catalog.cache.ts
+├─ builder/
+│  ├─ schema-snapshot.builder.ts
+│  └─ schema-snapshot.builder.test.ts
+├─ cache/
+│  └─ schema-catalog.cache.ts
+├─ introspection/
+│  └─ mysql-schema-introspector.ts
+├─ repository/
+│  ├─ catalog-read.repository.ts
+│  ├─ schema-scan.repository.ts
+│  └─ repository.types.ts
+├─ synchronizer/
+│  └─ schema-catalog.synchronizer.ts
+├─ types/
+│  ├─ information-schema.types.ts
+│  └─ schema-catalog.types.ts
+├─ schema-catalog.constants.ts
 ├─ schema-catalog.service.ts
 ├─ schema-catalog.errors.ts
 └─ index.ts
@@ -184,7 +194,7 @@ server/src/modules/schema-catalog/
 
 ## 5. Ответственность каждого файла
 
-### `schema-catalog.types.ts`
+### `types/schema-catalog.types.ts`
 
 Описывает нормализованную runtime-модель базы:
 
@@ -197,7 +207,7 @@ server/src/modules/schema-catalog/
 
 Здесь не должно быть интерфейсов `Request`, DTO клиента, renderer-ов или прав.
 
-### `information-schema.types.ts`
+### `types/information-schema.types.ts`
 
 Описывает сырые строки MySQL:
 
@@ -209,7 +219,7 @@ server/src/modules/schema-catalog/
 
 Эти интерфейсы могут расширять `RowDataPacket`. Их имена и типы должны соответствовать aliases в SQL.
 
-### `mysql-schema-introspector.ts`
+### `introspection/mysql-schema-introspector.ts`
 
 Только читает `INFORMATION_SCHEMA` через переданный `DbExecutor`.
 
@@ -221,7 +231,7 @@ server/src/modules/schema-catalog/
 - проверять права текущего пользователя;
 - обращаться к Query Engine.
 
-### `schema-snapshot.builder.ts`
+### `builder/schema-snapshot.builder.ts`
 
 Собирает плоские raw rows в дерево `DBSnapshot`.
 
@@ -237,7 +247,7 @@ server/src/modules/schema-catalog/
 
 Builder должен быть чистым: получить массивы → вернуть snapshot. Благодаря этому его легко тестировать без MySQL.
 
-### `schema-catalog.repository.ts`
+### `repository/`
 
 Работает только со служебными таблицами каталога:
 
@@ -250,7 +260,11 @@ Builder должен быть чистым: получить массивы → 
 
 Repository не принимает решений о том, что считать изменением и что делать с настройками.
 
-### `schema-catalog.synchronizer.ts`
+- `schema-scan.repository.ts` управляет жизненным циклом scan record;
+- `catalog-read.repository.ts` читает сохранённые объекты каталога;
+- `repository.types.ts` описывает внутренние строки SQL-запросов repository.
+
+### `synchronizer/schema-catalog.synchronizer.ts`
 
 Сравнивает snapshot с сохранённым каталогом и строит план изменений:
 
@@ -263,7 +277,7 @@ missing
 
 Он решает, какие записи создать, обновить или пометить отсутствующими.
 
-### `schema-catalog.cache.ts`
+### `cache/schema-catalog.cache.ts`
 
 Хранит уже проверенный активный каталог для Query Engine.
 

@@ -8,7 +8,7 @@ import type {
   InformationSchemaIndexRow,
   InformationSchemaReferentialAction,
   InformationSchemaRows,
-} from './information-schema.types';
+} from '../types/information-schema.types';
 
 type MockTableRow = {
   schemaName?: string;

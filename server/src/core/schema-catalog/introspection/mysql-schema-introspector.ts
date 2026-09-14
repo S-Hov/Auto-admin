@@ -1,5 +1,5 @@
-import { envConfig } from "../../config/env";
-import type { DbExecutor } from "../../db";
+import { envConfig } from "../../../config/env";
+import type { DbExecutor } from "../../../db";
 import type {
     InformationSchemaColumnRow,
     InformationSchemaForeignKeyRow,
@@ -7,7 +7,7 @@ import type {
     InformationSchemaKeyConstraintRow,
     InformationSchemaRows,
     InformationSchemaTableRow
-} from "./information-schema.types";
+} from "../types/information-schema.types";
 
 const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
     const [rows] = await executor.query<InformationSchemaTableRow[]>({

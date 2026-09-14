@@ -3,9 +3,9 @@ import type {
     InformationSchemaIndexRow,
     InformationSchemaKeyConstraintRow,
     InformationSchemaRows
-} from "./information-schema.types";
-import { SERVICES_TABLE_PREFIX } from "./schema-catalog.constants";
-import type { DBIndexPart, DBIndexPartBase, DBSnapshot, DBTable } from "./schema-catalog.types";
+} from "../types/information-schema.types";
+import { SERVICES_TABLE_PREFIX } from "../schema-catalog.constants";
+import type { DBIndexPart, DBIndexPartBase, DBSnapshot, DBTable } from "../types/schema-catalog.types";
 
 export const schemaSnapshotBuilder = (schemaName: string, time: Date, schema: InformationSchemaRows): DBSnapshot => {
     const tables: DBTable[] = [];
