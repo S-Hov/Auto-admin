@@ -108,3 +108,11 @@ export interface StoredResource {
     firstSeenScanId: number;
     lastSeenScanId: number;
 }
+
+export interface StoredField extends DBColumn {
+    id: number;
+    resourceId: number;
+    state: 'present' | 'missing';
+    firstSeenScanId: number;
+    lastSeenScanId: number;
+}
