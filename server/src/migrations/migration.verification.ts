@@ -146,7 +146,10 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
             'id', 'index_id', 'ordinal_position', 'field_id', 'expression',
             'prefix_length', 'sort_direction', 'created_at', 'updated_at',
         ],
-        indexes: ['uq_index_parts_by_index_position'],
+        indexes: [
+            'uq_index_parts_by_index_position',
+            'idx_index_parts_field',
+        ],
         constraints: [
             'fk_index_parts_index', 'fk_index_parts_field', 'chk_index_parts_source',
         ],

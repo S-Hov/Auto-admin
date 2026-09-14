@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__index_parts (
     CONSTRAINT fk_index_parts_field FOREIGN KEY (field_id)
         REFERENCES Auto_Admin__fields(id) ON DELETE RESTRICT,
     
-    CONSTRAINT chk_index_parts_source CHECK ((field_id IS NOT NULL AND expression IS NULL) OR (field_id IS NULL AND expression IS NOT NULL AND CHAR_LENGTH(TRIM(expression)) > 0))
+    CONSTRAINT chk_index_parts_source CHECK ((field_id IS NOT NULL AND expression IS NULL) OR (field_id IS NULL AND expression IS NOT NULL AND CHAR_LENGTH(TRIM(expression)) > 0)),
+
+    INDEX idx_index_parts_field (field_id)
 ) ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci;
