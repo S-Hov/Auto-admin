@@ -1,6 +1,7 @@
-import type { ResultSetHeader } from "mysql2";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import type { DbExecutor } from "../../db";
-import type { SchemaScanChangeCounts } from "./schema-catalog.types";
+import type { SchemaScanChangeCounts, StoredResource } from "./schema-catalog.types";
+import { AutoAdmin } from "../../db/db.types";
 
 export const createRunningSchemaScan = async (executor: DbExecutor, schemaName: string, createdBy: number | null): Promise<number> => {
     const [result] = await executor.query<ResultSetHeader>(`
@@ -58,4 +59,36 @@ export const markSchemaScanFailed = async (executor: DbExecutor, scanId: number,
     if (result.affectedRows !== 1) {
         throw new Error(`Schema scan ${scanId} not found or not in 'running' state`);
     }
+}
+
+export const readStoredResources = async(executor: DbExecutor, schemaName: string): Promise<StoredResource[]> => {
+    const [result] = await executor.query<AutoAdmin.Resource[]>(`
+        SELECT
+            id,
+            schema_name,
+            table_name,
+            object_type,
+            engine,
+            comment,
+            is_service,
+            state,
+            first_seen_scan_id,
+            last_seen_scan_id
+        FROM Auto_Admin__resources
+        WHERE schema_name = ?
+        ORDER BY table_name
+    `, [schemaName]);
+
+    return result[0].map((resource: AutoAdmin.Resource) => ({
+        id: resource.id,
+        schemaName: resource.schema_name,
+        tableName: resource.table_name,
+        type: resource.object_type,
+        engine: resource.engine,
+        comment: resource.comment,
+        isServiceTable: Boolean(resource.is_service),
+        state: resource.state,
+        firstSeenScanId: resource.first_seen_scan_id,
+        lastSeenScanId: resource.last_seen_scan_id,
+    }));
 }

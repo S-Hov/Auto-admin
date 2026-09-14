@@ -95,3 +95,16 @@ export interface SchemaScanChangeCounts {
     changedFields: number;
     missingFields: number;
 }
+
+export interface StoredResource {
+    id: number;
+    schemaName: string;
+    tableName: string;
+    type: 'table' | 'view';
+    engine: string | null;
+    comment: string | null;
+    isServiceTable: boolean;
+    state: 'present' | 'missing';
+    firstSeenScanId: number;
+    lastSeenScanId: number;
+}
