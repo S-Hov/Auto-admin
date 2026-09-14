@@ -3,6 +3,22 @@ import type { DbExecutor } from "../../db";
 import type { SchemaScanChangeCounts, StoredResource } from "./schema-catalog.types";
 import { AutoAdmin } from "../../db/db.types";
 
+type StoredResourceRow =
+    RowDataPacket
+    & Pick<
+        AutoAdmin.Resource,
+        | 'id'
+        | 'schema_name'
+        | 'table_name'
+        | 'object_type'
+        | 'engine'
+        | 'comment'
+        | 'is_service'
+        | 'state'
+        | 'first_seen_scan_id'
+        | 'last_seen_scan_id'
+    >;
+
 export const createRunningSchemaScan = async (executor: DbExecutor, schemaName: string, createdBy: number | null): Promise<number> => {
     const [result] = await executor.query<ResultSetHeader>(`
         INSERT INTO Auto_Admin__schema_scans
@@ -62,7 +78,7 @@ export const markSchemaScanFailed = async (executor: DbExecutor, scanId: number,
 }
 
 export const readStoredResources = async(executor: DbExecutor, schemaName: string): Promise<StoredResource[]> => {
-    const [result] = await executor.query<AutoAdmin.Resource[]>(`
+    const [result] = await executor.query<StoredResourceRow[]>(`
         SELECT
             id,
             schema_name,
@@ -79,7 +95,7 @@ export const readStoredResources = async(executor: DbExecutor, schemaName: strin
         ORDER BY table_name
     `, [schemaName]);
 
-    return result[0].map((resource: AutoAdmin.Resource) => ({
+    return result.map((resource: StoredResourceRow) => ({
         id: resource.id,
         schemaName: resource.schema_name,
         tableName: resource.table_name,
