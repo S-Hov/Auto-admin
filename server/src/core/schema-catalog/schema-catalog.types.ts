@@ -86,3 +86,12 @@ interface DBIndexExpressionPart extends DBIndexPartBase {
     columnName: null;
     expression: string;
 }
+
+export interface SchemaScanChangeCounts {
+    addedResources: number;
+    changedResources: number;
+    missingResources: number;
+    addedFields: number;
+    changedFields: number;
+    missingFields: number;
+}
