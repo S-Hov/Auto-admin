@@ -56,8 +56,8 @@ describe('buildResourceDiff', () => {
 
     describe('3. Изменение одного свойства ресурса: попадает в diff.changed', () => {
         it('изменение type (table -> view)', () => {
-            const table = createMockTable({ name: 'report', type: 'view', engine: null });
-            const stored = createMockStoredResource({ tableName: 'report', type: 'table', engine: 'InnoDB' });
+            const table = createMockTable({ name: 'report', type: 'view' });
+            const stored = createMockStoredResource({ tableName: 'report', type: 'table' });
 
             const diff = buildResourceDiff([table], [stored]);
 
