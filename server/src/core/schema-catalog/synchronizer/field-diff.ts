@@ -58,8 +58,9 @@ export const buildFieldDiff = (snapshot: DBTable[], storedResources: StoredResou
                 });
                 continue;
             }
-
-            if (storedResource.state === 'missing' || hasFieldMetadataChanged(snapshotColumn, storedColumn)) {
+            resourceFields.delete(snapshotColumn.name);
+            
+            if (storedColumn.state === 'missing' || hasFieldMetadataChanged(snapshotColumn, storedColumn)) {
                 diff.changed.push({
                     snapshot: snapshotColumn,
                     stored: storedColumn
@@ -72,7 +73,18 @@ export const buildFieldDiff = (snapshot: DBTable[], storedResources: StoredResou
                     stored: storedColumn
                 });
             }
-            resourceFields.delete(snapshotColumn.name);
+        }
+    }
+
+    for (const storedResource of storedByTableName.values()) {
+        const resourceFields = storedFieldsByTable.get(storedResource.id);
+
+        if (resourceFields) {
+            for (const storedColumn of resourceFields.values()) {
+                if (storedResource.state === 'present') {
+                    diff.missing.push(storedColumn);
+                }
+            }
         }
     }
 
@@ -90,6 +102,8 @@ const hasFieldMetadataChanged = (snapshot: DBColumn, stored: StoredField): boole
         || snapshot.columnType !== stored.columnType
         || snapshot.nullable !== stored.nullable
         || snapshot.defaultValue !== stored.defaultValue
+        || snapshot.generated.isGenerated !== stored.generated.isGenerated
+        || snapshot.generated.generationExpression !== stored.generated.generationExpression
         || snapshot.autoIncrement !== stored.autoIncrement
         || snapshot.extra !== stored.extra
         || snapshot.characterSetName !== stored.characterSetName
