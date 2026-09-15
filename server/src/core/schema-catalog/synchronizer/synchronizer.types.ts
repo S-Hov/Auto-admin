@@ -1,4 +1,4 @@
-import type { DBTable, StoredResource } from '../types/schema-catalog.types';
+import type { DBColumn, DBTable, StoredField, StoredResource } from '../types/schema-catalog.types';
 
 export interface MatchedResource {
     snapshot: DBTable;
@@ -10,4 +10,21 @@ export interface ResourceDiff {
     changed: MatchedResource[];
     unchanged: MatchedResource[];
     missing: StoredResource[];
+}
+
+export interface SnapshotFieldRef {
+    tableName: string;
+    column: DBColumn;
+}
+
+export interface MatchedField {
+    snapshot: DBColumn;
+    stored: StoredField;
+}
+
+export interface FieldDiff {
+    added: SnapshotFieldRef[];
+    changed: MatchedField[];
+    unchanged: MatchedField[];
+    missing: StoredField[];
 }
