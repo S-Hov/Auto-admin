@@ -80,9 +80,9 @@ export const buildFieldDiff = (snapshot: DBTable[], storedResources: StoredResou
         const resourceFields = storedFieldsByTable.get(storedResource.id);
 
         if (resourceFields) {
-            for (const storedColumn of resourceFields.values()) {
-                if (storedResource.state === 'present') {
-                    diff.missing.push(storedColumn);
+            for (const storedField of resourceFields.values()) {
+                if (storedField.state === 'present') {
+                    diff.missing.push(storedField);
                 }
             }
         }
