@@ -1,11 +1,6 @@
 import type { ResultSetHeader } from "mysql2";
 import type { DbExecutor } from "../../../db";
-import type { DBColumn } from "../types/schema-catalog.types";
-
-interface FieldWriteItem {
-    resourceId: number;
-    column: DBColumn;
-}
+import type { FieldWriteItem } from "./repository.types";
 
 export const upsertPresentFields = async (executor: DbExecutor, items: FieldWriteItem[], scanId: number): Promise<void> => {
     if (items.length === 0) {

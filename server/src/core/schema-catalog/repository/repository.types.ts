@@ -1,5 +1,6 @@
 import type { RowDataPacket } from "mysql2";
 import type { AutoAdmin } from "../../../db/db.types";
+import type { DBColumn } from "../types/schema-catalog.types";
 
 export type StoredResourceRow =
     RowDataPacket
@@ -44,3 +45,9 @@ export type StoredFieldRow =
         | 'first_seen_scan_id'
         | 'last_seen_scan_id'
     >;
+
+
+export interface FieldWriteItem {
+    resourceId: number;
+    column: DBColumn;
+}
