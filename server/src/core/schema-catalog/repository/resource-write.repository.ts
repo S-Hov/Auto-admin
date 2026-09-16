@@ -24,14 +24,14 @@ export const upsertPresentResources = async (executor: DbExecutor, schemaName: s
 
     await executor.query(`
         INSERT INTO Auto_Admin__resources (
-            schema_name, 
-            table_name, 
-            object_type, 
-            engine, 
-            comment, 
-            is_service, 
-            first_seen_scan_id, 
-            last_seen_scan_id, 
+            schema_name,
+            table_name,
+            object_type,
+            engine,
+            comment,
+            is_service,
+            first_seen_scan_id,
+            last_seen_scan_id,
             state
         ) VALUES ${placeholders}
         ON DUPLICATE KEY UPDATE

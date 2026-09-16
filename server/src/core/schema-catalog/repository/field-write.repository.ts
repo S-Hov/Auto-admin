@@ -88,7 +88,7 @@ export const markFieldsMissing = async (executor: DbExecutor, fieldIds: number[]
     const placeholders = fieldIds.map(() => '?').join(', ');
 
     const [result] = await executor.query<ResultSetHeader>(`
-        UPDATE Auto_Admin__fields 
+        UPDATE Auto_Admin__fields
         SET state = 'missing'
         WHERE id IN (${placeholders})
             AND state = 'present'

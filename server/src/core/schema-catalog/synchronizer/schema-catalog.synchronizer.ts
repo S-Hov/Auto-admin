@@ -1,4 +1,4 @@
-import type { DbExecutor } from "../../../db";
+import type { PoolConnection } from "mysql2/promise";
 import { readStoredFields, readStoredResources } from "../repository/catalog-read.repository";
 import { markFieldsMissing, upsertPresentFields } from "../repository/field-write.repository";
 import type { FieldWriteItem } from "../repository/repository.types";
@@ -7,17 +7,17 @@ import type { DBSnapshot, SchemaScanChangeCounts } from "../types/schema-catalog
 import { buildFieldDiff } from "./field-diff";
 import { buildResourceDiff } from "./resource-diff";
 
-export const synchronizeResourcesAndFields = async (executor: DbExecutor, snapshot: DBSnapshot, scanId: number): Promise<SchemaScanChangeCounts> => {
-    const oldResources = await readStoredResources(executor, snapshot.schemaName);
-    const oldFields = await readStoredFields(executor, snapshot.schemaName);
+export const synchronizeResourcesAndFields = async (connection: PoolConnection, snapshot: DBSnapshot, scanId: number): Promise<SchemaScanChangeCounts> => {
+    const oldResources = await readStoredResources(connection, snapshot.schemaName);
+    const oldFields = await readStoredFields(connection, snapshot.schemaName);
 
     const resourceDiff = buildResourceDiff(snapshot.tables, oldResources);
     const fieldDiff = buildFieldDiff(snapshot.tables, oldResources, oldFields);
 
-    await upsertPresentResources(executor, snapshot.schemaName, snapshot.tables, scanId);
-    await markResourcesMissing(executor, resourceDiff.missing.map((resource) => resource.id));
+    await upsertPresentResources(connection, snapshot.schemaName, snapshot.tables, scanId);
+    await markResourcesMissing(connection, resourceDiff.missing.map((resource) => resource.id));
 
-    const updatedResources = await readStoredResources(executor, snapshot.schemaName);
+    const updatedResources = await readStoredResources(connection, snapshot.schemaName);
 
     const resourceNameIdMap = new Map<string, number>();
     for (const resource of updatedResources) {
@@ -38,9 +38,9 @@ export const synchronizeResourcesAndFields = async (executor: DbExecutor, snapsh
         })));
     }
 
-    await upsertPresentFields(executor, fieldWriteItems, scanId);
+    await upsertPresentFields(connection, fieldWriteItems, scanId);
 
-    await markFieldsMissing(executor, fieldDiff.missing.map((field) => field.id));
+    await markFieldsMissing(connection, fieldDiff.missing.map((field) => field.id));
 
     return {
         addedResources: resourceDiff.added.length,
