@@ -13,6 +13,10 @@ export const createRunningSchemaScan = async (
         VALUES (?, ?, ?)
     `, ['running', schemaName, createdBy]);
 
+    if (!result.insertId || result.insertId < 0) {
+        throw new Error('Failed to insert schema scan');
+    }
+
     return result.insertId;
 };
 
