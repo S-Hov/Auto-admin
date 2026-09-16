@@ -1,7 +1,7 @@
 import type { DbExecutor } from "../../../db";
 import { readStoredFields, readStoredResources } from "../repository/catalog-read.repository";
 import { markFieldsMissing, upsertPresentFields } from "../repository/field-write.repository";
-import { FieldWriteItem } from "../repository/repository.types";
+import type { FieldWriteItem } from "../repository/repository.types";
 import { markResourcesMissing, upsertPresentResources } from "../repository/resource-write.repository";
 import type { DBSnapshot, SchemaScanChangeCounts } from "../types/schema-catalog.types";
 import { buildFieldDiff } from "./field-diff";
@@ -14,8 +14,7 @@ export const synchronizeResourcesAndFields = async (executor: DbExecutor, snapsh
     const resourceDiff = buildResourceDiff(snapshot.tables, oldResources);
     const fieldDiff = buildFieldDiff(snapshot.tables, oldResources, oldFields);
 
-    await upsertPresentResources(executor, snapshot.schemaName, resourceDiff.added, scanId);
-    await upsertPresentResources(executor, snapshot.schemaName, resourceDiff.changed.map((pair) => ({ ...pair.snapshot, id: pair.stored.id })), scanId);
+    await upsertPresentResources(executor, snapshot.schemaName, snapshot.tables, scanId);
     await markResourcesMissing(executor, resourceDiff.missing.map((resource) => resource.id));
 
     const updatedResources = await readStoredResources(executor, snapshot.schemaName);
