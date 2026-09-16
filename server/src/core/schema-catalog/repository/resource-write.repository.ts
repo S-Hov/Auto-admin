@@ -7,22 +7,20 @@ export const upsertPresentResources = async (executor: DbExecutor, schemaName: s
         return;
     }
 
-    const params: unknown[][] = [];
-    let paramsString: string = ``;
+    const placeholders = snapshotTables
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, 'present')`)
+        .join(', ');
 
-    for (const snapshotTable of snapshotTables) {
-        params.push([
+    const params = snapshotTables.flatMap((table) => [
             schemaName,
-            snapshotTable.name,
-            snapshotTable.type,
-            snapshotTable.engine,
-            snapshotTable.comment,
-            snapshotTable.isServiceTable,
+            table.name,
+            table.type,
+            table.engine,
+            table.comment,
+            table.isServiceTable,
             scanId,
             scanId
         ]);
-        paramsString += `, (?, ?, ?, ?, ?, ?, ?, ?, 'present')`;
-    }
 
     await executor.query(`
         INSERT INTO Auto_Admin__resources (
@@ -35,7 +33,7 @@ export const upsertPresentResources = async (executor: DbExecutor, schemaName: s
             first_seen_scan_id, 
             last_seen_scan_id, 
             state
-        ) VALUES ${paramsString}
+        ) VALUES ${placeholders}
         ON DUPLICATE KEY UPDATE
             object_type = VALUES(object_type),
             engine = VALUES(engine),
@@ -51,16 +49,12 @@ export const markResourcesMissing = async (executor: DbExecutor, resourceIds: nu
         return;
     }
 
-    let paramsString = `?`;
-
-    for (let i = 1; i < resourceIds.length; i++) {
-        paramsString += `, ?`;
-    }
+    const placeholders = resourceIds.map(() => '?').join(', ');
 
     const [result] = await executor.query<ResultSetHeader>(`
         UPDATE Auto_Admin__resources 
         SET state = 'missing'
-        WHERE id IN (${paramsString})
+        WHERE id IN (${placeholders})
             AND state = 'present'
     `, resourceIds);
 
