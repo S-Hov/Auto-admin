@@ -1,5 +1,10 @@
-import { InformationSchemaReferentialAction } from '../types/information-schema.types';
-import type { DBColumn, DBTable, StoredField, StoredResource } from '../types/schema-catalog.types';
+import type {
+    DBColumn,
+    DBTable,
+    ForeignKeyAction,
+    StoredField,
+    StoredResource,
+} from '../types/schema-catalog.types';
 
 export interface MatchedResource {
     snapshot: DBTable;
@@ -30,15 +35,15 @@ export interface FieldDiff {
     missing: StoredField[];
 }
 
-export interface SnapshotConstraintRef {
+export interface SnapshotConstraint {
     tableName: string;
     constraintName: string;
     type: 'primary' | 'unique' | 'foreign';
-    columns: DBColumn[];
-    referencedSchemaName: string;
-    referencedTableName: string;
-    onUpdate: InformationSchemaReferentialAction | null;
-    onDelete: InformationSchemaReferentialAction | null;
+    fields: SnapshotConstraintField[];
+    referencedSchemaName: string | null;
+    referencedTableName: string | null;
+    onUpdate: ForeignKeyAction | null;
+    onDelete: ForeignKeyAction | null;
 }
 
 export interface SnapshotConstraintField {
