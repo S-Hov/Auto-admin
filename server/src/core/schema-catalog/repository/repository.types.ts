@@ -51,3 +51,33 @@ export interface FieldWriteItem {
     resourceId: number;
     column: DBColumn;
 }
+
+export type StoredConstrainRow =
+    RowDataPacket
+    & Pick<
+        AutoAdmin.Constraint,
+        | 'id'
+        | 'resource_id'
+        | 'constraint_name'
+        | 'constraint_type'
+        | 'referenced_schema_name'
+        | 'referenced_table_name'
+        | 'referenced_resource_id'
+        | 'on_update'
+        | 'on_delete'
+        | 'state'
+        | 'first_seen_scan_id'
+        | 'last_seen_scan_id'
+    >;
+
+export type StoredConstraintFieldRow =
+    RowDataPacket
+    & Pick<
+        AutoAdmin.ConstraintField,
+        | 'id'
+        | 'constraint_id'
+        | 'ordinal_position'
+        | 'field_id'
+        | 'referenced_field_id'
+        | 'referenced_column_name'
+    >;

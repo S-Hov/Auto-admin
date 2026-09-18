@@ -116,3 +116,28 @@ export interface StoredField extends DBColumn {
     firstSeenScanId: number;
     lastSeenScanId: number;
 }
+
+export interface StoredConstraint {
+    id: number;
+    resourceId: number;
+    constraintName: string;
+    type: string;
+    referencedTableName: string | null;
+    referencedSchemaName: string | null;
+    referencedResourceId: number;
+    onUpdate: string | null;
+    onDelete: string | null;
+    state: string;
+    firstSeenScanId: number;
+    lastSeenScanId: number;
+    fields: StoredConstraintField[];
+}
+
+export interface StoredConstraintField {
+    id: number;
+    position: number;
+    fieldId: number;
+    columnName: string;
+    referencedColumnName: string | null;
+    referencedFieldId: number | null;
+}
