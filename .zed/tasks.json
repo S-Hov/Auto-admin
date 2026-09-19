@@ -1,0 +1,16 @@
+[
+  {
+    "label": "Перевести выделенный текст",
+    "command": "/usr/bin/node",
+    "args": [
+      "/home/hov/.local/share/zed/extensions/installed/ollama-hover-translate/selection.mjs",
+      "$ZED_SELECTED_TEXT"
+    ],
+    "reveal": "never",
+    "hide": "on_success",
+    "show_summary": false,
+    "show_command": false,
+    "allow_concurrent_runs": false,
+    "use_new_terminal": false
+  }
+]

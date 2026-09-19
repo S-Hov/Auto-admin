@@ -1,4 +1,4 @@
-import { GetMeServiceResult } from "../modules/auth/auth.types";
+import type { GetMeServiceResult } from "../modules/auth";
 
 declare global {
     namespace Express {

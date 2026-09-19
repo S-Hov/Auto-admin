@@ -1,0 +1,36 @@
+{
+  "languages": {
+    "JavaScript": {
+      "tab_size": 4,
+      "formatter": "prettier",
+      "language_servers": ["ollama-hover-translate", "codebook", "!biome", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "JSX": {
+      "tab_size": 4,
+      "formatter": "prettier",
+      "language_servers": ["ollama-hover-translate", "codebook", "!biome", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "TypeScript": {
+      "tab_size": 4,
+      "formatter": "prettier",
+      "language_servers": ["ollama-hover-translate", "codebook", "!biome", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "TSX": {
+      "tab_size": 4,
+      "formatter": "prettier",
+      "language_servers": ["ollama-hover-translate", "codebook", "!biome", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "JSON": {
+      "tab_size": 4,
+      "formatter": "prettier"
+    },
+    "HTML": {
+      "tab_size": 4,
+      "formatter": "prettier"
+    },
+    "CSS": {
+      "tab_size": 4,
+      "formatter": "prettier"
+    }
+  }
+}
