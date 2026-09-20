@@ -1,20 +1,13 @@
-export type DatabaseType = 'mysql' | 'sqlite' | 'postgres';
+export type DatabaseType = 'mysql' | 'sqlite' | 'postgresql';
 
-export type DatabaseSupportStatus = 'supported' | 'unsupported' | 'planned';
+export type DatabaseSupportStatus = 'supported' | 'planned';
 
-export interface DatabaseSubsystem {
-    connection: boolean;
-    systemRepositories: boolean;
-    queryEngine: boolean;
-    schemaCatalog: boolean;
-    migrations: boolean;
-    DatabaseDescriptor: boolean;
-}
+export type DatabaseSubsystem = 'connection' | 'systemRepositories' | 'queryEngine' | 'schemaCatalog' | 'migrations';
 
-export interface Database {
+export interface DatabaseDescriptor {
     type: DatabaseType;
-    disableName: string;
-    defaultPool: number | null;
+    displayName: string;
+    defaultPort: number | null;
     status: DatabaseSupportStatus;
-    support: DatabaseSubsystem;
+    support: Readonly<Record<DatabaseSubsystem, boolean>>;
 }
