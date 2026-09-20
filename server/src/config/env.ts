@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { z } from "zod";
+import { DATABASE_TYPES } from "../db/database.types";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ export const envSchema = z.object({
     Auto_Admin__AUTH_SHORT_WINDOW_SECONDS: z.coerce.number().int().min(60).max(86400).default(900),
     Auto_Admin__AUTH_IP_WINDOW_SECONDS: z.coerce.number().int().min(60).max(604800).default(86400),
     Auto_Admin__LOGIN_ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+    Auto_Admin__DB_TYPE: z.enum(DATABASE_TYPES).default("mysql")
 });
 
 const parsed = envSchema.safeParse(process.env);

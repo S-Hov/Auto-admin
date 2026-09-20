@@ -11,3 +11,5 @@ export interface DatabaseDescriptor {
     status: DatabaseSupportStatus;
     support: Readonly<Record<DatabaseSubsystem, boolean>>;
 }
+
+export const DATABASE_TYPES: Readonly<DatabaseType[]> = ['mysql', 'sqlite', 'postgresql'];
