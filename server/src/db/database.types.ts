@@ -1,3 +1,5 @@
+export const DATABASE_TYPES = ['mysql', 'postgresql', 'sqlite'] as const;
+
 export type DatabaseType = typeof DATABASE_TYPES[number];
 
 export type DatabaseSupportStatus = 'supported' | 'planned';
@@ -11,5 +13,3 @@ export interface DatabaseDescriptor {
     status: DatabaseSupportStatus;
     support: Readonly<Record<DatabaseSubsystem, boolean>>;
 }
-
-export const DATABASE_TYPES = ['mysql', 'postgresql', 'sqlite'] as const;
