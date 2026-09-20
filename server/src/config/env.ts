@@ -7,6 +7,7 @@ dotenv.config();
 export const envSchema = z.object({
     Auto_Admin__PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     Auto_Admin__HOST: z.string().trim().min(1).default("localhost"),
+    Auto_Admin__DB_TYPE: z.enum(DATABASE_TYPES).default("mysql"),
     Auto_Admin__NODE_ENV: z.enum(["development", "production", "test"] as const).default("development"),
     Auto_Admin__DB_HOST: z.string().optional(),
     Auto_Admin__DB_PORT: z.string().optional(),
@@ -29,7 +30,6 @@ export const envSchema = z.object({
     Auto_Admin__AUTH_SHORT_WINDOW_SECONDS: z.coerce.number().int().min(60).max(86400).default(900),
     Auto_Admin__AUTH_IP_WINDOW_SECONDS: z.coerce.number().int().min(60).max(604800).default(86400),
     Auto_Admin__LOGIN_ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
-    Auto_Admin__DB_TYPE: z.enum(DATABASE_TYPES).default("mysql")
 });
 
 const parsed = envSchema.safeParse(process.env);

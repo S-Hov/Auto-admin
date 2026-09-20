@@ -1,3 +1,5 @@
+import type { DatabaseType } from "../db/database.types";
+
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
@@ -11,7 +13,7 @@ declare global {
             Auto_Admin__DB_DATABASE?: string;
             Auto_Admin__INSTALL_TOKEN?: string;
             Auto_Admin__CORS_ALLOWED_ORIGINS?: string;
-            Auto_Admin__DB_TYPE?: string;
+            Auto_Admin__DB_TYPE?: DatabaseType;
         }
     }
 }
