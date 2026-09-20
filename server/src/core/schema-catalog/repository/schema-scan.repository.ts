@@ -1,6 +1,27 @@
-import type { ResultSetHeader } from "mysql2";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import type { DbExecutor } from "../../../db";
 import type { SchemaScanChangeCounts } from "../types/schema-catalog.types";
+
+interface SuccessfulScanRow extends RowDataPacket {
+    snapshot_fingerprint: string;
+}
+
+export const readLatestSuccessfulScanFingerprint = async (
+    executor: DbExecutor,
+    schemaName: string,
+): Promise<string | null> => {
+    const [rows] = await executor.query<SuccessfulScanRow[]>(`
+        SELECT snapshot_fingerprint
+        FROM Auto_Admin__schema_scans
+        WHERE schema_name = ?
+            AND status = 'succeeded'
+            AND snapshot_fingerprint IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 1
+    `, [schemaName]);
+
+    return rows[0]?.snapshot_fingerprint ?? null;
+};
 
 export const createRunningSchemaScan = async (
     executor: DbExecutor,

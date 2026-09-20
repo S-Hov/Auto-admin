@@ -1,6 +1,6 @@
 import type { RowDataPacket } from "mysql2";
 import type { AutoAdmin } from "../../../db/db.types";
-import type { DBColumn } from "../types/schema-catalog.types";
+import type { DBColumn, DBIndex, ForeignKeyAction } from "../types/schema-catalog.types";
 
 export type StoredResourceRow =
     RowDataPacket
@@ -52,7 +52,7 @@ export interface FieldWriteItem {
     column: DBColumn;
 }
 
-export type StoredConstrainRow =
+export type StoredConstraintRow =
     RowDataPacket
     & Pick<
         AutoAdmin.Constraint,
@@ -80,4 +80,66 @@ export type StoredConstraintFieldRow =
         | 'field_id'
         | 'referenced_field_id'
         | 'referenced_column_name'
+    > & { column_name: string };
+
+export type StoredIndexRow =
+    RowDataPacket
+    & Pick<
+        AutoAdmin.Index,
+        | 'id'
+        | 'resource_id'
+        | 'index_name'
+        | 'is_unique'
+        | 'index_type'
+        | 'is_visible'
+        | 'comment'
+        | 'state'
+        | 'first_seen_scan_id'
+        | 'last_seen_scan_id'
     >;
+
+export type StoredIndexPartRow =
+    RowDataPacket
+    & Pick<
+        AutoAdmin.IndexPart,
+        | 'id'
+        | 'index_id'
+        | 'ordinal_position'
+        | 'field_id'
+        | 'expression'
+        | 'prefix_length'
+        | 'sort_direction'
+    > & { column_name: string | null };
+
+export interface ConstraintWriteItem {
+    resourceId: number;
+    constraintName: string;
+    type: 'primary' | 'unique' | 'foreign';
+    referencedSchemaName: string | null;
+    referencedTableName: string | null;
+    referencedResourceId: number | null;
+    onUpdate: ForeignKeyAction | null;
+    onDelete: ForeignKeyAction | null;
+}
+
+export interface ConstraintFieldWriteItem {
+    constraintId: number;
+    position: number;
+    fieldId: number;
+    referencedFieldId: number | null;
+    referencedColumnName: string | null;
+}
+
+export interface IndexWriteItem {
+    resourceId: number;
+    index: DBIndex;
+}
+
+export interface IndexPartWriteItem {
+    indexId: number;
+    position: number;
+    fieldId: number | null;
+    expression: string | null;
+    prefixLength: number | null;
+    sortDirection: 'ASC' | 'DESC' | null;
+}

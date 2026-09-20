@@ -75,13 +75,13 @@ export interface DBIndexPartBase {
     sortDirection: 'ASC' | 'DESC' | null;
 }
 
-interface DBIndexColumnPart extends DBIndexPartBase {
+export interface DBIndexColumnPart extends DBIndexPartBase {
     kind: 'column';
     columnName: string;
     expression: null;
 }
 
-interface DBIndexExpressionPart extends DBIndexPartBase {
+export interface DBIndexExpressionPart extends DBIndexPartBase {
     kind: 'expression';
     columnName: null;
     expression: string;
@@ -121,13 +121,13 @@ export interface StoredConstraint {
     id: number;
     resourceId: number;
     constraintName: string;
-    type: string;
+    type: 'primary' | 'unique' | 'foreign';
     referencedTableName: string | null;
     referencedSchemaName: string | null;
-    referencedResourceId: number;
-    onUpdate: string | null;
-    onDelete: string | null;
-    state: string;
+    referencedResourceId: number | null;
+    onUpdate: ForeignKeyAction | null;
+    onDelete: ForeignKeyAction | null;
+    state: 'present' | 'missing';
     firstSeenScanId: number;
     lastSeenScanId: number;
     fields: StoredConstraintField[];
@@ -135,9 +135,62 @@ export interface StoredConstraint {
 
 export interface StoredConstraintField {
     id: number;
+    constraintId: number;
     position: number;
     fieldId: number;
     columnName: string;
     referencedColumnName: string | null;
     referencedFieldId: number | null;
+}
+
+export interface StoredIndex {
+    id: number;
+    resourceId: number;
+    name: string;
+    isUnique: boolean;
+    indexType: string;
+    isVisible: boolean;
+    comment: string | null;
+    state: 'present' | 'missing';
+    firstSeenScanId: number;
+    lastSeenScanId: number;
+    parts: StoredIndexPart[];
+}
+
+export type StoredIndexPart = StoredIndexColumnPart | StoredIndexExpressionPart;
+
+interface StoredIndexPartBase extends DBIndexPartBase {
+    id: number;
+    indexId: number;
+}
+
+export interface StoredIndexColumnPart extends StoredIndexPartBase {
+    kind: 'column';
+    fieldId: number;
+    columnName: string;
+    expression: null;
+}
+
+export interface StoredIndexExpressionPart extends StoredIndexPartBase {
+    kind: 'expression';
+    fieldId: null;
+    columnName: null;
+    expression: string;
+}
+
+export interface SchemaCatalog {
+    schemaName: string;
+    fingerprint: string;
+    loadedAt: Date;
+    resources: StoredResource[];
+    fields: StoredField[];
+    constraints: StoredConstraint[];
+    indexes: StoredIndex[];
+}
+
+export interface SchemaScanResult {
+    scanId: number;
+    fingerprint: string;
+    counts: SchemaScanChangeCounts;
+    catalog: SchemaCatalog;
 }
