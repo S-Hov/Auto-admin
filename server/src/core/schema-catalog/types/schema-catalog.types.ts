@@ -181,7 +181,7 @@ export interface StoredIndexExpressionPart extends StoredIndexPartBase {
 export interface SchemaCatalog {
     schemaName: string;
     fingerprint: string;
-    loadedAt: Date;
+    loadedAt: number;
     resources: StoredResource[];
     fields: StoredField[];
     constraints: StoredConstraint[];

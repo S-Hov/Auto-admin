@@ -5,7 +5,7 @@ import { SchemaCatalogCache } from "./schema-catalog.cache";
 const createCatalog = (fingerprint = 'fingerprint'): SchemaCatalog => ({
     schemaName: 'shop',
     fingerprint,
-    loadedAt: new Date(),
+    loadedAt: Date.now(),
     resources: [{
         id: 1,
         schemaName: 'shop',
@@ -56,5 +56,20 @@ describe('SchemaCatalogCache', () => {
 
         expect(cache.get()).toBeNull();
         expect(cache.getResourceById(1)).toBeNull();
+    });
+
+    it('does not overwrite a newer catalog when a lazy load finishes late', async () => {
+        const cache = new SchemaCatalogCache();
+        let finishLoad: ((catalog: SchemaCatalog) => void) | undefined;
+        const slowLoad = new Promise<SchemaCatalog>((resolve) => {
+            finishLoad = resolve;
+        });
+        const loading = cache.getOrLoad(() => slowLoad);
+
+        cache.replace(createCatalog('new'));
+        finishLoad?.(createCatalog('old'));
+
+        await loading;
+        expect(cache.get()?.fingerprint).toBe('new');
     });
 });

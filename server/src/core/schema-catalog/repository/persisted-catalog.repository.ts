@@ -39,7 +39,7 @@ export const readPersistedSchemaCatalog = async (
     return {
         schemaName,
         fingerprint,
-        loadedAt: new Date(),
+        loadedAt: Date.now(),
         resources,
         fields,
         constraints,

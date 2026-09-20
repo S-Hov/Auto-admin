@@ -27,6 +27,7 @@ const deepFreeze = <T>(value: T): DeepReadonly<T> => {
 export class SchemaCatalogCache {
     private catalog: CachedSchemaCatalog | null = null;
     private pendingLoad: Promise<CachedSchemaCatalog> | null = null;
+    private revision = 0;
     private resourcesById = new Map<number, DeepReadonly<StoredResource>>();
     private resourcesByName = new Map<string, DeepReadonly<StoredResource>>();
     private fieldsById = new Map<number, DeepReadonly<StoredField>>();
@@ -46,13 +47,18 @@ export class SchemaCatalogCache {
         if (this.catalog) return this.catalog;
         if (this.pendingLoad) return this.pendingLoad;
 
-        this.pendingLoad = loader()
-            .then((catalog) => this.replace(catalog))
+        const revisionAtStart = this.revision;
+        const pendingLoad = loader()
+            .then((catalog) => {
+                if (this.revision === revisionAtStart) return this.replace(catalog);
+                return this.catalog ?? deepFreeze(structuredClone(catalog));
+            })
             .finally(() => {
-                this.pendingLoad = null;
+                if (this.pendingLoad === pendingLoad) this.pendingLoad = null;
             });
 
-        return this.pendingLoad;
+        this.pendingLoad = pendingLoad;
+        return pendingLoad;
     }
 
     replace(catalog: SchemaCatalog): CachedSchemaCatalog {
@@ -85,6 +91,10 @@ export class SchemaCatalogCache {
             indexesByResourceId.set(index.resourceId, resourceIndexes);
         }
 
+        for (const fields of fieldsByResourceId.values()) Object.freeze(fields);
+        for (const constraints of constraintsByResourceId.values()) Object.freeze(constraints);
+        for (const indexes of indexesByResourceId.values()) Object.freeze(indexes);
+
         this.resourcesById = resourcesById;
         this.resourcesByName = resourcesByName;
         this.fieldsById = fieldsById;
@@ -92,10 +102,13 @@ export class SchemaCatalogCache {
         this.constraintsByResourceId = constraintsByResourceId;
         this.indexesByResourceId = indexesByResourceId;
         this.catalog = frozenCatalog;
+        this.revision += 1;
         return frozenCatalog;
     }
 
     clear(): void {
+        this.revision += 1;
+        this.pendingLoad = null;
         this.catalog = null;
         this.resourcesById.clear();
         this.resourcesByName.clear();
