@@ -1,9 +1,9 @@
-import { DatabaseDescriptor, DatabaseType } from "./database.types";
+import type { DatabaseDescriptor, DatabaseType } from "./database.types";
 
-export const DATABASE_CATALOG: Record<DatabaseType, DatabaseDescriptor> = {
+export const DATABASE_CATALOG = {
     'mysql': {
         type: 'mysql',
-        displayName: 'MySql',
+        displayName: 'MySQL',
         defaultPort: 3306,
         status: 'supported',
         support: {
@@ -40,4 +40,4 @@ export const DATABASE_CATALOG: Record<DatabaseType, DatabaseDescriptor> = {
             migrations: false,
         },
     },
-}
+} as const satisfies Readonly<Record<DatabaseType, DatabaseDescriptor>>;
