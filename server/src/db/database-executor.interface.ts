@@ -4,9 +4,9 @@ export interface DatabaseCommandResult {
 }
 
 export interface DatabaseExecutor {
-    queryRows<TRow>(sql: string, params?: readonly string[]): Promise<TRow[]>;
+    queryRows<TRow = unknown>(sql: string, params?: readonly unknown[]): Promise<TRow[]>;
 
-    execute: (sql: string, params?: readonly string[]) => Promise<DatabaseCommandResult>;
+    execute(sql: string, params?: readonly unknown[]): Promise<DatabaseCommandResult>;
 }
 
 export interface DatabaseConnection extends DatabaseExecutor{
