@@ -1,9 +1,8 @@
-import mysql, { Pool } from "mysql2/promise";
+import mysql, { type Pool } from "mysql2/promise";
 import type { DatabaseProvider } from "../../database-provider.interface";
-import { assertDatabaseSubsystemSupported, assertDatabaseSupported, DATABASE_CATALOG } from "../../database.catalog";
+import { DATABASE_CATALOG } from "../../database.catalog";
 import type { MySqlConnectionConfig } from "./mysql-provider.types";
 import { envConfig } from "../../../config/env";
-import { UnsupportedDatabaseError } from "../../database.errors";
 import { logger } from "../../../shared/logger";
 
 export class MySqlDatabaseProvider implements DatabaseProvider {
@@ -32,12 +31,6 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     }
 
     getPool(): Pool {
-        const activeDB = envConfig.Auto_Admin__DB_TYPE;
-        assertDatabaseSupported(activeDB);
-        assertDatabaseSubsystemSupported(activeDB, 'connection');
-
-        if (activeDB !== 'mysql') throw new UnsupportedDatabaseError(activeDB);
-
         if (this.pool) {
             return this.pool;
         }
@@ -70,7 +63,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         }
     }
 
-    async resetPool() {
+    async resetPool(): Promise<void> {
         if (!this.pool) {
             return;
         }
@@ -78,6 +71,6 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         await this.pool.end();
         this.pool = null;
     }
-};
+}
 
 export const mysqlDatabaseProvider = new MySqlDatabaseProvider();
