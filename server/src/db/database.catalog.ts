@@ -51,17 +51,16 @@ export const getDatabaseDescriptor = (type: DatabaseType): DatabaseDescriptor =>
     return descriptor;
 };
 
-export const assertDatabaseSupported = (type: DatabaseType) => {
+export const assertDatabaseSupported = (type: DatabaseType): DatabaseDescriptor => {
     const descriptor = getDatabaseDescriptor(type);
     if (descriptor.status !== 'supported') {
         throw new UnsupportedDatabaseError(type);
     }
+    return descriptor;
 }
 
-export const assertDatabaseSubsystemSupported = (type: DatabaseType, subsystem: DatabaseSubsystem): boolean => {
-    const descriptor = getDatabaseDescriptor(type);
-    if (descriptor.support[subsystem] && descriptor.support[subsystem] === true) {
-        return true;
-    }
-    throw new UnsupportedDatabaseSubsystemError(subsystem);
+export const assertDatabaseSubsystemSupported = (type: DatabaseType, subsystem: DatabaseSubsystem): DatabaseDescriptor => {
+    const descriptor = assertDatabaseSupported(type);
+    if (!descriptor.support[subsystem]) throw new UnsupportedDatabaseSubsystemError(type, subsystem);
+    return descriptor;
 }

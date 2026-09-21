@@ -1,11 +1,13 @@
+import { ERROR_CODES } from "../shared/api/codes/error-codes";
+
 export class UnsupportedDatabaseError extends Error {
     readonly status: number;
     readonly code: string;
 
-    constructor(databaseName: string) {
-        super(`Database ${databaseName} is not supported`);
+    constructor(databaseType: string) {
+        super(`Database ${databaseType} is not supported`);
         this.status = 501;
-        this.code = 'UNSUPPORTED_DATABASE';
+        this.code = ERROR_CODES.UNSUPPORTED_DATABASE;
     }
 }
 
@@ -13,9 +15,9 @@ export class UnsupportedDatabaseSubsystemError extends Error {
     readonly status: number;
     readonly code: string;
 
-    constructor(subsystem: string) {
-        super(`Database subsystem ${subsystem} is not supported`);
+    constructor(databaseType: string, subsystem: string) {
+        super(`Database ${databaseType} subsystem ${subsystem} is not supported`);
         this.status = 501;
-        this.code = 'UNSUPPORTED_DATABASE_SUBSYSTEM';
+        this.code = ERROR_CODES.UNSUPPORTED_DATABASE_SUBSYSTEM;
     }
 }
