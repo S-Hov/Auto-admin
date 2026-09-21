@@ -61,5 +61,10 @@ export const enApi = {
         NUMBER_TOO_LARGE: 'Value must be at most {{max}}',
         PASSWORDS_DO_NOT_MATCH: 'Passwords do not match',
         INVALID_VALUE: 'Invalid value',
-    }
+    },
+
+    UNSUPPORTED: {
+        DATABASE: 'Database {{databaseName}} is not supported',
+        DATABASE_SUBSYSTEM: 'Database subsystem {{subsystem}} is not supported',
+    },
 } as const;

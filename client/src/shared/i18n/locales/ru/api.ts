@@ -62,5 +62,10 @@ export const ruApi = {
         NUMBER_TOO_LARGE: 'Значение должно быть не больше {{max}}',
         PASSWORDS_DO_NOT_MATCH: 'Пароли не совпадают',
         INVALID_VALUE: 'Недопустимое значение',
-    }
+    },
+
+    UNSUPPORTED: {
+        DATABASE: 'База данных {{databaseName}} не поддерживается',
+        DATABASE_SUBSYSTEM: 'Подсистема базы данных {{subsystem}} не поддерживается',
+    },
 } as const;

@@ -34,6 +34,9 @@ export const ERROR_CODES = {
     VALIDATION_NUMBER_TOO_LARGE: 'VALIDATION.NUMBER_TOO_LARGE', // Слишком большое число
     VALIDATION_PASSWORDS_DO_NOT_MATCH: 'VALIDATION.PASSWORDS_DO_NOT_MATCH', // Пароли не совпадают
     VALIDATION_INVALID_VALUE: 'VALIDATION.INVALID_VALUE', // Неверное значение
+
+    UNSUPPORTED_DATABASE: 'UNSUPPORTED.DATABASE', // База данных не поддерживается
+    UNSUPPORTED_DATABASE_SUBSYSTEM: 'UNSUPPORTED.DATABASE_SUBSYSTEM', // Подсистема базы данных не поддерживается
 } as const;
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
