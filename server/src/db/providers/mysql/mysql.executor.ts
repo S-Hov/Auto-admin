@@ -4,7 +4,6 @@ import type {
 } from "../../database-executor.interface";
 import { envConfig } from "../../../config/env";
 import type { MySqlDbExecutor } from "./mysql.types";
-import type { ResultSetHeader } from "mysql2";
 
 export class MySqlDatabaseExecutor implements DatabaseExecutor {
     protected readonly executor: MySqlDbExecutor;

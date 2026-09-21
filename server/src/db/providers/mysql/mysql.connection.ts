@@ -1,4 +1,3 @@
-import { logger } from "../../../shared/logger";
 import type {
     DatabaseConnection,
     DatabaseExecutor,
@@ -10,31 +9,31 @@ export class MySqlDatabaseConnection
     extends MySqlDatabaseExecutor
     implements DatabaseConnection
 {
-    private readonly pool: mysql.PoolConnection;
+    private readonly connection: mysql.PoolConnection;
 
-    constructor(pool: mysql.PoolConnection) {
-        super(pool);
-        this.pool = pool;
+    constructor(connection: mysql.PoolConnection) {
+        super(connection);
+        this.connection = connection;
     }
 
     async transaction<T>(
         callback: (executor: DatabaseExecutor) => Promise<T>,
     ): Promise<T> {
+        await this.connection.beginTransaction();
         try {
-            await this.pool.beginTransaction();
-
             const result = await callback(this);
 
-            await this.pool.commit();
+            await this.connection.commit();
 
             return result;
         } catch (error) {
             try {
-                await this.pool.rollback();
+                await this.connection.rollback();
             } catch (rollbackError) {
-                logger.fatal({
-                    service: "database",
-                }, `Не удалось откатить транзакцию, ${rollbackError}`)
+                throw new AggregateError(
+                    [error, rollbackError],
+                    "Transaction failed",
+                );
             }
 
             throw error;
