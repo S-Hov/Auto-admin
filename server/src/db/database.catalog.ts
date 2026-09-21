@@ -64,3 +64,7 @@ export const assertDatabaseSubsystemSupported = (type: DatabaseType, subsystem: 
     if (!descriptor.support[subsystem]) throw new UnsupportedDatabaseSubsystemError(type, subsystem);
     return descriptor;
 }
+
+export const getSupportedDatabases = (): DatabaseDescriptor[] => {
+    return Object.values(DATABASE_CATALOG).filter((descriptor) => descriptor.status === 'supported');
+};
