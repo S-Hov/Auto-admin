@@ -1,12 +1,18 @@
 import mysql from "mysql2/promise";
 import { envConfig } from "../config/env";
 import { logger } from "../shared/logger";
+import { assertDatabaseSubsystemSupported, assertDatabaseSupported } from "./database.catalog";
 
 let pool: mysql.Pool | null = null;
 
 export type DbExecutor = mysql.Pool | mysql.PoolConnection;
 
 export function getPool() {
+    const activeDB = envConfig.Auto_Admin__DB_TYPE;
+    assertDatabaseSupported(activeDB);
+    assertDatabaseSubsystemSupported(activeDB, 'connection');
+    if (activeDB !== 'mysql') throw new Error('Active database is not mysql');
+
     if (pool) {
         return pool;
     }
