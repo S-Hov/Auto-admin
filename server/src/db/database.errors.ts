@@ -1,5 +1,5 @@
 import { ERROR_CODES } from "../shared/api/codes/error-codes";
-import { DatabaseType } from "./database.types";
+import type { DatabaseType } from "./database.types";
 
 export class UnsupportedDatabaseError extends Error {
     public readonly databaseType: DatabaseType;
@@ -26,5 +26,14 @@ export class UnsupportedDatabaseSubsystemError extends Error {
         this.subsystem = subsystem;
         this.status = 501;
         this.code = ERROR_CODES.UNSUPPORTED_DATABASE_SUBSYSTEM;
+    }
+}
+
+export class DatabaseProviderNotFoundError extends Error {
+    public readonly databaseType: DatabaseType;
+
+    constructor(databaseType: DatabaseType) {
+        super(`Database provider for ${databaseType} is not registered`);
+        this.databaseType = databaseType;
     }
 }

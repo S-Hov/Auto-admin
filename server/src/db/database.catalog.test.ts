@@ -9,7 +9,7 @@ import {
     UnsupportedDatabaseError,
     UnsupportedDatabaseSubsystemError,
 } from './database.errors';
-import type { DatabaseSubsystem } from './database.types';
+import type { DatabaseSubsystem, DatabaseType } from './database.types';
 
 describe('Database Catalog', () => {
     describe('getDatabaseDescriptor', () => {
@@ -51,7 +51,7 @@ describe('Database Catalog', () => {
         });
 
         it('выбрасывает UnsupportedDatabaseError для неизвестного типа базы данных', () => {
-            expect(() => getDatabaseDescriptor('unknown_db' as any)).toThrow(UnsupportedDatabaseError);
+            expect(() => getDatabaseDescriptor('unknown_db' as DatabaseType)).toThrow(UnsupportedDatabaseError);
         });
     });
 

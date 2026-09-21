@@ -59,7 +59,10 @@ export const assertDatabaseSupported = (type: DatabaseType): DatabaseDescriptor 
     return descriptor;
 }
 
-export const assertDatabaseSubsystemSupported = (type: DatabaseType, subsystem: DatabaseSubsystem): DatabaseDescriptor => {
+export const assertDatabaseSubsystemSupported = (
+    type: DatabaseType,
+    subsystem: DatabaseSubsystem
+): DatabaseDescriptor => {
     const descriptor = assertDatabaseSupported(type);
     if (!descriptor.support[subsystem]) throw new UnsupportedDatabaseSubsystemError(type, subsystem);
     return descriptor;
