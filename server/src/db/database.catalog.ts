@@ -1,4 +1,5 @@
-import type { DatabaseDescriptor, DatabaseType } from "./database.types";
+import { UnsupportedDatabaseError, UnsupportedDatabaseSubsystemError } from "./database.errors";
+import type { DatabaseDescriptor, DatabaseSubsystem, DatabaseType } from "./database.types";
 
 export const DATABASE_CATALOG = {
     'mysql': {
@@ -41,3 +42,27 @@ export const DATABASE_CATALOG = {
         },
     },
 } as const satisfies Readonly<Record<DatabaseType, DatabaseDescriptor>>;
+
+export const getDatabaseDescriptor = (type: DatabaseType): DatabaseDescriptor => {
+    const descriptor = DATABASE_CATALOG[type];
+    if (!descriptor) {
+        throw new UnsupportedDatabaseError(type);
+    }
+    return descriptor;
+};
+
+export const assertDatabaseSupported = (type: DatabaseType): boolean => {
+    const descriptor = getDatabaseDescriptor(type);
+    if (descriptor.status === 'supported') {
+        return true;
+    }
+    return false;
+}
+
+export const assertDatabaseSubsystemSupported = (type: DatabaseType, subsystem: DatabaseSubsystem): boolean => {
+    const descriptor = getDatabaseDescriptor(type);
+    if (descriptor.support[subsystem] && descriptor.support[subsystem] === true) {
+        return true;
+    }
+    throw new UnsupportedDatabaseSubsystemError(subsystem);
+}
