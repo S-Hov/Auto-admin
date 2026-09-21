@@ -1,4 +1,3 @@
-import { ERROR_CODES } from "../shared/api/codes/error-codes";
 import type { DatabaseSubsystem, DatabaseType } from "./database.types";
 
 export class UnsupportedDatabaseError extends Error {
