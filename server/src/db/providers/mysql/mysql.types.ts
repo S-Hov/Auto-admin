@@ -1,3 +1,3 @@
 import type mysql from "mysql2/promise";
 
-export type MySqlDbExecuter = mysql.Pool | mysql.PoolConnection;
+export type MySqlDbExecutor = mysql.Pool | mysql.PoolConnection;
