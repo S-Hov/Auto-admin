@@ -52,6 +52,15 @@ describe('Database Catalog', () => {
 
         it('выбрасывает UnsupportedDatabaseError для неизвестного типа базы данных', () => {
             expect(() => getDatabaseDescriptor('unknown_db' as DatabaseType)).toThrow(UnsupportedDatabaseError);
+            try {
+                getDatabaseDescriptor('unknown_db' as DatabaseType);
+            } catch (error) {
+                expect(error).toBeInstanceOf(UnsupportedDatabaseError);
+                const dbError = error as UnsupportedDatabaseError;
+                expect(dbError.name).toBe('UnsupportedDatabaseError');
+                expect(dbError.message).toBe('Database unknown_db is not supported');
+                expect(dbError.databaseType).toBe('unknown_db');
+            }
         });
     });
 
@@ -68,10 +77,9 @@ describe('Database Catalog', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(UnsupportedDatabaseError);
                 const dbError = error as UnsupportedDatabaseError;
-                expect(dbError.status).toBe(501);
-                expect(dbError.code).toBe('UNSUPPORTED.DATABASE');
-                expect(dbError.databaseType).toBe('postgresql');
+                expect(dbError.name).toBe('UnsupportedDatabaseError');
                 expect(dbError.message).toBe('Database postgresql is not supported');
+                expect(dbError.databaseType).toBe('postgresql');
             }
 
             expect(() => assertDatabaseSupported('sqlite')).toThrow(UnsupportedDatabaseError);
@@ -80,10 +88,9 @@ describe('Database Catalog', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(UnsupportedDatabaseError);
                 const dbError = error as UnsupportedDatabaseError;
-                expect(dbError.status).toBe(501);
-                expect(dbError.code).toBe('UNSUPPORTED.DATABASE');
-                expect(dbError.databaseType).toBe('sqlite');
+                expect(dbError.name).toBe('UnsupportedDatabaseError');
                 expect(dbError.message).toBe('Database sqlite is not supported');
+                expect(dbError.databaseType).toBe('sqlite');
             }
         });
     });
@@ -108,27 +115,61 @@ describe('Database Catalog', () => {
         });
 
         it('проверка неподдерживаемой подсистемы выбрасывает правильную ошибку', () => {
-            expect(() =>
-                assertDatabaseSubsystemSupported('mysql', 'unknownSubsystem' as any)
-            ).toThrow(UnsupportedDatabaseSubsystemError);
+            const subsystems: DatabaseSubsystem[] = [
+                'connection',
+                'systemRepositories',
+                'queryEngine',
+                'schemaCatalog',
+                'migrations',
+            ];
 
+            for (const subsystem of subsystems) {
+                expect(() => assertDatabaseSubsystemSupported('postgresql', subsystem)).toThrow(
+                    UnsupportedDatabaseSubsystemError
+                );
+                expect(() => assertDatabaseSubsystemSupported('sqlite', subsystem)).toThrow(
+                    UnsupportedDatabaseSubsystemError
+                );
+            }
+
+            try {
+                assertDatabaseSubsystemSupported('postgresql', 'connection');
+            } catch (error) {
+                expect(error).toBeInstanceOf(UnsupportedDatabaseSubsystemError);
+                const subError = error as UnsupportedDatabaseSubsystemError;
+                expect(subError.name).toBe('UnsupportedDatabaseSubsystemError');
+                expect(subError.message).toBe('Database subsystem connection is not supported for database postgresql');
+                expect(subError.databaseType).toBe('postgresql');
+                expect(subError.databaseSubsystem).toBe('connection');
+            }
+
+            try {
+                assertDatabaseSubsystemSupported('sqlite', 'migrations');
+            } catch (error) {
+                expect(error).toBeInstanceOf(UnsupportedDatabaseSubsystemError);
+                const subError = error as UnsupportedDatabaseSubsystemError;
+                expect(subError.name).toBe('UnsupportedDatabaseSubsystemError');
+                expect(subError.message).toBe('Database subsystem migrations is not supported for database sqlite');
+                expect(subError.databaseType).toBe('sqlite');
+                expect(subError.databaseSubsystem).toBe('migrations');
+            }
+
+            expect(() => assertDatabaseSubsystemSupported('mysql', 'unknownSubsystem' as any)).toThrow(
+                UnsupportedDatabaseSubsystemError
+            );
             try {
                 assertDatabaseSubsystemSupported('mysql', 'unknownSubsystem' as any);
             } catch (error) {
                 expect(error).toBeInstanceOf(UnsupportedDatabaseSubsystemError);
                 const subError = error as UnsupportedDatabaseSubsystemError;
-                expect(subError.status).toBe(501);
-                expect(subError.code).toBe('UNSUPPORTED.DATABASE_SUBSYSTEM');
+                expect(subError.name).toBe('UnsupportedDatabaseSubsystemError');
+                expect(subError.message).toBe('Database subsystem unknownSubsystem is not supported for database mysql');
                 expect(subError.databaseType).toBe('mysql');
-                expect(subError.subsystem).toBe('unknownSubsystem');
-                expect(subError.message).toBe('Database mysql subsystem unknownSubsystem is not supported');
+                expect(subError.databaseSubsystem).toBe('unknownSubsystem');
             }
 
-            // Вызов для неподдерживаемой базы данных прерывается на assertDatabaseSupported
-            expect(() => assertDatabaseSubsystemSupported('postgresql', 'connection')).toThrow(
-                UnsupportedDatabaseError
-            );
-            expect(() => assertDatabaseSubsystemSupported('sqlite', 'migrations')).toThrow(
+            // Для полностью неизвестной базы ошибка выбрасывается на этапе getDatabaseDescriptor
+            expect(() => assertDatabaseSubsystemSupported('unknown_db' as DatabaseType, 'connection')).toThrow(
                 UnsupportedDatabaseError
             );
         });

@@ -29,8 +29,7 @@ describe('DatabaseProviderRegistry', () => {
         } catch (error) {
             expect(error).toBeInstanceOf(UnsupportedDatabaseError);
             const dbError = error as UnsupportedDatabaseError;
-            expect(dbError.status).toBe(501);
-            expect(dbError.code).toBe('UNSUPPORTED.DATABASE');
+            expect(dbError.name).toBe('UnsupportedDatabaseError');
             expect(dbError.databaseType).toBe('postgresql');
             expect(dbError.message).toBe('Database postgresql is not supported');
         }
@@ -41,8 +40,7 @@ describe('DatabaseProviderRegistry', () => {
         } catch (error) {
             expect(error).toBeInstanceOf(UnsupportedDatabaseError);
             const dbError = error as UnsupportedDatabaseError;
-            expect(dbError.status).toBe(501);
-            expect(dbError.code).toBe('UNSUPPORTED.DATABASE');
+            expect(dbError.name).toBe('UnsupportedDatabaseError');
             expect(dbError.databaseType).toBe('sqlite');
             expect(dbError.message).toBe('Database sqlite is not supported');
         }
@@ -71,7 +69,7 @@ describe('DatabaseProviderRegistry', () => {
         }
     });
 
-    it('выбрасывает DatabaseProviderNotFoundError без status и code, если провайдер не зарегистрирован', () => {
+    it('выбрасывает DatabaseProviderNotFoundError, если провайдер не зарегистрирован', () => {
         const spy = vi.spyOn(catalog, 'assertDatabaseSupported').mockReturnValue({
             type: 'postgresql',
             displayName: 'PostgreSQL',
@@ -94,10 +92,9 @@ describe('DatabaseProviderRegistry', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(DatabaseProviderNotFoundError);
                 const providerError = error as DatabaseProviderNotFoundError;
+                expect(providerError.name).toBe('DatabaseProviderNotFoundError');
                 expect(providerError.databaseType).toBe('postgresql');
                 expect(providerError.message).toBe('Database provider for postgresql is not registered');
-                expect((providerError as any).status).toBeUndefined();
-                expect((providerError as any).code).toBeUndefined();
             }
         } finally {
             spy.mockRestore();
