@@ -27,7 +27,7 @@ type AllConfigs =
     | SqliteDatabaseConnectionConfig;
 
 export type DatabaseConnectionConfig<T extends DatabaseType = DatabaseType> =
-    Extract<AllConfigs, { type: T }>;
+    Extract<DatabaseConnectionConfigMap, T>;
 
 export type DatabaseConnectionConfigMap = {
     [K in DatabaseType]: Extract<AllConfigs, { type: K }>;

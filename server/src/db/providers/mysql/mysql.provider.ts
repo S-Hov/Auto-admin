@@ -14,8 +14,13 @@ import type {
     DatabaseExecutor,
 } from "../../database-executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
+import type {
+    DatabaseConnectionCheckResult,
+    DatabaseConnectionConfig,
+    MySqlDatabaseConnectionConfig,
+} from "../../database-connection.types";
 
-export class MySqlDatabaseProvider implements DatabaseProvider {
+export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     readonly type = "mysql";
     readonly descriptor = DATABASE_CATALOG.mysql;
     private pool: Pool | null = null;
@@ -29,15 +34,16 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         const parsedPort = Number(port);
 
         if (
-            !host
-            || !port
-            || !user
-            || password === undefined
-            || !database
-            || !Number.isInteger(parsedPort)
-            || parsedPort < 1
-            || parsedPort > 65535
-        ) return null;
+            !host ||
+            !port ||
+            !user ||
+            password === undefined ||
+            !database ||
+            !Number.isInteger(parsedPort) ||
+            parsedPort < 1 ||
+            parsedPort > 65535
+        )
+            return null;
 
         return {
             host,
@@ -48,10 +54,14 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         };
     }
 
-    getConnectionConfig(): MySqlConnectionConfig {
+    getConnectionConfig(): DatabaseConnectionConfig<"mysql"> {
         const config = this.parseConnectionConfig();
-        if (!config) throw new Error("Missing or invalid database connection data");
-        return config;
+        if (!config)
+            throw new Error("Missing or invalid database connection data");
+        return {
+            ...config,
+            type: "mysql",
+        };
     }
 
     getPool(): Pool {
@@ -156,10 +166,10 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     async checkConnection({
         host,
         port,
-        database,
         user,
         password,
-    }: DbConnectionData): Promise<{ version?: string }> {
+        database,
+    }: MySqlDatabaseConnectionConfig): Promise<DatabaseConnectionCheckResult> {
         let connection: mysql.Connection | null = null;
 
         try {
