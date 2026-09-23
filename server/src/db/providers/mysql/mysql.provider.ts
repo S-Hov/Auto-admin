@@ -10,34 +10,48 @@ import { logger } from "../../../shared/logger";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
 import type {
     DatabaseCommandResult,
+    DatabaseConnection,
     DatabaseExecutor,
 } from "../../database-executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
-import { number } from "zod/v3";
 
 export class MySqlDatabaseProvider implements DatabaseProvider {
     readonly type = "mysql";
     readonly descriptor = DATABASE_CATALOG.mysql;
     private pool: Pool | null = null;
 
-    getConnectionConfig(): MySqlConnectionConfig {
+    private parseConnectionConfig(): MySqlConnectionConfig | null {
         const host = process.env.Auto_Admin__DB_HOST;
         const port = process.env.Auto_Admin__DB_PORT;
         const user = process.env.Auto_Admin__DB_USERNAME;
         const password = process.env.Auto_Admin__DB_PASSWORD;
         const database = process.env.Auto_Admin__DB_DATABASE;
+        const parsedPort = Number(port);
 
-        if (!host || !port || !user || !database) {
-            throw new Error("Missing database connection data");
-        }
+        if (
+            !host
+            || !port
+            || !user
+            || password === undefined
+            || !database
+            || !Number.isInteger(parsedPort)
+            || parsedPort < 1
+            || parsedPort > 65535
+        ) return null;
 
         return {
             host,
-            port: Number(port),
+            port: parsedPort,
             user,
-            password: password || "",
+            password,
             database,
         };
+    }
+
+    getConnectionConfig(): MySqlConnectionConfig {
+        const config = this.parseConnectionConfig();
+        if (!config) throw new Error("Missing or invalid database connection data");
+        return config;
     }
 
     getPool(): Pool {
@@ -104,19 +118,25 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         return executor.execute(sql, params);
     }
 
-    async transaction<T>(
-        callback: (executor: DatabaseExecutor) => Promise<T>,
+    async withConnection<T>(
+        callback: (connection: DatabaseConnection) => Promise<T>,
     ): Promise<T> {
         const pool = this.getPool();
-
         const connection = await pool.getConnection();
 
         try {
-            const transaction = new MySqlDatabaseConnection(connection);
-            return await transaction.transaction<T>(callback);
+            return await callback(new MySqlDatabaseConnection(connection));
         } finally {
-            connection?.release();
+            connection.release();
         }
+    }
+
+    async transaction<T>(
+        callback: (executor: DatabaseExecutor) => Promise<T>,
+    ): Promise<T> {
+        return this.withConnection((connection) =>
+            connection.transaction(callback),
+        );
     }
 
     async close(): Promise<void> {
@@ -130,23 +150,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     }
 
     hasCompleteConfig(): boolean {
-        try {
-            const { host, port, user, password, database } =
-                this.getConnectionConfig();
-
-            if (
-                (password || password === "") &&
-                Number.isInteger(port) &&
-                port >= 0 &&
-                port <= 65535
-            ) {
-                return true;
-            }
-
-            return false;
-        } catch {
-            return false;
-        }
+        return this.parseConnectionConfig() !== null;
     }
 
     async checkConnection({
