@@ -13,6 +13,7 @@ import type {
     DatabaseExecutor,
 } from "../../database-executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
+import { number } from "zod/v3";
 
 export class MySqlDatabaseProvider implements DatabaseProvider {
     readonly type = "mysql";
@@ -129,14 +130,23 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     }
 
     hasCompleteConfig(): boolean {
-        const { host, port, user, password, database } =
-            this.getConnectionConfig();
+        try {
+            const { host, port, user, password, database } =
+                this.getConnectionConfig();
 
-        if (host && port && user && (password || password === "") && database) {
-            return true;
+            if (
+                (password || password === "") &&
+                Number.isInteger(port) &&
+                port >= 0 &&
+                port <= 65535
+            ) {
+                return true;
+            }
+
+            return false;
+        } catch {
+            return false;
         }
-
-        return false;
     }
 
     async checkConnection({
@@ -146,7 +156,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         user,
         password,
     }: DbConnectionData): Promise<{ version?: string }> {
-        let connection: mysql.PoolConnection | null = null;
+        let connection: mysql.Connection | null = null;
 
         try {
             connection = await mysql.createConnection({
@@ -156,9 +166,11 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
                 password,
                 database,
                 connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
-            }) as mysql.PoolConnection;
+            });
 
-            const version = await this.getVersion(new MySqlDatabaseExecutor(connection));
+            const version = await this.getVersion(
+                new MySqlDatabaseExecutor(connection),
+            );
 
             return { version };
         } catch (error) {
@@ -185,6 +197,8 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         const rows = await executor.queryRows<{ version: string }>(
             "SELECT VERSION() as version",
         );
+        if (!rows[0]) throw new Error("Failed to get database version");
+
         return rows[0].version;
     }
 }
