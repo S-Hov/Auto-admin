@@ -21,16 +21,13 @@ export interface SqliteDatabaseConnectionConfig {
     filePath: string;
 }
 
-type AllConfigs =
-    | MySqlDatabaseConnectionConfig
-    | PostgreSqlDatabaseConnectionConfig
-    | SqliteDatabaseConnectionConfig;
-
 export type DatabaseConnectionConfig<T extends DatabaseType = DatabaseType> =
-    Extract<DatabaseConnectionConfigMap, T>;
+    DatabaseConnectionConfigMap[T];
 
 export type DatabaseConnectionConfigMap = {
-    [K in DatabaseType]: Extract<AllConfigs, { type: K }>;
+    mysql: MySqlDatabaseConnectionConfig;
+    postgresql: PostgreSqlDatabaseConnectionConfig;
+    sqlite: SqliteDatabaseConnectionConfig;
 };
 
 export interface DatabaseConnectionCheckResult {

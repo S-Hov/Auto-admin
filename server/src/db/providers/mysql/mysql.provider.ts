@@ -1,10 +1,6 @@
 import mysql, { type Pool } from "mysql2/promise";
 import type { DatabaseProvider } from "../../database-provider.interface";
 import { DATABASE_CATALOG } from "../../database.catalog";
-import type {
-    DbConnectionData,
-    MySqlConnectionConfig,
-} from "./mysql.provider.types";
 import { envConfig } from "../../../config/env";
 import { logger } from "../../../shared/logger";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
@@ -17,7 +13,7 @@ import { MySqlDatabaseConnection } from "./mysql.connection";
 import type {
     DatabaseConnectionCheckResult,
     DatabaseConnectionConfig,
-    MySqlDatabaseConnectionConfig,
+    NetworkDatabaseConnectionConfig,
 } from "../../database-connection.types";
 
 export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
@@ -25,7 +21,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     readonly descriptor = DATABASE_CATALOG.mysql;
     private pool: Pool | null = null;
 
-    private parseConnectionConfig(): MySqlConnectionConfig | null {
+    private parseConnectionConfig(): NetworkDatabaseConnectionConfig | null {
         const host = process.env.Auto_Admin__DB_HOST;
         const port = process.env.Auto_Admin__DB_PORT;
         const user = process.env.Auto_Admin__DB_USERNAME;
@@ -169,7 +165,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
         user,
         password,
         database,
-    }: MySqlDatabaseConnectionConfig): Promise<DatabaseConnectionCheckResult> {
+    }: DatabaseConnectionConfig<"mysql">): Promise<DatabaseConnectionCheckResult> {
         let connection: mysql.Connection | null = null;
 
         try {
