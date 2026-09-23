@@ -1,7 +1,7 @@
 import mysql, { type PoolConnection, type Pool } from "mysql2/promise";
 import type { DatabaseProvider } from "../../database-provider.interface";
 import { DATABASE_CATALOG } from "../../database.catalog";
-import type { MySqlConnectionConfig } from "./mysql-provider.types";
+import type { MySqlConnectionConfig } from "./mysql.provider.types";
 import { envConfig } from "../../../config/env";
 import { logger } from "../../../shared/logger";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
