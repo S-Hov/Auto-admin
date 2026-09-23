@@ -79,7 +79,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     }
 
     async resetPool(): Promise<void> {
-        this.close();
+        return this.close();
     }
 
     async queryRows<TRow = unknown>(
@@ -108,12 +108,9 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         const connection = await pool.getConnection();
 
         try {
-            const transaction = new MySqlDatabaseConnection(
-                connection as PoolConnection,
-            );
+            const transaction = new MySqlDatabaseConnection(connection);
             return await transaction.transaction<T>(callback);
-        } catch (error) {
-            throw error;
+
         } finally {
             connection?.release();
         }
@@ -124,8 +121,9 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
             return;
         }
 
-        await this.pool.end();
+        const pool = this.pool;
         this.pool = null;
+        await pool.end();
     }
 }
 

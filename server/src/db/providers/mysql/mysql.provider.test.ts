@@ -150,4 +150,34 @@ describe('MySqlDatabaseProvider', () => {
         expect(createPoolSpy).toHaveBeenCalledTimes(2);
         expect(pool2).not.toBe(pool1);
     });
+
+    it('resetPool() ждёт завершения end()', async () => {
+        provider.getPool();
+
+        let isEndCompleted = false;
+        let resolveEnd!: () => void;
+        fakePool.end.mockImplementation(() => {
+            return new Promise<void>((resolve) => {
+                resolveEnd = () => {
+                    isEndCompleted = true;
+                    resolve();
+                };
+            });
+        });
+
+        let isResetResolved = false;
+        const resetPromise = provider.resetPool().then(() => {
+            isResetResolved = true;
+        });
+
+        expect(fakePool.end).toHaveBeenCalledTimes(1);
+        expect(isEndCompleted).toBe(false);
+        expect(isResetResolved).toBe(false);
+
+        resolveEnd();
+        await resetPromise;
+
+        expect(isEndCompleted).toBe(true);
+        expect(isResetResolved).toBe(true);
+    });
 });
