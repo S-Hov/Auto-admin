@@ -146,7 +146,7 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         user,
         password,
     }: DbConnectionData): Promise<{ version?: string }> {
-        let connection: mysql.Connection | null = null;
+        let connection: mysql.PoolConnection | null = null;
 
         try {
             connection = await mysql.createConnection({
@@ -156,9 +156,9 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
                 password,
                 database,
                 connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
-            });
+            }) as mysql.PoolConnection;
 
-            const version = await this.getVersion();
+            const version = await this.getVersion(new MySqlDatabaseExecutor(connection));
 
             return { version };
         } catch (error) {
@@ -181,8 +181,8 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         }
     }
 
-    async getVersion(): Promise<string> {
-        const rows = await this.queryRows<{ version: string }>(
+    async getVersion(executor: DatabaseExecutor): Promise<string> {
+        const rows = await executor.queryRows<{ version: string }>(
             "SELECT VERSION() as version",
         );
         return rows[0].version;
