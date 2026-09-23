@@ -1,4 +1,4 @@
-import mysql, { PoolConnection, type Pool } from "mysql2/promise";
+import mysql, { type PoolConnection, type Pool } from "mysql2/promise";
 import type { DatabaseProvider } from "../../database-provider.interface";
 import { DATABASE_CATALOG } from "../../database.catalog";
 import type { MySqlConnectionConfig } from "./mysql-provider.types";
@@ -11,7 +11,7 @@ import type {
 } from "../../database-executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
 
-export class MySqlDatabaseProvider implements DatabaseProvider {
+export class MySqlDatabaseProvider implements DatabaseProvider {    
     readonly type = "mysql";
     readonly descriptor = DATABASE_CATALOG.mysql;
     private pool: Pool | null = null;
@@ -79,20 +79,15 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
     }
 
     async resetPool(): Promise<void> {
-        if (!this.pool) {
-            return;
-        }
-
-        await this.pool.end();
-        this.pool = null;
+        this.close();
     }
 
     async queryRows<TRow = unknown>(
         sql: string,
         params?: readonly unknown[],
     ): Promise<TRow[]> {
-        if (!this.pool) this.getPool();
-        const executor = new MySqlDatabaseExecutor(this.pool as Pool);
+        const pool = this.getPool();
+        const executor = new MySqlDatabaseExecutor(pool);
         return executor.queryRows<TRow>(sql, params);
     }
 
@@ -100,17 +95,17 @@ export class MySqlDatabaseProvider implements DatabaseProvider {
         sql: string,
         params?: readonly unknown[],
     ): Promise<DatabaseCommandResult> {
-        if (!this.pool) this.getPool();
-        const executor = new MySqlDatabaseExecutor(this.pool as Pool);
+        const pool = this.getPool();
+        const executor = new MySqlDatabaseExecutor(pool);
         return executor.execute(sql, params);
     }
 
     async transaction<T>(
         callback: (executor: DatabaseExecutor) => Promise<T>,
     ): Promise<T> {
-        if (!this.pool) this.getPool();
+        const pool = this.getPool();
 
-        const connection = await this.pool?.getConnection();
+        const connection = await pool.getConnection();
 
         try {
             const transaction = new MySqlDatabaseConnection(
