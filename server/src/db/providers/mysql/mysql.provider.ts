@@ -159,30 +159,20 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
         return this.parseConnectionConfig() !== null;
     }
 
-    async checkConnection({
-        host,
-        port,
-        user,
-        password,
-        database,
-    }: DatabaseConnectionConfig<"mysql">): Promise<DatabaseConnectionCheckResult> {
-        let connection: mysql.Connection | null = null;
-
+    async checkConnection(
+        config: DatabaseConnectionConfig<"mysql">,
+    ): Promise<DatabaseConnectionCheckResult> {
         try {
-            connection = await mysql.createConnection({
-                host,
-                port,
-                user,
-                password,
-                database,
-                connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
-            });
+            return await this.withTemporaryConnection(
+                config,
+                async (connection) => {
+                    const version = await this.getVersion(
+                        new MySqlDatabaseExecutor(connection),
+                    );
 
-            const version = await this.getVersion(
-                new MySqlDatabaseExecutor(connection),
+                    return { version };
+                },
             );
-
-            return { version };
         } catch (error) {
             const safeError =
                 error instanceof Error
@@ -198,12 +188,53 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
                 "Failed to check database connection",
             );
             throw error;
-        } finally {
-            await connection?.end();
         }
     }
 
-    async getVersion(executor: DatabaseExecutor): Promise<string> {
+    private async withTemporaryConnection<T>(
+        config: DatabaseConnectionConfig<"mysql">,
+        callback: (connection: mysql.Connection) => Promise<T>,
+    ): Promise<T> {
+        const connection = await mysql.createConnection({
+            host: config.host,
+            port: config.port,
+            user: config.user,
+            password: config.password,
+            database: config.database,
+            connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
+        });
+
+        let operationError: unknown;
+        let hasOperationError = false;
+        let result: T;
+
+        try {
+            result = await callback(connection);
+        } catch (error) {
+            operationError = error;
+            hasOperationError = true;
+        }
+
+        try {
+            await connection.end();
+        } catch (endError) {
+            if (hasOperationError) {
+                throw new AggregateError(
+                    [operationError, endError],
+                    "Failed to close temporary connection after error",
+                );
+            }
+            throw endError;
+        }
+
+        if (hasOperationError) {
+            throw operationError;
+        }
+
+        return result!;
+    }
+
+    private async getVersion(executor: DatabaseExecutor): Promise<string> {
         const rows = await executor.queryRows<{ version: string }>(
             "SELECT VERSION() as version",
         );
