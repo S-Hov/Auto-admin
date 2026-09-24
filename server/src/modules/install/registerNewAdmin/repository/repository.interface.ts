@@ -5,8 +5,8 @@ export interface RegisterAdminRepository {
 
     register(
         roleId: number,
-        userName: string,
-        hashedPassword: string,
+        name: string,
+        passwordHash: string,
     ): Promise<number>;
 
     registerLogger(meta: RequestMeta, userId: number): Promise<void>;
