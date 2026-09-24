@@ -29,7 +29,6 @@ import {
 } from "../../migrations/migration.recovery";
 import { getMigrationHistory } from "../../migrations/migration.repository";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
-import { hasCompleteConfig } from "../../db/databaseConfig";
 import type { RequestMeta } from "../../utils/getRequestMeta";
 import { activeDatabaseProvider } from "../../db/database.runtime";
 import { CheckConnectionData } from "./schema/checkConnection.schema";
@@ -43,7 +42,7 @@ export const checkConnectionService = async (
     const release = await databaseConfigurationMutex.acquire();
     let temporaryPath: string | null = null;
     try {
-        if (hasCompleteConfig()) {
+        if (activeDatabaseProvider.hasCompleteConfig()) {
             throw conflict(
                 ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED,
             );

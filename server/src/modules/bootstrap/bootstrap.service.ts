@@ -1,5 +1,4 @@
 import { getPool } from "../../db";
-import { hasCompleteConfig } from "../../db/databaseConfig";
 import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from "../install";
@@ -9,7 +8,7 @@ import { activeDatabaseProvider } from "../../db/database.runtime";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
     try {
-        if (!hasCompleteConfig()) {
+        if (!activeDatabaseProvider.hasCompleteConfig()) {
             return "database_required";
         }
 
