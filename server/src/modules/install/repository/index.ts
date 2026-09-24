@@ -1,10 +1,10 @@
 import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
-import { createAuthRepository } from "./repository.factory";
+import { createInstallRepository } from "./repository.factory";
 
-export type { AuthRepository } from "./repository.interface";
-export { createAuthRepository } from "./repository.factory";
+export type { InstallRepository } from "./repository.interface";
+export { createInstallRepository } from "./repository.factory";
 
-export const authRepository = createAuthRepository(
+export const installRepository = createInstallRepository(
     activeDatabaseProvider.type,
     activeDatabaseProvider,
 );
