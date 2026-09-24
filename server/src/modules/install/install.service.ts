@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from "path";
-import { getPool, resetPool } from "../../db";
+import { getPool } from "../../db";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
 import type {
     ApplyNextMigrationResponse,
@@ -97,7 +97,7 @@ export const checkConnectionService = async (
 
         Object.assign(process.env, databaseEnv);
 
-        await resetPool();
+        await activeDatabaseProvider.close();
 
         return { ...versionInfo, redirectedTo: PagePaths.login };
     } finally {
