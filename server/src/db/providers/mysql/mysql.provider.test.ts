@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import mysql, { type Pool } from 'mysql2/promise';
 import { MySqlDatabaseProvider } from './mysql.provider';
+import type { DatabaseConnectionConfig } from '../../database-connection.types';
+import { logger } from '../../../shared/logger';
 
 describe('MySqlDatabaseProvider', () => {
     let provider: MySqlDatabaseProvider;
@@ -179,5 +181,137 @@ describe('MySqlDatabaseProvider', () => {
 
         expect(isEndCompleted).toBe(true);
         expect(isResetResolved).toBe(true);
+    });
+
+    describe('checkConnection and withTemporaryConnection', () => {
+        let fakeTempConnection: {
+            query: ReturnType<typeof vi.fn>;
+            end: ReturnType<typeof vi.fn>;
+        };
+        let createConnectionSpy: ReturnType<typeof vi.spyOn>;
+        let loggerWarnSpy: ReturnType<typeof vi.spyOn>;
+
+        const checkConfig: DatabaseConnectionConfig<'mysql'> = {
+            type: 'mysql',
+            host: '127.0.0.1',
+            port: 3306,
+            user: 'test_user',
+            password: 'test_password',
+            database: 'test_db',
+        };
+
+        beforeEach(() => {
+            fakeTempConnection = {
+                query: vi.fn(),
+                end: vi.fn().mockResolvedValue(undefined),
+            };
+            createConnectionSpy = vi.spyOn(mysql, 'createConnection').mockResolvedValue(
+                fakeTempConnection as unknown as mysql.Connection
+            );
+            loggerWarnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+        });
+
+        afterEach(() => {
+            createConnectionSpy.mockRestore();
+            loggerWarnSpy.mockRestore();
+        });
+
+        it('операция успешна, end успешен → возвращает результат', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            const result = await provider.checkConnection(checkConfig);
+
+            expect(result).toEqual({ version: '8.0.32' });
+            expect(createConnectionSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    host: checkConfig.host,
+                    port: checkConfig.port,
+                    user: checkConfig.user,
+                    password: checkConfig.password,
+                    database: checkConfig.database,
+                })
+            );
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('операция упала, end успешен → выбрасывает ошибку операции', async () => {
+            const opError = new Error('Query error');
+            fakeTempConnection.query.mockRejectedValueOnce(opError);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(opError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('операция успешна, end упал → выбрасывает ошибку end', async () => {
+            const endError = new Error('End error');
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('операция упала и end упал → AggregateError([ошибка операции, ошибка end])', async () => {
+            const opError = new Error('Operation failed');
+            const endError = new Error('End failed');
+            fakeTempConnection.query.mockRejectedValueOnce(opError);
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            let caughtError: unknown;
+            try {
+                await provider.checkConnection(checkConfig);
+            } catch (err) {
+                caughtError = err;
+            }
+
+            expect(caughtError).toBeInstanceOf(AggregateError);
+            const agg = caughtError as AggregateError;
+            expect(agg.errors).toHaveLength(2);
+            expect(agg.errors[0]).toBe(opError);
+            expect(agg.errors[1]).toBe(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('withTemporaryConnection передаёт соединение в callback и возвращает результат callback', async () => {
+            const result = await (provider as unknown as {
+                withTemporaryConnection: <T>(
+                    config: DatabaseConnectionConfig<'mysql'>,
+                    cb: (conn: unknown) => Promise<T>
+                ) => Promise<T>;
+            }).withTemporaryConnection(checkConfig, async (conn) => {
+                expect(conn).toBe(fakeTempConnection);
+                return { custom: 'data' };
+            });
+
+            expect(result).toEqual({ custom: 'data' });
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('withTemporaryConnection выбрасывает AggregateError с сохранением порядка ошибок', async () => {
+            const callbackError = new Error('Custom callback failure');
+            const endError = new Error('End failure');
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            let caught: unknown;
+            try {
+                await (provider as unknown as {
+                    withTemporaryConnection: <T>(
+                        config: DatabaseConnectionConfig<'mysql'>,
+                        cb: (conn: unknown) => Promise<T>
+                    ) => Promise<T>;
+                }).withTemporaryConnection(checkConfig, async () => {
+                    throw callbackError;
+                });
+            } catch (err) {
+                caught = err;
+            }
+
+            expect(caught).toBeInstanceOf(AggregateError);
+            const agg = caught as AggregateError;
+            expect(agg.errors).toHaveLength(2);
+            expect(agg.errors[0]).toBe(callbackError);
+            expect(agg.errors[1]).toBe(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
     });
 });
