@@ -207,7 +207,13 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
         const rows = await executor.queryRows<{ version: string }>(
             "SELECT VERSION() as version",
         );
-        if (!rows[0]) throw new Error("Failed to get database version");
+        if (
+            !rows[0] ||
+            typeof rows[0].version !== "string" ||
+            rows[0].version.trim() === ""
+        ) {
+            throw new Error("Failed to get database version");
+        }
 
         return rows[0].version;
     }
