@@ -1,7 +1,7 @@
 import type { AdminLookupRow, RequestMeta, UserRole } from "../register.types";
 
 export interface RegisterAdminRepository {
-    getRoleByKey(key: string): Promise<UserRole>;
+    getRoleByKey(key: string): Promise<UserRole | undefined>;
 
     register(
         roleId: number,

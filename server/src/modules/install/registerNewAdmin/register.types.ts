@@ -1,6 +1,3 @@
-import { RowDataPacket } from "mysql2";
-import type { AutoAdmin } from "../../../db/legacy/mysql-table.types";
-
 export interface RegisterData {
     userName: string;
     password: string;
@@ -8,20 +5,22 @@ export interface RegisterData {
 }
 
 export interface RequestMeta {
-    ipAddress: string | null,
-    userAgent: string | null,
+    ipAddress: string | null;
+    userAgent: string | null;
 }
 
-export interface UserRole extends RowDataPacket {
-    id: number,
-    key?: 'user' | 'manager' | 'admin' | string,
-    name?: 'User' | 'Manager' | 'Admin' | string,
-    rights?: 'read_only' | 'manager' | 'full' | string,
+export interface UserRole {
+    id: number;
+    key: string;
+    name: string;
+    rights: 'full' | 'read_only' | 'manager' | 'none' | 'custom';
 }
 
 export interface RegisterResponse {
-    redirectedTo?: string;
+    redirectedTo: string;
 }
 
-export type AdminLookupRow = RowDataPacket &
-    Pick<AutoAdmin.User, 'id' | 'username'>;
+export interface AdminLookupRow {
+    id: number;
+    username: string;
+}

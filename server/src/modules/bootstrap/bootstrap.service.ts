@@ -1,4 +1,3 @@
-import { getPool } from "../../db";
 import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from "../install";
@@ -37,7 +36,7 @@ export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
         const installationStatus = await readInstallationStatus();
 
         if (installationStatus === "new") {
-            await markMigrationsCompleted(getPool());
+            await markMigrationsCompleted();
             return "admin_required";
         }
 

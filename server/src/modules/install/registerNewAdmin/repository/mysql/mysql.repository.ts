@@ -1,12 +1,16 @@
-import { DatabaseExecutor } from "../../../../../db/contracts/executor.interface";
-import { AdminLookupRow, RequestMeta, UserRole } from "../../register.types";
-import { RegisterAdminRepository } from "../repository.interface";
+import type { DatabaseExecutor } from "../../../../../db/contracts/executor.interface";
+import type {
+    AdminLookupRow,
+    RequestMeta,
+    UserRole,
+} from "../../register.types";
+import type { RegisterAdminRepository } from "../repository.interface";
 
 export class MySqlRegisterAdminRepository implements RegisterAdminRepository {
     constructor(private readonly executor: DatabaseExecutor) {}
 
-    async getRoleByKey(key: string): Promise<UserRole> {
-        const [rows] = await this.executor.queryRows<UserRole[]>(
+    async getRoleByKey(key: string): Promise<UserRole | undefined> {
+        const rows = await this.executor.queryRows<UserRole>(
             `
                 SELECT id, \`key\`, name, rights FROM Auto_Admin__roles
                 WHERE \`key\` = ?
@@ -52,7 +56,7 @@ export class MySqlRegisterAdminRepository implements RegisterAdminRepository {
     async getAdminByRoleId(
         roleId: number,
     ): Promise<AdminLookupRow | undefined> {
-        const [rows] = await this.executor.queryRows<AdminLookupRow[]>(
+        const rows = await this.executor.queryRows<AdminLookupRow>(
             `
                 SELECT id, username FROM Auto_Admin__users
                 WHERE role_id = ?
