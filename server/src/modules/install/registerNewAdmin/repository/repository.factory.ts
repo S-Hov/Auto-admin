@@ -1,9 +1,9 @@
-import { DatabaseType } from "../../../../db/contracts/database.types";
-import { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
-import { RegisterAdminRepository } from "./repository.interface";
 import { assertDatabaseSubsystemSupported } from "../../../../db/catalog/database.catalog";
+import type { DatabaseType } from "../../../../db/contracts/database.types";
 import { UnsupportedDatabaseSubsystemError } from "../../../../db/errors/database.errors";
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import { MySqlRegisterAdminRepository } from "./mysql/mysql.repository";
+import type { RegisterAdminRepository } from "./repository.interface";
 
 export const createRegisterAdminRepository = (
     databaseType: DatabaseType,
