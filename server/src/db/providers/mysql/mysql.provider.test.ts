@@ -50,7 +50,12 @@ describe('MySqlDatabaseProvider', () => {
     afterEach(async () => {
         await provider.close();
         createPoolSpy.mockRestore();
-        process.env = { ...originalEnv };
+        for (const key of Object.keys(process.env)) {
+            if (!(key in originalEnv)) {
+                delete process.env[key];
+            }
+        }
+        Object.assign(process.env, originalEnv);
     });
 
     it('обычные запросы делегируются executor', async () => {
@@ -183,6 +188,60 @@ describe('MySqlDatabaseProvider', () => {
         expect(isResetResolved).toBe(true);
     });
 
+    describe('getConnectionConfig and hasCompleteConfig', () => {
+        it('getConnectionConfig() возвращает config с type: "mysql"', () => {
+            const config = provider.getConnectionConfig();
+            expect(config).toEqual({
+                type: 'mysql',
+                host: '127.0.0.1',
+                port: 3306,
+                user: 'test_user',
+                password: 'test_password',
+                database: 'test_db',
+            });
+        });
+
+        it('пустой пароль разрешён', () => {
+            process.env.Auto_Admin__DB_PASSWORD = '';
+            const config = provider.getConnectionConfig();
+            expect(config.password).toBe('');
+            expect(provider.hasCompleteConfig()).toBe(true);
+        });
+
+        it.each([
+            ['Auto_Admin__DB_HOST'],
+            ['Auto_Admin__DB_PORT'],
+            ['Auto_Admin__DB_USERNAME'],
+            ['Auto_Admin__DB_PASSWORD'],
+            ['Auto_Admin__DB_DATABASE'],
+        ])('отсутствующий параметр %s вызывает ошибку', (envKey) => {
+            delete process.env[envKey];
+            expect(() => provider.getConnectionConfig()).toThrow('Missing or invalid database connection data');
+        });
+
+        it.each(['0', '-1', '65536', 'abc', '3306.5', ''])(
+            'неправильный port (%s) даёт ошибку',
+            (invalidPort) => {
+                process.env.Auto_Admin__DB_PORT = invalidPort;
+                expect(() => provider.getConnectionConfig()).toThrow('Missing or invalid database connection data');
+            }
+        );
+
+        it('hasCompleteConfig() возвращает true/false, не бросая ошибку', () => {
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(true);
+
+            delete process.env.Auto_Admin__DB_HOST;
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(false);
+
+            process.env.Auto_Admin__DB_HOST = '127.0.0.1';
+            process.env.Auto_Admin__DB_PORT = 'invalid_port';
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(false);
+        });
+    });
+
     describe('checkConnection and withTemporaryConnection', () => {
         let fakeTempConnection: {
             query: ReturnType<typeof vi.fn>;
@@ -216,12 +275,12 @@ describe('MySqlDatabaseProvider', () => {
             loggerWarnSpy.mockRestore();
         });
 
-        it('операция успешна, end успешен → возвращает результат', async () => {
+        it('checkConnection() использует именно mysql.createConnection', async () => {
             fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
 
-            const result = await provider.checkConnection(checkConfig);
+            await provider.checkConnection(checkConfig);
 
-            expect(result).toEqual({ version: '8.0.32' });
+            expect(createConnectionSpy).toHaveBeenCalledTimes(1);
             expect(createConnectionSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     host: checkConfig.host,
@@ -231,15 +290,63 @@ describe('MySqlDatabaseProvider', () => {
                     database: checkConfig.database,
                 })
             );
+        });
+
+        it('основной createPool() во время проверки не вызывается', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            await provider.checkConnection(checkConfig);
+
+            expect(createPoolSpy).not.toHaveBeenCalled();
+        });
+
+        it('версия читается через временное соединение', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            const result = await provider.checkConnection(checkConfig);
+
+            expect(fakeTempConnection.query).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    sql: 'SELECT VERSION() as version',
+                })
+            );
+            expect(result).toEqual({ version: '8.0.32' });
+        });
+
+        it('временное соединение закрывается после успеха', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            await provider.checkConnection(checkConfig);
+
             expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
         });
 
-        it('операция упала, end успешен → выбрасывает ошибку операции', async () => {
-            const opError = new Error('Query error');
-            fakeTempConnection.query.mockRejectedValueOnce(opError);
+        it('закрывается после ошибки запроса', async () => {
+            fakeTempConnection.query.mockRejectedValueOnce(new Error('Connection query error'));
 
-            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(opError);
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow();
             expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            ['пустая строка', [{ version: '' }]],
+            ['строка из пробелов', [{ version: '   ' }]],
+            ['пустой массив строк', []],
+            ['отсутствует свойство version', [{ other: 123 }]],
+        ])('пустая версия (%s) считается ошибкой', async (_, rows) => {
+            fakeTempConnection.query.mockResolvedValueOnce([rows, []]);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(
+                'Failed to get database version'
+            );
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('ошибка запроса сохраняется', async () => {
+            const originalQueryError = new Error('Original SQL query syntax error');
+            fakeTempConnection.query.mockRejectedValueOnce(originalQueryError);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(originalQueryError);
         });
 
         it('операция успешна, end упал → выбрасывает ошибку end', async () => {
@@ -251,8 +358,8 @@ describe('MySqlDatabaseProvider', () => {
             expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
         });
 
-        it('операция упала и end упал → AggregateError([ошибка операции, ошибка end])', async () => {
-            const opError = new Error('Operation failed');
+        it('одновременная ошибка запроса и end() превращается в AggregateError', async () => {
+            const opError = new Error('Operation query failed');
             const endError = new Error('End failed');
             fakeTempConnection.query.mockRejectedValueOnce(opError);
             fakeTempConnection.end.mockRejectedValueOnce(endError);
