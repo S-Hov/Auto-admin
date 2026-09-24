@@ -31,6 +31,7 @@ export interface DbConnectionPayload {
     database: string;
     user: string;
     password: string;
+    type: 'mysql';
 }
 
 export interface RetryMigrationRequest {

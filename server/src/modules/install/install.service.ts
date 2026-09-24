@@ -31,7 +31,8 @@ import { getMigrationHistory } from "../../migrations/migration.repository";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
 import { activeDatabaseProvider } from "../../db/database.runtime";
-import { CheckConnectionData } from "./schema/checkConnection.schema";
+import type { CheckConnectionData } from "./schema/checkConnection.schema";
+import { getDatabaseProvider } from "../../db/database-provider.registry";
 
 const envPath = path.join(process.cwd(), ".env");
 const databaseConfigurationMutex = new AsyncMutex();
@@ -51,7 +52,8 @@ export const checkConnectionService = async (
         let versionInfo: { version?: string };
 
         try {
-            versionInfo = await activeDatabaseProvider.checkConnection(data);
+            const provider = getDatabaseProvider(data.type);
+            versionInfo = await provider.checkConnection(data);
         } catch (error) {
             throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
         }
