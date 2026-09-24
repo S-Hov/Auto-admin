@@ -15,15 +15,15 @@ import type {
     RecoveryMigrationResponse
 } from './install.types';
 import { ok } from '../../shared/api/success';
-import type { DbConnectionData } from '../../db/checkConnection';
 import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema';
 import { SUCCESS_CODES } from '../../shared/api/codes/success-codes';
 import { RecoveryData } from './schema/recovery.schema';
 import { getRequestMeta } from '../../utils/getRequestMeta';
+import { CheckConnectionData } from './schema/checkConnection.schema';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
-    const { host, port, database, user, password }: DbConnectionData = req.body;
-    const data = await checkConnectionService({ host, port, database, user, password });
+    const { host, port, database, user, password, type }: CheckConnectionData = req.body;
+    const data = await checkConnectionService({ host, port, database, user, password, type });
 
     return ok<DbCheckResponse>(res, SUCCESS_CODES.INSTALL_DATABASE_CONNECTED, data);
 })

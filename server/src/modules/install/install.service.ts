@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import fs from "fs/promises";
-import path from 'path';
+import path from "path";
 import { markMigrationsCompleted } from "./install.repository";
 import { getPool, resetPool } from "../../db";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
@@ -9,36 +9,50 @@ import type {
     DbCheckResponse,
     MigrationPlanResponse,
     MigrationStepResponse,
-    RecoveryMigrationResponse
+    RecoveryMigrationResponse,
 } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
-import { checkConnection, type DbConnectionData } from "../../db/checkConnection";
-import { applyNextMigration, getCurrentMigrationPlan } from "../../migrations/migration.runner";
-import { MigrationLockUnavailableError, MigrationVersionConflictError } from "../../migrations/migration.errors";
+import {
+    applyNextMigration,
+    getCurrentMigrationPlan,
+} from "../../migrations/migration.runner";
+import {
+    MigrationLockUnavailableError,
+    MigrationVersionConflictError,
+} from "../../migrations/migration.errors";
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
 import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
-import { markMigrationAppliedManually, retryMigration } from "../../migrations/migration.recovery";
+import {
+    markMigrationAppliedManually,
+    retryMigration,
+} from "../../migrations/migration.recovery";
 import { getMigrationHistory } from "../../migrations/migration.repository";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import { hasCompleteConfig } from "../../db/databaseConfig";
 import type { RequestMeta } from "../../utils/getRequestMeta";
+import { activeDatabaseProvider } from "../../db/database.runtime";
+import { CheckConnectionData } from "./schema/checkConnection.schema";
 
-const envPath = path.join(process.cwd(), '.env');
+const envPath = path.join(process.cwd(), ".env");
 const databaseConfigurationMutex = new AsyncMutex();
 
-export const checkConnectionService = async (data: DbConnectionData): Promise<DbCheckResponse> => {
+export const checkConnectionService = async (
+    data: CheckConnectionData,
+): Promise<DbCheckResponse> => {
     const release = await databaseConfigurationMutex.acquire();
     let temporaryPath: string | null = null;
     try {
         if (hasCompleteConfig()) {
-            throw conflict(ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED);
+            throw conflict(
+                ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED,
+            );
         }
 
         let versionInfo: { version?: string };
 
         try {
-            versionInfo = await checkConnection(data);
+            versionInfo = await activeDatabaseProvider.checkConnection(data);
         } catch (error) {
             throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
         }
@@ -49,14 +63,15 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
             Auto_Admin__DB_DATABASE: data.database,
             Auto_Admin__DB_USERNAME: data.user,
             Auto_Admin__DB_PASSWORD: data.password,
+            Auto_Admin__DB_TYPE: data.type,
         };
 
-        let currentContent = '';
+        let currentContent = "";
 
         try {
-            currentContent = await fs.readFile(envPath, 'utf8');
+            currentContent = await fs.readFile(envPath, "utf8");
         } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
                 throw error;
             }
         }
@@ -64,15 +79,15 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
         const currentEnv = dotenv.parse(currentContent);
         const updatedEnv = { ...currentEnv, ...databaseEnv };
 
-        const updatedContent = Object.entries(updatedEnv)
-            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-            .join('\n') + '\n';
-
+        const updatedContent =
+            Object.entries(updatedEnv)
+                .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+                .join("\n") + "\n";
 
         temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
 
         await fs.writeFile(temporaryPath, updatedContent, {
-            encoding: 'utf8',
+            encoding: "utf8",
             mode: 0o600,
         });
 
@@ -90,40 +105,44 @@ export const checkConnectionService = async (data: DbConnectionData): Promise<Db
         }
         release();
     }
-}
+};
 
-export const getMigrationPlanService = async (): Promise<MigrationPlanResponse> => {
-    const plan = await getCurrentMigrationPlan();
-    return {
-        pending: plan.pending.map((migration) => {
-            return {
-                version: migration.version,
-                name: migration.name,
-                fileName: migration.fileName
-            }
-        }),
-        nextVersion: plan.next?.version ?? null,
-        isComplete: plan.isComplete
-    }
-}
+export const getMigrationPlanService =
+    async (): Promise<MigrationPlanResponse> => {
+        const plan = await getCurrentMigrationPlan();
+        return {
+            pending: plan.pending.map((migration) => {
+                return {
+                    version: migration.version,
+                    name: migration.name,
+                    fileName: migration.fileName,
+                };
+            }),
+            nextVersion: plan.next?.version ?? null,
+            isComplete: plan.isComplete,
+        };
+    };
 
-export const applyNextMigrationService = async (expectedVersion: string): Promise<ApplyNextMigrationResponse> => {
+export const applyNextMigrationService = async (
+    expectedVersion: string,
+): Promise<ApplyNextMigrationResponse> => {
     let applied: MigrationStepResponse | null = null;
     let result: MigrationExecutionResult;
 
     try {
         result = await applyNextMigration(expectedVersion);
         if (result.isComplete) await markMigrationsCompleted(getPool());
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
         }
         if (error instanceof MigrationVersionConflictError) {
-            throw conflict(
-                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
-                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
-            );
+            throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT, {
+                params: {
+                    expectedVersion: error.expectedVersion,
+                    actualVersion: error.actualVersion,
+                },
+            });
         }
         throw error;
     }
@@ -132,34 +151,39 @@ export const applyNextMigrationService = async (expectedVersion: string): Promis
         applied = {
             version: result.applied.version,
             name: result.applied.name,
-            fileName: result.applied.fileName
+            fileName: result.applied.fileName,
         };
     }
 
     return {
         applied,
         nextVersion: result.next?.version ?? null,
-        isComplete: result.isComplete
+        isComplete: result.isComplete,
     };
-}
+};
 
-export const retryMigrationService = async (expectedVersion: string, checksum: string, meta: RequestMeta): Promise<ApplyNextMigrationResponse> => {
+export const retryMigrationService = async (
+    expectedVersion: string,
+    checksum: string,
+    meta: RequestMeta,
+): Promise<ApplyNextMigrationResponse> => {
     let applied: MigrationStepResponse | null = null;
     let result: MigrationExecutionResult;
 
     try {
         result = await retryMigration(expectedVersion, checksum, meta);
         if (result.isComplete) await markMigrationsCompleted(getPool());
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
         }
         if (error instanceof MigrationVersionConflictError) {
-            throw conflict(
-                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
-                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
-            );
+            throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT, {
+                params: {
+                    expectedVersion: error.expectedVersion,
+                    actualVersion: error.actualVersion,
+                },
+            });
         }
         throw error;
     }
@@ -168,62 +192,75 @@ export const retryMigrationService = async (expectedVersion: string, checksum: s
         applied = {
             version: result.applied.version,
             name: result.applied.name,
-            fileName: result.applied.fileName
+            fileName: result.applied.fileName,
         };
     }
 
     return {
         applied,
         nextVersion: result.next?.version ?? null,
-        isComplete: result.isComplete
+        isComplete: result.isComplete,
     };
-}
+};
 
-export const markMigrationAppliedService = async (expectedVersion: string, checksum: string, meta: RequestMeta): Promise<ApplyNextMigrationResponse> => {
+export const markMigrationAppliedService = async (
+    expectedVersion: string,
+    checksum: string,
+    meta: RequestMeta,
+): Promise<ApplyNextMigrationResponse> => {
     try {
-        const result = await markMigrationAppliedManually(expectedVersion, checksum, meta);
+        const result = await markMigrationAppliedManually(
+            expectedVersion,
+            checksum,
+            meta,
+        );
         if (result.isComplete) await markMigrationsCompleted(getPool());
 
         return {
-            applied: result.applied === null ? null : {
-                version: result.applied.version,
-                name: result.applied.name,
-                fileName: result.applied.fileName,
-            },
+            applied:
+                result.applied === null
+                    ? null
+                    : {
+                          version: result.applied.version,
+                          name: result.applied.name,
+                          fileName: result.applied.fileName,
+                      },
             nextVersion: result.next?.version ?? null,
-            isComplete: result.isComplete
+            isComplete: result.isComplete,
         };
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
         }
         if (error instanceof MigrationVersionConflictError) {
-            throw conflict(
-                ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT,
-                { params: { expectedVersion: error.expectedVersion, actualVersion: error.actualVersion } }
-            );
+            throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT, {
+                params: {
+                    expectedVersion: error.expectedVersion,
+                    actualVersion: error.actualVersion,
+                },
+            });
         }
         throw error;
     }
-}
+};
 
-export const recoveryMigrationService = async (): Promise<RecoveryMigrationResponse> => {
-    const history = await getMigrationHistory(getPool());
+export const recoveryMigrationService =
+    async (): Promise<RecoveryMigrationResponse> => {
+        const history = await getMigrationHistory(getPool());
 
-    if (history.length === 0) {
-        throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
-    }
+        if (history.length === 0) {
+            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
+        }
 
-    const lastMigration = history[history.length - 1];
-    if (lastMigration.status === 'applied') {
-        throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
-    }
+        const lastMigration = history[history.length - 1];
+        if (lastMigration.status === "applied") {
+            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
+        }
 
-    return {
-        version: lastMigration.version,
-        name: lastMigration.name,
-        checksum: lastMigration.checksum,
-        status: lastMigration.status
-    }
-}
+        return {
+            version: lastMigration.version,
+            name: lastMigration.name,
+            checksum: lastMigration.checksum,
+            status: lastMigration.status,
+        };
+    };
