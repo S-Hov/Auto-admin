@@ -4,7 +4,7 @@ import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from "../install";
 import type { BootstrapStage } from "./bootstrap.types";
 import { logger } from "../../shared/logger";
-import { activeDatabaseProvider } from "../../db/database.runtime";
+import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
     try {

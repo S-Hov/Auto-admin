@@ -30,9 +30,9 @@ import {
 import { getMigrationHistory } from "../../migrations/migration.repository";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
-import { activeDatabaseProvider } from "../../db/database.runtime";
+import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
 import type { CheckConnectionData } from "./schema/checkConnection.schema";
-import { getDatabaseProvider } from "../../db/database-provider.registry";
+import { getDatabaseProvider } from "../../db/providers/provider.registry";
 
 const envPath = path.join(process.cwd(), ".env");
 const databaseConfigurationMutex = new AsyncMutex();

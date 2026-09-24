@@ -1,4 +1,4 @@
-export const DATABASE_TYPES = ['mysql', 'postgresql', 'sqlite'] as const;
+export const DATABASE_TYPES = ["mysql", "postgresql", "sqlite"] as const;
 
 export type DatabaseType = typeof DATABASE_TYPES[number];
 

@@ -1,4 +1,4 @@
-import type { DatabaseExecutor } from "../../../../db/database-executor.interface";
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import type {
     ActiveSessionRow,
     CreateSessionData,

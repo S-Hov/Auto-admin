@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import type { AutoAdmin } from "../../../db/db.types";
+import type { AutoAdmin } from "../../../db/legacy/mysql-table.types";
 
 export interface RegisterData {
     userName: string;

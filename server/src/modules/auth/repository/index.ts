@@ -1,4 +1,4 @@
-import { activeDatabaseProvider } from "../../../db/database.runtime";
+import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
 import { createAuthRepository } from "./repository.factory";
 
 export type { AuthRepository } from "./repository.interface";

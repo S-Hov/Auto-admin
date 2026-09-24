@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DatabaseExecutor } from "../../../db/database-executor.interface";
-import { UnsupportedDatabaseSubsystemError } from "../../../db/database.errors";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import { UnsupportedDatabaseSubsystemError } from "../../../db/errors/database.errors";
 import { MySqlAuthRepository } from "./mysql/mysql.repository";
 import { createAuthRepository } from "./repository.factory";
 

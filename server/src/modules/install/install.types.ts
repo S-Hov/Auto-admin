@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import { AutoAdmin } from "../../db/db.types";
+import { AutoAdmin } from "../../db/legacy/mysql-table.types";
 import { MigrationStatus } from "../../migrations/migration.types";
 
 export interface DbCheckResponse {

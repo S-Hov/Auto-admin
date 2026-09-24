@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getDatabaseProvider } from './database-provider.registry';
-import { mysqlDatabaseProvider } from './providers/mysql/mysql.provider';
-import { UnsupportedDatabaseError, DatabaseProviderNotFoundError } from './database.errors';
-import * as catalog from './database.catalog';
-import { DATABASE_CATALOG } from './database.catalog';
-import type { DatabaseType } from './database.types';
+import { getDatabaseProvider } from './provider.registry';
+import { mysqlDatabaseProvider } from './mysql/mysql.provider';
+import { UnsupportedDatabaseError, DatabaseProviderNotFoundError } from '../errors/database.errors';
+import * as catalog from '../catalog/database.catalog';
+import { DATABASE_CATALOG } from '../catalog/database.catalog';
+import type { DatabaseType } from '../contracts/database.types';
 
 describe('DatabaseProviderRegistry', () => {
     it('mysql возвращает именно mysqlDatabaseProvider', () => {

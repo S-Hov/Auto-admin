@@ -1,7 +1,7 @@
-import { assertDatabaseSubsystemSupported } from "../../../db/database.catalog";
-import type { DatabaseExecutor } from "../../../db/database-executor.interface";
-import { UnsupportedDatabaseSubsystemError } from "../../../db/database.errors";
-import type { DatabaseType } from "../../../db/database.types";
+import { assertDatabaseSubsystemSupported } from "../../../db/catalog/database.catalog";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import { UnsupportedDatabaseSubsystemError } from "../../../db/errors/database.errors";
+import type { DatabaseType } from "../../../db/contracts/database.types";
 import { MySqlAuthRepository } from "./mysql/mysql.repository";
 import type { AuthRepository } from "./repository.interface";
 

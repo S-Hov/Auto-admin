@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DatabaseExecutor } from "../../../../db/database-executor.interface";
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import { MySqlAuthRepository } from "./mysql.repository";
 
 const createExecutor = () => {

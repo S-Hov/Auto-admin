@@ -8,8 +8,8 @@ import {
 import {
     UnsupportedDatabaseError,
     UnsupportedDatabaseSubsystemError,
-} from './database.errors';
-import type { DatabaseSubsystem, DatabaseType } from './database.types';
+} from '../errors/database.errors';
+import type { DatabaseSubsystem, DatabaseType } from '../contracts/database.types';
 
 describe('Database Catalog', () => {
     describe('getDatabaseDescriptor', () => {

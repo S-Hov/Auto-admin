@@ -1,22 +1,23 @@
-import type { AutoAdmin } from "../../db/db.types";
-
 export interface LoginData {
     userName: string;
     password: string;
 }
 
-export type LoginUserRow = Pick<
-    AutoAdmin.User,
-    'id' | 'role_id' | 'username' | 'password_hash' | 'is_active'
->;
+export interface LoginUserRow {
+    id: number;
+    role_id: number;
+    username: string;
+    password_hash: string;
+    is_active: boolean;
+}
 
-export type CreateSessionData =
-    Pick<AutoAdmin.Session, 'user_id'
-        | 'token_hash'
-        | 'expires_at'
-        | 'ip_address'
-        | 'user_agent'
-    >
+export interface CreateSessionData {
+    user_id: number;
+    token_hash: string;
+    expires_at: Date;
+    ip_address: string | null;
+    user_agent: string | null;
+}
 
 export interface ActiveSessionRow {
     sessionId: number;

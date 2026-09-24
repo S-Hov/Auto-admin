@@ -1,7 +1,7 @@
 import type {
     DatabaseCommandResult,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { envConfig } from "../../../config/env";
 import type { MySqlDbExecutor } from "./mysql.types";
 

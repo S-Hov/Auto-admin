@@ -1,5 +1,12 @@
-import { UnsupportedDatabaseError, UnsupportedDatabaseSubsystemError } from "./database.errors";
-import type { DatabaseDescriptor, DatabaseSubsystem, DatabaseType } from "./database.types";
+import {
+    UnsupportedDatabaseError,
+    UnsupportedDatabaseSubsystemError,
+} from "../errors/database.errors";
+import type {
+    DatabaseDescriptor,
+    DatabaseSubsystem,
+    DatabaseType,
+} from "../contracts/database.types";
 
 export const DATABASE_CATALOG = {
     'mysql': {

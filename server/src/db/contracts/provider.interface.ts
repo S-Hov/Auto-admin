@@ -1,11 +1,11 @@
 import type {
     DatabaseConnectionCheckResult,
     DatabaseConnectionConfig,
-} from "./database-connection.types";
+} from "./connection.types";
 import type {
     DatabaseConnection,
     DatabaseExecutor,
-} from "./database-executor.interface";
+} from "./executor.interface";
 import type { DatabaseDescriptor, DatabaseType } from "./database.types";
 
 export interface DatabaseProvider<

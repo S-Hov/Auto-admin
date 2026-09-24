@@ -1,5 +1,5 @@
 import type { RowDataPacket } from "mysql2";
-import type { AutoAdmin } from "../../../db/db.types";
+import type { AutoAdmin } from "../../../db/legacy/mysql-table.types";
 import type { DBColumn, DBIndex, ForeignKeyAction } from "../types/schema-catalog.types";
 
 export type StoredResourceRow =

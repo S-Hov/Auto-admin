@@ -1,4 +1,4 @@
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket } from "mysql2";
 
 export namespace AutoAdmin {
     export interface Installation extends RowDataPacket {

@@ -1,8 +1,8 @@
-import type { DatabaseProvider } from "./database-provider.interface";
-import { assertDatabaseSupported } from "./database.catalog";
-import { DatabaseProviderNotFoundError } from "./database.errors";
-import type { DatabaseType } from "./database.types";
-import { mysqlDatabaseProvider } from "./providers/mysql/mysql.provider";
+import type { DatabaseProvider } from "../contracts/provider.interface";
+import { assertDatabaseSupported } from "../catalog/database.catalog";
+import { DatabaseProviderNotFoundError } from "../errors/database.errors";
+import type { DatabaseType } from "../contracts/database.types";
+import { mysqlDatabaseProvider } from "./mysql/mysql.provider";
 
 type DatabaseProviderMap = {
     [T in DatabaseType]: DatabaseProvider<T>;

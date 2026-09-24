@@ -1,6 +1,6 @@
 import mysql, { type Pool } from "mysql2/promise";
-import type { DatabaseProvider } from "../../database-provider.interface";
-import { DATABASE_CATALOG } from "../../database.catalog";
+import type { DatabaseProvider } from "../../contracts/provider.interface";
+import { DATABASE_CATALOG } from "../../catalog/database.catalog";
 import { envConfig } from "../../../config/env";
 import { logger } from "../../../shared/logger";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
@@ -8,13 +8,13 @@ import type {
     DatabaseCommandResult,
     DatabaseConnection,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
 import type {
     DatabaseConnectionCheckResult,
     DatabaseConnectionConfig,
     NetworkDatabaseConnectionConfig,
-} from "../../database-connection.types";
+} from "../../contracts/connection.types";
 
 export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     readonly type = "mysql";

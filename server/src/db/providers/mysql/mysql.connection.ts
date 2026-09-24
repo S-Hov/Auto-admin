@@ -1,7 +1,7 @@
 import type {
     DatabaseConnection,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
 import type mysql from "mysql2/promise";
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import mysql, { type Pool } from 'mysql2/promise';
 import { MySqlDatabaseProvider } from './mysql.provider';
-import type { DatabaseConnectionConfig } from '../../database-connection.types';
+import type { DatabaseConnectionConfig } from '../../contracts/connection.types';
 import { logger } from '../../../shared/logger';
 
 describe('MySqlDatabaseProvider', () => {
