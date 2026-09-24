@@ -1,13 +1,14 @@
-import { RowDataPacket } from "mysql2";
-import { AutoAdmin } from "../../db/db.types";
+import type { AutoAdmin } from "../../db/db.types";
 
 export interface LoginData {
     userName: string;
     password: string;
 }
 
-export type LoginUserRow = RowDataPacket &
-    Pick<AutoAdmin.User, 'id' | 'role_id' | 'username' | 'password_hash' | 'is_active'>
+export type LoginUserRow = Pick<
+    AutoAdmin.User,
+    'id' | 'role_id' | 'username' | 'password_hash' | 'is_active'
+>;
 
 export type CreateSessionData =
     Pick<AutoAdmin.Session, 'user_id'
@@ -17,7 +18,7 @@ export type CreateSessionData =
         | 'user_agent'
     >
 
-export interface ActiveSessionRow extends RowDataPacket {
+export interface ActiveSessionRow {
     sessionId: number;
     userId: number;
     username: string;
@@ -27,10 +28,15 @@ export interface ActiveSessionRow extends RowDataPacket {
     expiresAt: Date;
 }
 
-export interface LoginAttemptsRow extends RowDataPacket {
+export interface LoginAttemptsRow {
     userCountInWindow: number;
     ipCountInWindow: number;
     ipUserCountInWindow: number;
+}
+
+export interface LoginAttemptWindows {
+    shortWindowSeconds: number;
+    ipWindowSeconds: number;
 }
 
 export interface LoginServiceResult {
