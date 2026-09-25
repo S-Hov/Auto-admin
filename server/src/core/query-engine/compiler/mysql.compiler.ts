@@ -12,6 +12,7 @@ import type {
     UpdateQuery,
     WhereClause,
 } from "../types/query.types";
+import type { QueryCompiler } from "./query-compiler.interface";
 
 export type LogicalKey = keyof LogicalOperators;
 
@@ -20,9 +21,9 @@ interface SqlFragment {
     params: unknown[];
 }
 
-export class MySqlCompiler {
+export class MySqlCompiler implements QueryCompiler {
     // Универсальный метод
-    static compile(query: UnifiedQuery): CompiledQuery {
+    compile(query: UnifiedQuery): CompiledQuery {
         switch (query.action) {
             case "read":
                 return MySqlCompiler.compileRead(query);
