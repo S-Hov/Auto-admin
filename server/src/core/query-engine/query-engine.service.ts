@@ -1,13 +1,14 @@
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
 import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
-import type { DatabaseDriver, QueryResult } from "./drivers/driver.types";
+import type { DatabaseDriver } from "./contracts/database-driver.interface";
+import type { QueryEngineProvider } from "./contracts/query-engine-provider.interface";
 import { PipelineExecutor } from "./pipeline/pipeline.executor";
 import type {
     PipelineDefinition,
     PipelineResult,
 } from "./pipeline/pipeline.types";
-import type { QueryEngineProvider } from "./providers/query-engine-provider.interface";
 import { activeQueryEngineProvider } from "./runtime/query-engine.runtime";
+import type { QueryResult } from "./types/query-result.types";
 import type { UnifiedQuery } from "./types/query.types";
 
 export class QueryEngineService {

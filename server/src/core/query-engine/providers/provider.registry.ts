@@ -1,8 +1,8 @@
 import { assertDatabaseSubsystemSupported } from "../../../db/catalog/database.catalog";
 import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
 import { mysqlQueryEngineProvider } from "./mysql/mysql-query-engine.provider";
 import { QueryEngineProviderNotFoundError } from "./query-engine-provider.errors";
-import type { QueryEngineProvider } from "./query-engine-provider.interface";
 
 type QueryEngineProviderMap = {
     [K in DatabaseType]: QueryEngineProvider<K>;

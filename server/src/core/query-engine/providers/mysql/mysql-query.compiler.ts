@@ -1,4 +1,5 @@
-import type { CompiledQuery } from "../types/compiled-query.types";
+import type { QueryCompiler } from "../../contracts/query-compiler.interface";
+import type { CompiledQuery } from "../../types/compiled-query.types";
 import type {
     ComparisonOperator,
     CreateQuery,
@@ -11,8 +12,7 @@ import type {
     UnifiedQuery,
     UpdateQuery,
     WhereClause,
-} from "../types/query.types";
-import type { QueryCompiler } from "./query-compiler.interface";
+} from "../../types/query.types";
 
 export type LogicalKey = keyof LogicalOperators;
 

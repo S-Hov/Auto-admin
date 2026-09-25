@@ -364,18 +364,30 @@ repositoryFactory.create(context)
 
 ```text
 core/query-engine/
-├─ compiler/
-│  ├─ query-compiler.interface.ts
-│  └─ mysql/
-│     └─ mysql.compiler.ts
-├─ drivers/
+├─ contracts/
 │  ├─ database-driver.interface.ts
+│  ├─ query-compiler.interface.ts
+│  └─ query-engine-provider.interface.ts
+├─ providers/
+│  ├─ provider.registry.ts
+│  ├─ query-engine-provider.errors.ts
 │  └─ mysql/
-│     └─ mysql.driver.ts
-├─ query-engine.provider.ts
+│     ├─ mysql-query-engine.provider.ts
+│     ├─ mysql-query.compiler.ts
+│     └─ mysql-query.driver.ts
+├─ runtime/
+│  └─ query-engine.runtime.ts
+├─ types/
+│  ├─ compiled-query.types.ts
+│  ├─ query-result.types.ts
+│  └─ query.types.ts
 ├─ query-engine.service.ts
 └─ pipeline/
 ```
+
+Диалект организуется вертикальным срезом: compiler, driver и provider одной
+СУБД находятся в одной папке. Общие service, pipeline, contracts и types не
+импортируют dialect-specific реализации напрямую.
 
 Целевая цепочка:
 
@@ -754,4 +766,3 @@ SQL разных диалектов имеет разные checksum. Migration 
 5. Не начинать следующий этап, пока критерий текущего не выполнен.
 6. Не писать PostgreSQL/SQLite реализации раньше завершения отделения MySQL.
 7. Не менять код вместо разработчика без его прямой просьбы.
-

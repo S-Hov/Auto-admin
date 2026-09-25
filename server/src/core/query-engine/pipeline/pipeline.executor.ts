@@ -1,8 +1,9 @@
 import type { DatabaseProvider } from "../../../db/contracts/provider.interface";
 import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
-import type { DatabaseDriver, QueryResult } from "../drivers/driver.types";
-import type { QueryEngineProvider } from "../providers/query-engine-provider.interface";
+import type { DatabaseDriver } from "../contracts/database-driver.interface";
+import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
 import { activeQueryEngineProvider } from "../runtime/query-engine.runtime";
+import type { QueryResult } from "../types/query-result.types";
 import { ContextResolver } from "./context.resolver";
 import type {
     PipelineDefinition,
