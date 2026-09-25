@@ -15,6 +15,11 @@ import type {
 
 export type LogicalKey = keyof LogicalOperators;
 
+interface SqlFragment {
+    sql: string;
+    params: unknown[];
+}
+
 export class MySqlCompiler {
     // Универсальный метод
     static compile(query: UnifiedQuery): CompiledQuery {
@@ -70,7 +75,7 @@ export class MySqlCompiler {
         }
 
         if (query.where) {
-            const whereRes = MySqlCompiler.compileWhere(query.where, "rows");
+            const whereRes = MySqlCompiler.compileWhere(query.where);
             if (whereRes && whereRes.sql) {
                 sql += " WHERE " + whereRes.sql;
                 params.push(...whereRes.params);
@@ -102,13 +107,9 @@ export class MySqlCompiler {
     }
 
     // Условия
-    static compileWhere(
-        where?: WhereClause,
-        resultType: "rows" | "command" = "rows",
-    ): CompiledQuery {
+    static compileWhere(where?: WhereClause): SqlFragment {
         if (!where || Object.keys(where).length === 0) {
             return {
-                resultType,
                 sql: "",
                 params: [],
             };
@@ -138,7 +139,7 @@ export class MySqlCompiler {
                 if (entryKey === "_and") {
                     const items = entryValue as WhereClause[];
                     const compiledSubQueries = items.map((item) =>
-                        MySqlCompiler.compileWhere(item, resultType),
+                        MySqlCompiler.compileWhere(item),
                     );
                     const compiledConditions = compiledSubQueries
                         .map((subQuery) => subQuery.sql)
@@ -154,7 +155,7 @@ export class MySqlCompiler {
                 } else if (entryKey === "_or") {
                     const items = entryValue as WhereClause[];
                     const compiledSubQueries = items.map((item) =>
-                        MySqlCompiler.compileWhere(item, resultType),
+                        MySqlCompiler.compileWhere(item),
                     );
                     const compiledConditions = compiledSubQueries
                         .map((subQuery) => subQuery.sql)
@@ -168,10 +169,8 @@ export class MySqlCompiler {
                     );
                 } else if (entryKey === "_not") {
                     const items = entryValue as WhereClause;
-                    const compiledSubQueries = MySqlCompiler.compileWhere(
-                        items,
-                        resultType,
-                    );
+                    const compiledSubQueries =
+                        MySqlCompiler.compileWhere(items);
                     clauses.push(`NOT (${compiledSubQueries.sql})`);
                     params.push(...compiledSubQueries.params);
                 }
@@ -232,7 +231,6 @@ export class MySqlCompiler {
         }
 
         return {
-            resultType,
             sql: clauses.length > 0 ? clauses.join(" AND ") : "",
             params,
         };
@@ -336,7 +334,7 @@ export class MySqlCompiler {
 
         sql += setColumns;
 
-        const whereResult = MySqlCompiler.compileWhere(query.where, "command");
+        const whereResult = MySqlCompiler.compileWhere(query.where);
         if (whereResult.sql) {
             sql += ` WHERE ${whereResult.sql}`;
             params.push(...whereResult.params);
@@ -356,7 +354,7 @@ export class MySqlCompiler {
 
         sql += `DELETE FROM ${table}`;
 
-        const whereResult = MySqlCompiler.compileWhere(query.where, "command");
+        const whereResult = MySqlCompiler.compileWhere(query.where);
         if (whereResult.sql) {
             sql += ` WHERE ${whereResult.sql}`;
             params.push(...whereResult.params);
