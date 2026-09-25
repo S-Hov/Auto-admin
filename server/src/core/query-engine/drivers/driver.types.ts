@@ -10,5 +10,4 @@ export interface QueryResult<T> {
 export interface DatabaseDriver {
     execute<T = unknown>(query: CompiledQuery): Promise<QueryResult<T>>;
     ping(): Promise<boolean>;
-    close(): Promise<void>;
 }
