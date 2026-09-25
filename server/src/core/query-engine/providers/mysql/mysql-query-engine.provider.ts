@@ -13,3 +13,5 @@ export class MySqlQueryEngineProvider implements QueryEngineProvider<"mysql"> {
         return new MySqlDriver(executor);
     }
 }
+
+export const mysqlQueryEngineProvider = new MySqlQueryEngineProvider();
