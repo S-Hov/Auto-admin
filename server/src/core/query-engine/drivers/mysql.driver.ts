@@ -1,8 +1,8 @@
 import { type DbExecutor, getPool } from "../../../db";
-import { CompiledQuery } from "../compiler/mysql.compiler";
 import type { DatabaseDriver, QueryResult } from "./driver.types";
-import mysql from "mysql2/promise"
+import mysql from "mysql2/promise";
 import { envConfig } from "../../../config/env";
+import { CompiledQuery } from "../types/compiled-query.types";
 
 export class MySqlDriver implements DatabaseDriver {
     private pool: mysql.PoolConnection | mysql.Pool;
@@ -26,35 +26,34 @@ export class MySqlDriver implements DatabaseDriver {
             affectedRows = rows.length;
             insertId = null;
         } else {
-            rows = []
-            affectedRows = (result as mysql.ResultSetHeader).affectedRows
-            insertId = (result as mysql.ResultSetHeader).insertId
+            rows = [];
+            affectedRows = (result as mysql.ResultSetHeader).affectedRows;
+            insertId = (result as mysql.ResultSetHeader).insertId;
         }
 
         return {
             rows,
             affectedRows,
-            insertId
-        }
+            insertId,
+        };
     }
 
     async ping(): Promise<boolean> {
         try {
             await this.pool.query({
-                sql: 'SELECT 1',
+                sql: "SELECT 1",
                 timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
             });
             return true;
-        }
-        catch {
+        } catch {
             return false;
         }
     }
 
     async close(): Promise<void> {
-        if ('release' in this.pool && typeof this.pool.release === 'function') {
+        if ("release" in this.pool && typeof this.pool.release === "function") {
             this.pool.release();
-        } else if ('end' in this.pool && typeof this.pool.end === 'function') {
+        } else if ("end" in this.pool && typeof this.pool.end === "function") {
             await this.pool.end();
         }
     }

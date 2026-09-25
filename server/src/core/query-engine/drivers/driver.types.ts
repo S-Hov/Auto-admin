@@ -1,4 +1,4 @@
-import { CompiledQuery } from "../compiler/mysql.compiler";
+import { CompiledQuery } from "../types/compiled-query.types";
 
 export interface QueryResult<T> {
     rows: T[];
