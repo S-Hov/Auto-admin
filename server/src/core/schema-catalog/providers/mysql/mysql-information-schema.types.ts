@@ -1,6 +1,4 @@
-import type { RowDataPacket } from 'mysql2/promise';
-
-export interface InformationSchemaTableRow extends RowDataPacket {
+export interface InformationSchemaTableRow {
     schemaName: string;
     tableName: string;
     tableType: 'BASE TABLE' | 'VIEW';
@@ -8,7 +6,7 @@ export interface InformationSchemaTableRow extends RowDataPacket {
     tableComment: string;
 }
 
-export interface InformationSchemaColumnRow extends RowDataPacket {
+export interface InformationSchemaColumnRow {
     tableName: string;
     columnName: string;
     ordinalPosition: number;
@@ -35,7 +33,7 @@ export interface InformationSchemaRows {
     indexes: InformationSchemaIndexRow[];
 }
 
-export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
+export interface InformationSchemaKeyConstraintRow {
     tableName: string;
     constraintName: string;
     constraintType: 'PRIMARY KEY' | 'UNIQUE';
@@ -43,7 +41,7 @@ export interface InformationSchemaKeyConstraintRow extends RowDataPacket {
     ordinalPosition: number;
 }
 
-export interface InformationSchemaForeignKeyRow extends RowDataPacket {
+export interface InformationSchemaForeignKeyRow {
     tableName: string;
     constraintName: string;
     columnName: string;
@@ -57,7 +55,7 @@ export interface InformationSchemaForeignKeyRow extends RowDataPacket {
 
 export type InformationSchemaReferentialAction = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION' | 'SET DEFAULT';
 
-export interface InformationSchemaIndexRow extends RowDataPacket {
+export interface InformationSchemaIndexRow {
     tableName: string;
     indexName: string;
     nonUnique: 0 | 1;

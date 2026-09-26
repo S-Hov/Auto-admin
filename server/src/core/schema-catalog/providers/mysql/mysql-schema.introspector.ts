@@ -1,4 +1,4 @@
-import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import type {
     InformationSchemaColumnRow,
     InformationSchemaForeignKeyRow,
@@ -6,7 +6,7 @@ import type {
     InformationSchemaKeyConstraintRow,
     InformationSchemaRows,
     InformationSchemaTableRow,
-} from "../types/information-schema.types";
+} from "./mysql-information-schema.types";
 
 const readTableRows = async (
     executor: DatabaseExecutor,

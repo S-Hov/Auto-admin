@@ -4,14 +4,14 @@ import type {
     DatabaseExecutor,
 } from "../../../../db/contracts/executor.interface";
 import { logger } from "../../../../shared/logger";
-import { schemaSnapshotBuilder } from "../../builder/schema-snapshot.builder";
 import type { SchemaCatalogProvider } from "../../contracts/schema-catalog-provider.interface";
 import type { SchemaCatalogRepository } from "../../contracts/schema-catalog-repository.interface";
-import { readInformationSchemaRows } from "../../introspection/mysql-schema-introspector";
 import { SCHEMA_CATALOG_SCAN_LOCK_NAME } from "../../schema-catalog.constants";
 import { SchemaCatalogScanInProgressError } from "../../schema-catalog.errors";
 import type { DBSnapshot } from "../../types/schema-catalog.types";
 import { MySqlSchemaCatalogRepository } from "./mysql-schema-catalog.repository";
+import { readInformationSchemaRows } from "./mysql-schema.introspector";
+import { schemaSnapshotBuilder } from "./mysql-schema-snapshot.builder";
 
 interface LockRow {
     acquired: 0 | 1 | null;
@@ -43,7 +43,7 @@ export class MySqlSchemaCatalogProvider implements SchemaCatalogProvider<"mysql"
 
     async acquireScanLock(
         connection: DatabaseConnection,
-        timeoutSeconds?: number,
+        timeoutSeconds = 0,
     ): Promise<void> {
         const rows = await connection.queryRows<LockRow>(
             "SELECT GET_LOCK(?, ?) AS acquired",

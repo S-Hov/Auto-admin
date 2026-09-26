@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { schemaSnapshotBuilder } from './schema-snapshot.builder';
+import { schemaSnapshotBuilder } from './mysql-schema-snapshot.builder';
 import type {
   InformationSchemaTableRow,
   InformationSchemaColumnRow,
@@ -8,7 +8,7 @@ import type {
   InformationSchemaIndexRow,
   InformationSchemaReferentialAction,
   InformationSchemaRows,
-} from '../types/information-schema.types';
+} from './mysql-information-schema.types';
 
 type MockTableRow = {
   schemaName?: string;

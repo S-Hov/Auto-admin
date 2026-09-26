@@ -14,7 +14,7 @@ import type {
     StoredIndexPartRow,
     StoredIndexRow,
     StoredResourceRow,
-} from "../../repository/repository.types";
+} from "./mysql-schema-catalog-row.types";
 import type {
     DBTable,
     SchemaCatalog,
