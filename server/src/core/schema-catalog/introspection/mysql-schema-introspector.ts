@@ -1,18 +1,21 @@
 import { envConfig } from "../../../config/env";
-import type { DbExecutor } from "../../../db";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import type {
     InformationSchemaColumnRow,
     InformationSchemaForeignKeyRow,
     InformationSchemaIndexRow,
     InformationSchemaKeyConstraintRow,
     InformationSchemaRows,
-    InformationSchemaTableRow
+    InformationSchemaTableRow,
 } from "../types/information-schema.types";
 
-const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaTableRow[]> => {
-    const [rows] = await executor.query<InformationSchemaTableRow[]>({
-        sql: `
-            SELECT 
+const readTableRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaTableRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaTableRow>(
+        `
+            SELECT
                 TABLE_SCHEMA AS schemaName,
                 TABLE_NAME AS tableName,
                 TABLE_TYPE AS tableType,
@@ -22,16 +25,18 @@ const readTableRows = async (executor: DbExecutor, schemaName: string): Promise<
             WHERE TABLE_SCHEMA = ?
             ORDER BY TABLE_NAME
         `,
-        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-        values: [schemaName],
-    });
+        [schemaName],
+    );
 
     return rows;
-}
+};
 
-const readColumnRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaColumnRow[]> => {
-    const [rows] = await executor.query<InformationSchemaColumnRow[]>({
-        sql: `
+const readColumnRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaColumnRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaColumnRow>(
+        `
             SELECT
                 TABLE_NAME AS tableName,
                 COLUMN_NAME AS columnName,
@@ -53,16 +58,18 @@ const readColumnRows = async (executor: DbExecutor, schemaName: string): Promise
             WHERE TABLE_SCHEMA = ?
             ORDER BY TABLE_NAME, ORDINAL_POSITION
         `,
-        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-        values: [schemaName],
-    });
+        [schemaName],
+    );
 
     return rows;
-}
+};
 
-const readKeyConstraintRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaKeyConstraintRow[]> => {
-    const [rows] = await executor.query<InformationSchemaKeyConstraintRow[]>({
-        sql: `
+const readKeyConstraintRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaKeyConstraintRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaKeyConstraintRow>(
+        `
             SELECT
                 tc.TABLE_NAME AS tableName,
                 tc.CONSTRAINT_NAME AS constraintName,
@@ -80,46 +87,48 @@ const readKeyConstraintRows = async (executor: DbExecutor, schemaName: string): 
             AND tc.CONSTRAINT_TYPE IN ('PRIMARY KEY', 'UNIQUE')
             ORDER BY tc.TABLE_NAME, tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
         `,
-        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-        values: [schemaName],
-    });
+        [schemaName],
+    );
 
     return rows;
-}
+};
 
-const readForeignKeyRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaForeignKeyRow[]> => {
-    const [rows] = await executor.query<InformationSchemaForeignKeyRow[]>(
-        {
-            sql: `
-                SELECT
-                    kcu.TABLE_NAME AS tableName,
-                    kcu.CONSTRAINT_NAME AS constraintName,
-                    kcu.COLUMN_NAME AS columnName,
-                    kcu.ORDINAL_POSITION AS ordinalPosition,
-                    kcu.REFERENCED_TABLE_SCHEMA AS referencedSchemaName,
-                    kcu.REFERENCED_TABLE_NAME AS referencedTableName,
-                    kcu.REFERENCED_COLUMN_NAME AS referencedColumnName,
-                    rc.UPDATE_RULE AS updateRule,
-                    rc.DELETE_RULE AS deleteRule
-                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
-                JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS rc
-                    ON kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
-                    AND kcu.TABLE_NAME = rc.TABLE_NAME
-                    AND kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-                WHERE kcu.TABLE_SCHEMA = ?
-                    AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
-                ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
-            `,
-            timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-            values: [schemaName],
-        }
-    )
+const readForeignKeyRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaForeignKeyRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaForeignKeyRow>(
+        `
+            SELECT
+                kcu.TABLE_NAME AS tableName,
+                kcu.CONSTRAINT_NAME AS constraintName,
+                kcu.COLUMN_NAME AS columnName,
+                kcu.ORDINAL_POSITION AS ordinalPosition,
+                kcu.REFERENCED_TABLE_SCHEMA AS referencedSchemaName,
+                kcu.REFERENCED_TABLE_NAME AS referencedTableName,
+                kcu.REFERENCED_COLUMN_NAME AS referencedColumnName,
+                rc.UPDATE_RULE AS updateRule,
+                rc.DELETE_RULE AS deleteRule
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+            JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS rc
+                ON kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
+                AND kcu.TABLE_NAME = rc.TABLE_NAME
+                AND kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+            WHERE kcu.TABLE_SCHEMA = ?
+                AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+            ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+        `,
+        [schemaName],
+    );
     return rows;
-}
+};
 
-const readIndexRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaIndexRow[]> => {
-    const [rows] = await executor.query<InformationSchemaIndexRow[]>({
-        sql: `
+const readIndexRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaIndexRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaIndexRow>(
+        `
             SELECT
                 TABLE_NAME AS tableName,
                 INDEX_NAME AS indexName,
@@ -136,20 +145,23 @@ const readIndexRows = async (executor: DbExecutor, schemaName: string): Promise<
             WHERE TABLE_SCHEMA = ?
             ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX
         `,
-        timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
-        values: [schemaName],
-    })
+        [schemaName],
+    );
     return rows;
-}
+};
 
-export const readInformationSchemaRows = async (executor: DbExecutor, schemaName: string): Promise<InformationSchemaRows> => {
-    const [tables, columns, keyConstraints, foreignKeys, indexes] = await Promise.all([
-        readTableRows(executor, schemaName),
-        readColumnRows(executor, schemaName),
-        readKeyConstraintRows(executor, schemaName),
-        readForeignKeyRows(executor, schemaName),
-        readIndexRows(executor, schemaName),
-    ]);
+export const readInformationSchemaRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaRows> => {
+    const [tables, columns, keyConstraints, foreignKeys, indexes] =
+        await Promise.all([
+            readTableRows(executor, schemaName),
+            readColumnRows(executor, schemaName),
+            readKeyConstraintRows(executor, schemaName),
+            readForeignKeyRows(executor, schemaName),
+            readIndexRows(executor, schemaName),
+        ]);
 
     return { tables, columns, keyConstraints, foreignKeys, indexes };
-}
+};
