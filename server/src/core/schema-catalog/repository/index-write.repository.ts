@@ -1,6 +1,9 @@
 import type { ResultSetHeader } from "mysql2";
 import type { PoolConnection } from "mysql2/promise";
-import type { IndexPartWriteItem, IndexWriteItem } from "./repository.types";
+import type {
+    IndexPartWriteItem,
+    IndexWriteItem,
+} from "../contracts/schema-catalog-repository.types";
 
 export const upsertPresentIndexes = async (
     connection: PoolConnection,
@@ -9,7 +12,9 @@ export const upsertPresentIndexes = async (
 ): Promise<void> => {
     if (items.length === 0) return;
 
-    const placeholders = items.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, \'present\')').join(', ');
+    const placeholders = items
+        .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, 'present')")
+        .join(", ");
     const values = items.flatMap(({ resourceId, index }) => [
         resourceId,
         index.name,
@@ -21,7 +26,8 @@ export const upsertPresentIndexes = async (
         scanId,
     ]);
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         INSERT INTO Auto_Admin__indexes
             (resource_id, index_name, is_unique, index_type, is_visible, comment,
              first_seen_scan_id, last_seen_scan_id, state)
@@ -33,7 +39,9 @@ export const upsertPresentIndexes = async (
             comment = VALUES(comment),
             last_seen_scan_id = VALUES(last_seen_scan_id),
             state = 'present'
-    `, values);
+    `,
+        values,
+    );
 };
 
 export const markIndexesMissing = async (
@@ -41,11 +49,14 @@ export const markIndexesMissing = async (
     ids: number[],
 ): Promise<void> => {
     if (ids.length === 0) return;
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         UPDATE Auto_Admin__indexes
         SET state = 'missing'
-        WHERE id IN (${ids.map(() => '?').join(', ')})
-    `, ids);
+        WHERE id IN (${ids.map(() => "?").join(", ")})
+    `,
+        ids,
+    );
 };
 
 export const replaceIndexParts = async (
@@ -55,14 +66,17 @@ export const replaceIndexParts = async (
 ): Promise<void> => {
     if (indexIds.length === 0) return;
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         DELETE FROM Auto_Admin__index_parts
-        WHERE index_id IN (${indexIds.map(() => '?').join(', ')})
-    `, indexIds);
+        WHERE index_id IN (${indexIds.map(() => "?").join(", ")})
+    `,
+        indexIds,
+    );
 
     if (items.length === 0) return;
 
-    const placeholders = items.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+    const placeholders = items.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
     const values = items.flatMap((item) => [
         item.indexId,
         item.position,
@@ -72,9 +86,12 @@ export const replaceIndexParts = async (
         item.sortDirection,
     ]);
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         INSERT INTO Auto_Admin__index_parts
             (index_id, ordinal_position, field_id, expression, prefix_length, sort_direction)
         VALUES ${placeholders}
-    `, values);
+    `,
+        values,
+    );
 };

@@ -1,6 +1,9 @@
 import type { ResultSetHeader } from "mysql2";
 import type { PoolConnection } from "mysql2/promise";
-import type { ConstraintFieldWriteItem, ConstraintWriteItem } from "./repository.types";
+import type {
+    ConstraintFieldWriteItem,
+    ConstraintWriteItem,
+} from "../contracts/schema-catalog-repository.types";
 
 export const upsertPresentConstraints = async (
     connection: PoolConnection,
@@ -9,7 +12,9 @@ export const upsertPresentConstraints = async (
 ): Promise<void> => {
     if (items.length === 0) return;
 
-    const placeholders = items.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'present\')').join(', ');
+    const placeholders = items
+        .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'present')")
+        .join(", ");
     const values = items.flatMap((item) => [
         item.resourceId,
         item.constraintName,
@@ -23,7 +28,8 @@ export const upsertPresentConstraints = async (
         scanId,
     ]);
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         INSERT INTO Auto_Admin__constraints
             (resource_id, constraint_name, constraint_type,
              referenced_schema_name, referenced_table_name, referenced_resource_id,
@@ -38,7 +44,9 @@ export const upsertPresentConstraints = async (
             on_delete = VALUES(on_delete),
             last_seen_scan_id = VALUES(last_seen_scan_id),
             state = 'present'
-    `, values);
+    `,
+        values,
+    );
 };
 
 export const markConstraintsMissing = async (
@@ -46,11 +54,14 @@ export const markConstraintsMissing = async (
     ids: number[],
 ): Promise<void> => {
     if (ids.length === 0) return;
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         UPDATE Auto_Admin__constraints
         SET state = 'missing'
-        WHERE id IN (${ids.map(() => '?').join(', ')})
-    `, ids);
+        WHERE id IN (${ids.map(() => "?").join(", ")})
+    `,
+        ids,
+    );
 };
 
 export const replaceConstraintFields = async (
@@ -60,14 +71,17 @@ export const replaceConstraintFields = async (
 ): Promise<void> => {
     if (constraintIds.length === 0) return;
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         DELETE FROM Auto_Admin__constraint_fields
-        WHERE constraint_id IN (${constraintIds.map(() => '?').join(', ')})
-    `, constraintIds);
+        WHERE constraint_id IN (${constraintIds.map(() => "?").join(", ")})
+    `,
+        constraintIds,
+    );
 
     if (items.length === 0) return;
 
-    const placeholders = items.map(() => '(?, ?, ?, ?, ?)').join(', ');
+    const placeholders = items.map(() => "(?, ?, ?, ?, ?)").join(", ");
     const values = items.flatMap((item) => [
         item.constraintId,
         item.position,
@@ -76,9 +90,12 @@ export const replaceConstraintFields = async (
         item.referencedColumnName,
     ]);
 
-    await connection.query<ResultSetHeader>(`
+    await connection.query<ResultSetHeader>(
+        `
         INSERT INTO Auto_Admin__constraint_fields
             (constraint_id, ordinal_position, field_id, referenced_field_id, referenced_column_name)
         VALUES ${placeholders}
-    `, values);
+    `,
+        values,
+    );
 };
