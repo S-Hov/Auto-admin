@@ -1,4 +1,3 @@
-import { envConfig } from "../../../config/env";
 import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import type {
     InformationSchemaColumnRow,
