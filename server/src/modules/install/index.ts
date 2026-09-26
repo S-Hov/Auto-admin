@@ -1,11 +1,11 @@
-import { installRepository } from "./repository";
+import { activeInstallRepository } from "./repository/runtime/install-repository.runtime";
 
 export type { InstallationStatusValue } from "./install.types";
 
 export const readInstallationStatus = () => {
-    return installRepository.getInstallationStatus();
+    return activeInstallRepository.getInstallationStatus();
 };
 
 export const markMigrationsCompleted = () => {
-    return installRepository.markMigrationsCompleted();
+    return activeInstallRepository.markMigrationsCompleted();
 };

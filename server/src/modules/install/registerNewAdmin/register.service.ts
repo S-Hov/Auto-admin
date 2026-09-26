@@ -6,8 +6,8 @@ import {
     conflict,
     notFound,
 } from "../../../shared/api/errors/error-helpers";
-import { createInstallRepository } from "../repository";
-import { createRegisterAdminRepository } from "./repository";
+import { createInstallRepository } from "../repository/repository.factory";
+import { createRegisterAdminRepository } from "./repository/repository.factory";
 import type {
     RequestMeta,
     RegisterData,

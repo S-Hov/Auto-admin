@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PagePaths } from "../../../constants/pagePaths";
 import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
 import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
-import { createInstallRepository } from "../repository";
-import { createRegisterAdminRepository } from "./repository";
+import { createInstallRepository } from "../repository/repository.factory";
+import { createRegisterAdminRepository } from "./repository/repository.factory";
 import { registerService } from "./register.service";
 import type {
     RegisterData,
@@ -27,11 +27,11 @@ vi.mock("../../../db/runtime/database.runtime", () => ({
     },
 }));
 
-vi.mock("../repository", () => ({
+vi.mock("../repository/repository.factory", () => ({
     createInstallRepository: vi.fn(),
 }));
 
-vi.mock("./repository", () => ({
+vi.mock("./repository/repository.factory", () => ({
     createRegisterAdminRepository: vi.fn(),
 }));
 

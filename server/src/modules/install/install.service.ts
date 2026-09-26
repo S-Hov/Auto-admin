@@ -32,7 +32,7 @@ import type { RequestMeta } from "../../utils/getRequestMeta";
 import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
 import type { CheckConnectionData } from "./schema/checkConnection.schema";
 import { getDatabaseProvider } from "../../db/providers/provider.registry";
-import { installRepository } from "./repository";
+import { activeInstallRepository } from "./repository/runtime/install-repository.runtime";
 
 const envPath = path.join(process.cwd(), ".env");
 const databaseConfigurationMutex = new AsyncMutex();
@@ -133,7 +133,7 @@ export const applyNextMigrationService = async (
     try {
         result = await applyNextMigration(expectedVersion);
         if (result.isComplete)
-            await installRepository.markMigrationsCompleted();
+            await activeInstallRepository.markMigrationsCompleted();
     } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
@@ -175,7 +175,7 @@ export const retryMigrationService = async (
     try {
         result = await retryMigration(expectedVersion, checksum, meta);
         if (result.isComplete)
-            await installRepository.markMigrationsCompleted();
+            await activeInstallRepository.markMigrationsCompleted();
     } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
@@ -218,7 +218,7 @@ export const markMigrationAppliedService = async (
             meta,
         );
         if (result.isComplete)
-            await installRepository.markMigrationsCompleted();
+            await activeInstallRepository.markMigrationsCompleted();
 
         return {
             applied:
