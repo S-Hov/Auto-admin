@@ -1,27 +1,33 @@
-import type { DbExecutor } from "../../../db";
-import type { StoredField, StoredResource } from "../types/schema-catalog.types";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import type {
+    StoredField,
+    StoredResource,
+} from "../types/schema-catalog.types";
 import type { StoredFieldRow, StoredResourceRow } from "./repository.types";
 
 export const readStoredResources = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     schemaName: string,
 ): Promise<StoredResource[]> => {
-    const [rows] = await executor.query<StoredResourceRow[]>(`
-        SELECT
-            id,
-            schema_name,
-            table_name,
-            object_type,
-            engine,
-            comment,
-            is_service,
-            state,
-            first_seen_scan_id,
-            last_seen_scan_id
-        FROM Auto_Admin__resources
-        WHERE schema_name = ?
-        ORDER BY table_name
-    `, [schemaName]);
+    const rows = await executor.queryRows<StoredResourceRow>(
+        `
+            SELECT
+                id,
+                schema_name,
+                table_name,
+                object_type,
+                engine,
+                comment,
+                is_service,
+                state,
+                first_seen_scan_id,
+                last_seen_scan_id
+            FROM Auto_Admin__resources
+            WHERE schema_name = ?
+            ORDER BY table_name
+        `,
+        [schemaName],
+    );
 
     return rows.map((resource) => ({
         id: resource.id,
@@ -38,39 +44,42 @@ export const readStoredResources = async (
 };
 
 export const readStoredFields = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     schemaName: string,
 ): Promise<StoredField[]> => {
-    const [rows] = await executor.query<StoredFieldRow[]>(`
-        SELECT
-            f.id,
-            f.resource_id,
-            f.column_name,
-            f.ordinal_position,
-            f.data_type,
-            f.column_type,
-            f.is_nullable,
-            f.default_value,
-            f.character_maximum_length,
-            f.numeric_precision,
-            f.numeric_scale,
-            f.datetime_precision,
-            f.character_set_name,
-            f.collation_name,
-            f.is_auto_increment,
-            f.is_generated,
-            f.generation_expression,
-            f.extra,
-            f.comment,
-            f.state,
-            f.first_seen_scan_id,
-            f.last_seen_scan_id
-        FROM Auto_Admin__fields AS f
-        INNER JOIN Auto_Admin__resources AS r
-            ON r.id = f.resource_id
-        WHERE r.schema_name = ?
-        ORDER BY r.table_name, f.ordinal_position
-    `, [schemaName]);
+    const rows = await executor.queryRows<StoredFieldRow>(
+        `
+            SELECT
+                f.id,
+                f.resource_id,
+                f.column_name,
+                f.ordinal_position,
+                f.data_type,
+                f.column_type,
+                f.is_nullable,
+                f.default_value,
+                f.character_maximum_length,
+                f.numeric_precision,
+                f.numeric_scale,
+                f.datetime_precision,
+                f.character_set_name,
+                f.collation_name,
+                f.is_auto_increment,
+                f.is_generated,
+                f.generation_expression,
+                f.extra,
+                f.comment,
+                f.state,
+                f.first_seen_scan_id,
+                f.last_seen_scan_id
+            FROM Auto_Admin__fields AS f
+            INNER JOIN Auto_Admin__resources AS r
+                ON r.id = f.resource_id
+            WHERE r.schema_name = ?
+            ORDER BY r.table_name, f.ordinal_position
+        `,
+        [schemaName],
+    );
 
     return rows.map((field) => ({
         id: field.id,

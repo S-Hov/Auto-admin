@@ -1,22 +1,21 @@
-import type { RowDataPacket } from "mysql2";
-import type { PoolConnection } from "mysql2/promise";
+import { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import { logger } from "../../../shared/logger";
 import { SCHEMA_CATALOG_SCAN_LOCK_NAME } from "../schema-catalog.constants";
 import { SchemaCatalogScanInProgressError } from "../schema-catalog.errors";
 
-interface LockRow extends RowDataPacket {
+interface LockRow {
     acquired: 0 | 1 | null;
 }
 
-interface UnlockRow extends RowDataPacket {
+interface UnlockRow {
     released: 0 | 1 | null;
 }
 
 export const acquireSchemaScanLock = async (
-    connection: PoolConnection,
+    connection: DatabaseExecutor,
     timeoutSeconds = 0,
 ): Promise<void> => {
-    const [rows] = await connection.query<LockRow[]>(
+    const rows = await connection.queryRows<LockRow>(
         'SELECT GET_LOCK(?, ?) AS acquired',
         [SCHEMA_CATALOG_SCAN_LOCK_NAME, timeoutSeconds],
     );
@@ -26,8 +25,8 @@ export const acquireSchemaScanLock = async (
     throw new Error('MySQL could not acquire the schema catalog scan lock');
 };
 
-export const releaseSchemaScanLock = async (connection: PoolConnection): Promise<void> => {
-    const [rows] = await connection.query<UnlockRow[]>(
+export const releaseSchemaScanLock = async (connection: DatabaseExecutor): Promise<void> => {
+    const rows = await connection.queryRows<UnlockRow>(
         'SELECT RELEASE_LOCK(?) AS released',
         [SCHEMA_CATALOG_SCAN_LOCK_NAME],
     );

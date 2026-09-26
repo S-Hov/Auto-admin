@@ -1,9 +1,8 @@
-import type { ResultSetHeader } from "mysql2";
-import type { DbExecutor } from "../../../db";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import type { FieldWriteItem } from "../contracts/schema-catalog-repository.types";
 
 export const upsertPresentFields = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     items: FieldWriteItem[],
     scanId: number,
 ): Promise<void> => {
@@ -41,57 +40,57 @@ export const upsertPresentFields = async (
         scanId,
     ]);
 
-    await executor.query(
+    await executor.execute(
         `
-        INSERT INTO Auto_Admin__fields (
-            resource_id,
-            column_name,
-            ordinal_position,
-            data_type,
-            character_maximum_length,
-            numeric_precision,
-            numeric_scale,
-            datetime_precision,
-            column_type,
-            is_nullable,
-            default_value,
-            is_generated,
-            generation_expression,
-            is_auto_increment,
-            extra,
-            character_set_name,
-            collation_name,
-            comment,
-            first_seen_scan_id,
-            last_seen_scan_id,
-            state
-        ) VALUES ${placeholders}
-        ON DUPLICATE KEY UPDATE
-            ordinal_position = VALUES(ordinal_position),
-            data_type = VALUES(data_type),
-            character_maximum_length = VALUES(character_maximum_length),
-            numeric_precision = VALUES(numeric_precision),
-            numeric_scale = VALUES(numeric_scale),
-            datetime_precision = VALUES(datetime_precision),
-            column_type = VALUES(column_type),
-            is_nullable = VALUES(is_nullable),
-            default_value = VALUES(default_value),
-            is_generated = VALUES(is_generated),
-            generation_expression = VALUES(generation_expression),
-            is_auto_increment = VALUES(is_auto_increment),
-            extra = VALUES(extra),
-            character_set_name = VALUES(character_set_name),
-            collation_name = VALUES(collation_name),
-            comment = VALUES(comment),
-            state = VALUES(state),
-            last_seen_scan_id = VALUES(last_seen_scan_id)
-    `,
+            INSERT INTO Auto_Admin__fields (
+                resource_id,
+                column_name,
+                ordinal_position,
+                data_type,
+                character_maximum_length,
+                numeric_precision,
+                numeric_scale,
+                datetime_precision,
+                column_type,
+                is_nullable,
+                default_value,
+                is_generated,
+                generation_expression,
+                is_auto_increment,
+                extra,
+                character_set_name,
+                collation_name,
+                comment,
+                first_seen_scan_id,
+                last_seen_scan_id,
+                state
+            ) VALUES ${placeholders}
+            ON DUPLICATE KEY UPDATE
+                ordinal_position = VALUES(ordinal_position),
+                data_type = VALUES(data_type),
+                character_maximum_length = VALUES(character_maximum_length),
+                numeric_precision = VALUES(numeric_precision),
+                numeric_scale = VALUES(numeric_scale),
+                datetime_precision = VALUES(datetime_precision),
+                column_type = VALUES(column_type),
+                is_nullable = VALUES(is_nullable),
+                default_value = VALUES(default_value),
+                is_generated = VALUES(is_generated),
+                generation_expression = VALUES(generation_expression),
+                is_auto_increment = VALUES(is_auto_increment),
+                extra = VALUES(extra),
+                character_set_name = VALUES(character_set_name),
+                collation_name = VALUES(collation_name),
+                comment = VALUES(comment),
+                state = VALUES(state),
+                last_seen_scan_id = VALUES(last_seen_scan_id)
+        `,
         params,
     );
 };
 
 export const markFieldsMissing = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     fieldIds: number[],
 ): Promise<void> => {
     if (fieldIds.length === 0) {
@@ -100,13 +99,13 @@ export const markFieldsMissing = async (
 
     const placeholders = fieldIds.map(() => "?").join(", ");
 
-    const [result] = await executor.query<ResultSetHeader>(
+    const result = await executor.execute(
         `
-        UPDATE Auto_Admin__fields
-        SET state = 'missing'
-        WHERE id IN (${placeholders})
-            AND state = 'present'
-    `,
+            UPDATE Auto_Admin__fields
+            SET state = 'missing'
+            WHERE id IN (${placeholders})
+                AND state = 'present'
+        `,
         fieldIds,
     );
 

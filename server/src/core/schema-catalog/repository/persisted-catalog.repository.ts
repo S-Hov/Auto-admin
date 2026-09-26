@@ -1,4 +1,4 @@
-import type { DbExecutor } from "../../../db";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import type { SchemaCatalog } from "../types/schema-catalog.types";
 import { readStoredFields, readStoredResources } from "./catalog-read.repository";
 import { readStoredConstraints } from "./constraint-read.repository";
@@ -6,7 +6,7 @@ import { readStoredIndexes } from "./index-read.repository";
 import { readLatestSuccessfulScanFingerprint } from "./schema-scan.repository";
 
 export const readPersistedSchemaCatalog = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     schemaName: string,
     knownFingerprint?: string,
 ): Promise<SchemaCatalog | null> => {

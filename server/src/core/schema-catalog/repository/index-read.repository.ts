@@ -1,59 +1,72 @@
-import type { DbExecutor } from "../../../db";
-import type { StoredIndex, StoredIndexPart } from "../types/schema-catalog.types";
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import type {
+    StoredIndex,
+    StoredIndexPart,
+} from "../types/schema-catalog.types";
 import type { StoredIndexPartRow, StoredIndexRow } from "./repository.types";
 
 export const readStoredIndexes = async (
-    executor: DbExecutor,
+    executor: DatabaseExecutor,
     schemaName: string,
 ): Promise<StoredIndex[]> => {
-    const [indexRows] = await executor.query<StoredIndexRow[]>(`
-        SELECT
-            i.id,
-            i.resource_id,
-            i.index_name,
-            i.is_unique,
-            i.index_type,
-            i.is_visible,
-            i.comment,
-            i.state,
-            i.first_seen_scan_id,
-            i.last_seen_scan_id
-        FROM Auto_Admin__indexes AS i
-        INNER JOIN Auto_Admin__resources AS r ON r.id = i.resource_id
-        WHERE r.schema_name = ?
-        ORDER BY r.table_name, i.index_name
-    `, [schemaName]);
+    const indexRows = await executor.queryRows<StoredIndexRow>(
+        `
+            SELECT
+                i.id,
+                i.resource_id,
+                i.index_name,
+                i.is_unique,
+                i.index_type,
+                i.is_visible,
+                i.comment,
+                i.state,
+                i.first_seen_scan_id,
+                i.last_seen_scan_id
+            FROM Auto_Admin__indexes AS i
+            INNER JOIN Auto_Admin__resources AS r ON r.id = i.resource_id
+            WHERE r.schema_name = ?
+            ORDER BY r.table_name, i.index_name
+        `,
+        [schemaName],
+    );
 
-    const [partRows] = await executor.query<StoredIndexPartRow[]>(`
-        SELECT
-            ip.id,
-            ip.index_id,
-            ip.ordinal_position,
-            ip.field_id,
-            f.column_name,
-            ip.expression,
-            ip.prefix_length,
-            ip.sort_direction
-        FROM Auto_Admin__index_parts AS ip
-        INNER JOIN Auto_Admin__indexes AS i ON i.id = ip.index_id
-        INNER JOIN Auto_Admin__resources AS r ON r.id = i.resource_id
-        LEFT JOIN Auto_Admin__fields AS f ON f.id = ip.field_id
-        WHERE r.schema_name = ?
-        ORDER BY ip.index_id, ip.ordinal_position
-    `, [schemaName]);
+    const partRows = await executor.queryRows<StoredIndexPartRow>(
+        `
+            SELECT
+                ip.id,
+                ip.index_id,
+                ip.ordinal_position,
+                ip.field_id,
+                f.column_name,
+                ip.expression,
+                ip.prefix_length,
+                ip.sort_direction
+            FROM Auto_Admin__index_parts AS ip
+            INNER JOIN Auto_Admin__indexes AS i ON i.id = ip.index_id
+            INNER JOIN Auto_Admin__resources AS r ON r.id = i.resource_id
+            LEFT JOIN Auto_Admin__fields AS f ON f.id = ip.field_id
+            WHERE r.schema_name = ?
+            ORDER BY ip.index_id, ip.ordinal_position
+        `,
+        [schemaName],
+    );
 
     const partsByIndexId = new Map<number, StoredIndexPart[]>();
 
     for (const row of partRows) {
         const parts = partsByIndexId.get(row.index_id) ?? [];
 
-        if (row.field_id !== null && row.column_name !== null && row.expression === null) {
+        if (
+            row.field_id !== null &&
+            row.column_name !== null &&
+            row.expression === null
+        ) {
             parts.push({
                 id: row.id,
                 indexId: row.index_id,
                 position: row.ordinal_position,
                 fieldId: row.field_id,
-                kind: 'column',
+                kind: "column",
                 columnName: row.column_name,
                 expression: null,
                 prefixLength: row.prefix_length,
@@ -65,7 +78,7 @@ export const readStoredIndexes = async (
                 indexId: row.index_id,
                 position: row.ordinal_position,
                 fieldId: null,
-                kind: 'expression',
+                kind: "expression",
                 columnName: null,
                 expression: row.expression,
                 prefixLength: row.prefix_length,
