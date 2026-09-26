@@ -1,5 +1,5 @@
-import { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
-import {
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
+import type {
     InstallationStatus,
     InstallationStatusValue,
 } from "../../install.types";
