@@ -7,12 +7,6 @@ import type {
     IndexPartWriteItem,
     IndexWriteItem,
 } from "../../contracts/schema-catalog-repository.types";
-import {
-    readStoredFields,
-    readStoredResources,
-} from "../../repository/catalog-read.repository";
-import { readStoredConstraints } from "../../repository/constraint-read.repository";
-import { readStoredIndexes } from "../../repository/index-read.repository";
 import type {
     StoredConstraintFieldRow,
     StoredConstraintRow,
@@ -21,7 +15,6 @@ import type {
     StoredIndexRow,
     StoredResourceRow,
 } from "../../repository/repository.types";
-import { readLatestSuccessfulScanFingerprint } from "../../repository/schema-scan.repository";
 import type {
     DBTable,
     SchemaCatalog,
@@ -34,8 +27,31 @@ import type {
     StoredResource,
 } from "../../types/schema-catalog.types";
 
+interface SuccessfulScanRow {
+    snapshot_fingerprint: string;
+}
+
 export class MySqlSchemaCatalogRepository implements SchemaCatalogRepository {
     constructor(private readonly executor: DatabaseExecutor) {}
+
+    private async readLatestSuccessfulScanFingerprint(
+        schemaName: string,
+    ): Promise<string | null> {
+        const rows = await this.executor.queryRows<SuccessfulScanRow>(
+            `
+                SELECT snapshot_fingerprint
+                FROM Auto_Admin__schema_scans
+                WHERE schema_name = ?
+                    AND status = 'succeeded'
+                    AND snapshot_fingerprint IS NOT NULL
+                ORDER BY id DESC
+                LIMIT 1
+            `,
+            [schemaName],
+        );
+
+        return rows[0]?.snapshot_fingerprint ?? null;
+    }
 
     async readPersistedCatalog(
         schemaName: string,
@@ -43,28 +59,21 @@ export class MySqlSchemaCatalogRepository implements SchemaCatalogRepository {
     ): Promise<SchemaCatalog | null> {
         const fingerprint =
             knownFingerprint ??
-            (await readLatestSuccessfulScanFingerprint(
-                this.executor,
-                schemaName,
-            ));
+            (await this.readLatestSuccessfulScanFingerprint(schemaName));
         if (!fingerprint) return null;
 
-        const resources = (
-            await this.readStoredResources(schemaName)
-        ).filter((resource) => resource.state === "present");
+        const resources = (await this.readStoredResources(schemaName)).filter(
+            (resource) => resource.state === "present",
+        );
         const resourceIds = new Set(resources.map((resource) => resource.id));
 
-        const fields = (
-            await this.readStoredFields(schemaName)
-        ).filter(
+        const fields = (await this.readStoredFields(schemaName)).filter(
             (field) =>
                 field.state === "present" && resourceIds.has(field.resourceId),
         );
         const fieldIds = new Set(fields.map((field) => field.id));
 
-        const constraints = (
-            await this.readStoredConstraints(schemaName)
-        )
+        const constraints = (await this.readStoredConstraints(schemaName))
             .filter(
                 (constraint) =>
                     constraint.state === "present" &&
