@@ -1,5 +1,4 @@
 import type { SnapshotConstraint } from "./synchronizer.types";
-import type { PoolConnection } from "mysql2/promise";
 import type {
     DBSnapshot,
     SchemaScanChangeCounts,
@@ -13,33 +12,10 @@ import type {
     IndexPartWriteItem,
     IndexWriteItem,
 } from "../contracts/schema-catalog-repository.types";
-import { readStoredConstraints } from "../repository/constraint-read.repository";
-import {
-    markConstraintsMissing,
-    replaceConstraintFields,
-    upsertPresentConstraints,
-} from "../repository/constraint-write.repository";
-import {
-    readStoredFields,
-    readStoredResources,
-} from "../repository/catalog-read.repository";
-import { readStoredIndexes } from "../repository/index-read.repository";
-import {
-    markIndexesMissing,
-    replaceIndexParts,
-    upsertPresentIndexes,
-} from "../repository/index-write.repository";
-import {
-    markResourcesMissing,
-    upsertPresentResources,
-} from "../repository/resource-write.repository";
 import { flattenSnapshotConstraints } from "./constraint-flattener";
 import { buildFieldDiff } from "./field-diff";
 import { buildResourceDiff } from "./resource-diff";
-import {
-    markFieldsMissing,
-    upsertPresentFields,
-} from "../repository/field-write.repository";
+import type { SchemaCatalogRepository } from "../contracts/schema-catalog-repository.interface";
 
 const identityKey = (parentId: number, name: string): string =>
     `${parentId}\u0000${name}`;
@@ -92,14 +68,13 @@ const requireField = (
 };
 
 const synchronizeConstraints = async (
-    connection: PoolConnection,
+    repository: SchemaCatalogRepository,
     snapshot: DBSnapshot,
     scanId: number,
     resources: Map<string, StoredResource>,
     fields: Map<number, Map<string, StoredField>>,
 ): Promise<void> => {
-    const oldConstraints = await readStoredConstraints(
-        connection,
+    const oldConstraints = await repository.readStoredConstraints(
         snapshot.schemaName,
     );
     const snapshotConstraints = flattenSnapshotConstraints(snapshot.tables);
@@ -130,9 +105,8 @@ const synchronizeConstraints = async (
             identityKey(item.resourceId, item.constraintName),
         ),
     );
-    await upsertPresentConstraints(connection, writeItems, scanId);
-    await markConstraintsMissing(
-        connection,
+    await repository.upsertPresentConstraints(writeItems, scanId);
+    await repository.markConstraintsMissing(
         oldConstraints
             .filter(
                 (constraint) =>
@@ -147,8 +121,7 @@ const synchronizeConstraints = async (
             .map((constraint) => constraint.id),
     );
 
-    const storedConstraints = await readStoredConstraints(
-        connection,
+    const storedConstraints = await repository.readStoredConstraints(
         snapshot.schemaName,
     );
     const storedByKey = new Map(
@@ -196,8 +169,7 @@ const synchronizeConstraints = async (
         }
     }
 
-    await replaceConstraintFields(
-        connection,
+    await repository.replaceConstraintFields(
         currentConstraintIds,
         constraintFieldItems,
     );
@@ -222,13 +194,13 @@ const resolveReferencedField = (
 };
 
 const synchronizeIndexes = async (
-    connection: PoolConnection,
+    repository: SchemaCatalogRepository,
     snapshot: DBSnapshot,
     scanId: number,
     resources: Map<string, StoredResource>,
     fields: Map<number, Map<string, StoredField>>,
 ): Promise<void> => {
-    const oldIndexes = await readStoredIndexes(connection, snapshot.schemaName);
+    const oldIndexes = await repository.readStoredIndexes(snapshot.schemaName);
     const writeItems: IndexWriteItem[] = snapshot.tables.flatMap((table) => {
         const resource = requireResource(resources, table.name);
         return table.indexes.map((index) => ({
@@ -240,9 +212,8 @@ const synchronizeIndexes = async (
         writeItems.map((item) => identityKey(item.resourceId, item.index.name)),
     );
 
-    await upsertPresentIndexes(connection, writeItems, scanId);
-    await markIndexesMissing(
-        connection,
+    await repository.upsertPresentIndexes(writeItems, scanId);
+    await repository.markIndexesMissing(
         oldIndexes
             .filter(
                 (index) =>
@@ -252,8 +223,7 @@ const synchronizeIndexes = async (
             .map((index) => index.id),
     );
 
-    const storedIndexes = await readStoredIndexes(
-        connection,
+    const storedIndexes = await repository.readStoredIndexes(
         snapshot.schemaName,
     );
     const storedByKey = new Map(
@@ -293,35 +263,31 @@ const synchronizeIndexes = async (
         }
     }
 
-    await replaceIndexParts(connection, currentIndexIds, partItems);
+    await repository.replaceIndexParts(currentIndexIds, partItems);
 };
 
 export const synchronizeSchemaCatalog = async (
-    connection: PoolConnection,
+    repository: SchemaCatalogRepository,
     snapshot: DBSnapshot,
     scanId: number,
 ): Promise<SchemaScanChangeCounts> => {
-    const oldResources = await readStoredResources(
-        connection,
+    const oldResources = await repository.readStoredResources(
         snapshot.schemaName,
     );
-    const oldFields = await readStoredFields(connection, snapshot.schemaName);
+    const oldFields = await repository.readStoredFields(snapshot.schemaName);
     const resourceDiff = buildResourceDiff(snapshot.tables, oldResources);
     const fieldDiff = buildFieldDiff(snapshot.tables, oldResources, oldFields);
 
-    await upsertPresentResources(
-        connection,
+    await repository.upsertPresentResources(
         snapshot.schemaName,
         snapshot.tables,
         scanId,
     );
-    await markResourcesMissing(
-        connection,
+    await repository.markResourcesMissing(
         resourceDiff.missing.map((resource) => resource.id),
     );
 
-    const resourcesAfterUpsert = await readStoredResources(
-        connection,
+    const resourcesAfterUpsert = await repository.readStoredResources(
         snapshot.schemaName,
     );
     const resources = buildPresentResourceMap(resourcesAfterUpsert);
@@ -335,25 +301,23 @@ export const synchronizeSchemaCatalog = async (
         },
     );
 
-    await upsertPresentFields(connection, fieldWriteItems, scanId);
-    await markFieldsMissing(
-        connection,
+    await repository.upsertPresentFields(fieldWriteItems, scanId);
+    await repository.markFieldsMissing(
         fieldDiff.missing.map((field) => field.id),
     );
 
-    const fieldsAfterUpsert = await readStoredFields(
-        connection,
+    const fieldsAfterUpsert = await repository.readStoredFields(
         snapshot.schemaName,
     );
     const fields = buildPresentFieldMap(fieldsAfterUpsert);
     await synchronizeConstraints(
-        connection,
+        repository,
         snapshot,
         scanId,
         resources,
         fields,
     );
-    await synchronizeIndexes(connection, snapshot, scanId, resources, fields);
+    await synchronizeIndexes(repository, snapshot, scanId, resources, fields);
 
     return {
         addedResources: resourceDiff.added.length,
