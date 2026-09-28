@@ -6,7 +6,7 @@ import type { MigrationDescriptor, MigrationHistoryRecord } from '../src/migrati
 import { mapZodIssue } from '../src/shared/api/validation/map-zod-issue';
 import { ERROR_CODES } from '../src/shared/api/codes/error-codes';
 import { AsyncMutex } from '../src/shared/concurrency/AsyncMutex';
-import { loadMigrationCatalog } from '../src/migrations/migration.catalog';
+import { mysqlMigrationProvider } from '../src/migrations/providers/mysql/mysql-migration.provider';
 import { verifyMigrationApplied } from '../src/migrations/providers/mysql/migration.verification';
 
 const descriptor: MigrationDescriptor = {
@@ -96,7 +96,7 @@ it('AsyncMutex serializes concurrent critical sections', async () => {
 });
 
 it('every migration in catalog has a verification handler or table spec', async () => {
-    const catalog = await loadMigrationCatalog();
+    const catalog = await mysqlMigrationProvider.loadCatalog();
     expect(catalog.length).toBeGreaterThan(0);
 
     for (const migration of catalog) {

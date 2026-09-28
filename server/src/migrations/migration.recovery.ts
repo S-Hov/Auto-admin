@@ -1,7 +1,6 @@
 import { activeDatabaseProvider } from "../db/runtime/database.runtime";
 import { ERROR_CODES } from "../shared/api/codes/error-codes";
 import { badRequest, conflict } from "../shared/api/errors/error-helpers";
-import { loadMigrationCatalog } from "./migration.catalog";
 import type { RecoveryAuditMeta } from "./contracts/migrations.types";
 import { loadCurrentMigrationPlan } from "./migration.runner";
 import type { MigrationExecutionResult } from "./migration.types";
@@ -24,7 +23,7 @@ export const retryMigration = async (
             await activeMigrationProvider.acquireLock(connection);
             lockAcquired = true;
             const history = await repository.getMigrationHistory();
-            const catalog = await loadMigrationCatalog();
+            const catalog = await activeMigrationProvider.loadCatalog();
             const descriptor = catalog.find((migration) => migration.version === expectedVersion);
 
             if (history.length === 0) {
@@ -103,7 +102,7 @@ export const markMigrationAppliedManually = async (
             await activeMigrationProvider.acquireLock(connection);
             lockAcquired = true;
             const history = await repository.getMigrationHistory();
-            const catalog = await loadMigrationCatalog();
+            const catalog = await activeMigrationProvider.loadCatalog();
             const descriptor = catalog.find((migration) => migration.version === expectedVersion);
 
             if (history.length === 0) {

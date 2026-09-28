@@ -1,8 +1,11 @@
+import path from "node:path";
 import type { DatabaseConnection, DatabaseExecutor } from "../../../db/contracts/executor.interface";
+import { loadMigrationCatalog } from "../../migration.catalog";
 import { MIGRATION_LOCK_NAME } from "../../config";
 import type { MigrationProvider } from "../../contracts/migration-provider.interface";
 import type { MigrationHistoryRepository } from "../../contracts/migrations.interface";
 import { MigrationLockUnavailableError } from "../../migration.errors";
+import type { MigrationDescriptor } from "../../migration.types";
 import { MySqlMigrationHistoryRepository } from "./migration.repository";
 import { verifyMigrationApplied } from "./migration.verification";
 
@@ -14,6 +17,10 @@ export class MySqlMigrationProvider implements MigrationProvider<"mysql"> {
 
     createRepository(executor: DatabaseExecutor): MigrationHistoryRepository {
         return new MySqlMigrationHistoryRepository(executor);
+    }
+
+    loadCatalog(): Promise<ReadonlyArray<MigrationDescriptor>> {
+        return loadMigrationCatalog(path.join(__dirname, "sql"));
     }
 
     async acquireLock(connection: DatabaseConnection, timeoutSeconds = 0): Promise<void> {

@@ -1,6 +1,5 @@
 import type { DatabaseExecutor } from "../db/contracts/executor.interface";
 import { activeDatabaseProvider } from "../db/runtime/database.runtime";
-import { loadMigrationCatalog } from "./migration.catalog";
 import { MigrationVersionConflictError } from "./migration.errors";
 import { buildMigrationPlan } from "./migration.plan";
 import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
@@ -11,7 +10,7 @@ export const loadCurrentMigrationPlan = async (
 ): Promise<MigrationPlan> => {
     const repository = activeMigrationProvider.createRepository(executor);
     await repository.ensureMigrationHistoryTable();
-    const catalog = await loadMigrationCatalog();
+    const catalog = await activeMigrationProvider.loadCatalog();
     const history = await repository.getMigrationHistory();
     return buildMigrationPlan(catalog, history);
 };

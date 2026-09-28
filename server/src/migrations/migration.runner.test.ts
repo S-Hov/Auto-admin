@@ -12,6 +12,11 @@ const fakes = vi.hoisted(() => {
     };
     const provider = {
         createRepository: vi.fn(() => repository),
+        loadCatalog: vi.fn(async () => [{
+            version: "0001", name: "installation", fileName: "0001__installation.sql",
+            filePath: "/test/0001__installation.sql", checksum: "abc",
+            sql: "CREATE TABLE example (id INT)",
+        }]),
         acquireLock: vi.fn(),
         releaseLock: vi.fn(),
     };
@@ -28,14 +33,6 @@ vi.mock("../db/runtime/database.runtime", () => ({
 vi.mock("./runtime/migration.runtime", () => ({
     activeMigrationProvider: fakes.provider,
 }));
-vi.mock("./migration.catalog", () => ({
-    loadMigrationCatalog: vi.fn(async () => [{
-        version: "0001", name: "installation", fileName: "0001__installation.sql",
-        filePath: "/test/0001__installation.sql", checksum: "abc",
-        sql: "CREATE TABLE example (id INT)",
-    }]),
-}));
-
 import { applyNextMigration } from "./migration.runner";
 
 describe("applyNextMigration", () => {

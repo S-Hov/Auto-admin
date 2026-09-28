@@ -15,6 +15,16 @@ describe("MySqlMigrationProvider migration lock", () => {
         };
     };
 
+    it("loads only the MySQL migration catalog from its own directory", async () => {
+        const catalog = await new MySqlMigrationProvider().loadCatalog();
+
+        expect(catalog.length).toBeGreaterThan(0);
+        expect(catalog[0]?.version).toBe("0001");
+        expect(catalog.every((migration) =>
+            migration.filePath.replaceAll("\\", "/").includes("/migrations/providers/mysql/sql/"),
+        )).toBe(true);
+    });
+
     it("acquires and releases the lock on the supplied connection", async () => {
         const { connection, queryRows } = makeConnection([{ acquired: 1 }]);
         const provider = new MySqlMigrationProvider();
