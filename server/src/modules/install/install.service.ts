@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from "path";
-import { getPool } from "../../db";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
 import type {
     ApplyNextMigrationResponse,
@@ -26,7 +25,7 @@ import {
     markMigrationAppliedManually,
     retryMigration,
 } from "../../migrations/migration.recovery";
-import { getMigrationHistory } from "../../migrations/migration.repository";
+import { activeMigrationProvider } from "../../migrations/runtime/migration.runtime";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
 import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
@@ -250,7 +249,8 @@ export const markMigrationAppliedService = async (
 
 export const recoveryMigrationService =
     async (): Promise<RecoveryMigrationResponse> => {
-        const history = await getMigrationHistory(getPool());
+        const repository = activeMigrationProvider.createRepository(activeDatabaseProvider);
+        const history = await repository.getMigrationHistory();
 
         if (history.length === 0) {
             throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);

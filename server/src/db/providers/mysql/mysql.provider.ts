@@ -7,6 +7,7 @@ import { MySqlDatabaseExecutor } from "./mysql.executor";
 import type {
     DatabaseCommandResult,
     DatabaseConnection,
+    DatabaseExecuteOptions,
     DatabaseExecutor,
 } from "../../contracts/executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
@@ -118,10 +119,11 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     async execute(
         sql: string,
         params?: readonly unknown[],
+        options?: DatabaseExecuteOptions,
     ): Promise<DatabaseCommandResult> {
         const pool = this.getPool();
         const executor = new MySqlDatabaseExecutor(pool);
-        return executor.execute(sql, params);
+        return executor.execute(sql, params, options);
     }
 
     async withConnection<T>(
@@ -129,11 +131,12 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     ): Promise<T> {
         const pool = this.getPool();
         const connection = await pool.getConnection();
+        const wrappedConnection = new MySqlDatabaseConnection(connection);
 
         try {
-            return await callback(new MySqlDatabaseConnection(connection));
+            return await callback(wrappedConnection);
         } finally {
-            connection.release();
+            wrappedConnection.release();
         }
     }
 

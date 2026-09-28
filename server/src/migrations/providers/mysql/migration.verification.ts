@@ -1,10 +1,10 @@
-import type { Connection, RowDataPacket } from 'mysql2/promise';
+import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 
-interface NameRow extends RowDataPacket {
+interface NameRow {
     name: string;
 }
 
-interface RoleRow extends RowDataPacket {
+interface RoleRow {
     key: string;
     name: string;
     rights: string;
@@ -161,8 +161,8 @@ const containsAll = (actual: readonly string[], expected: readonly string[]): bo
     return expected.every((name) => names.has(name.toLowerCase()));
 };
 
-const verifyTable = async (connection: Connection, spec: TableVerificationSpec): Promise<boolean> => {
-    const [columnRows] = await connection.query<NameRow[]>(`
+const verifyTable = async (executor: DatabaseExecutor, spec: TableVerificationSpec): Promise<boolean> => {
+    const columnRows = await executor.queryRows<NameRow>(`
         SELECT COLUMN_NAME AS name
         FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
@@ -171,7 +171,7 @@ const verifyTable = async (connection: Connection, spec: TableVerificationSpec):
     if (!containsAll(columnRows.map((row) => row.name), spec.columns)) return false;
 
     if (spec.indexes?.length) {
-        const [indexRows] = await connection.query<NameRow[]>(`
+        const indexRows = await executor.queryRows<NameRow>(`
             SELECT DISTINCT INDEX_NAME AS name
             FROM information_schema.STATISTICS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
@@ -180,7 +180,7 @@ const verifyTable = async (connection: Connection, spec: TableVerificationSpec):
     }
 
     if (spec.constraints?.length) {
-        const [constraintRows] = await connection.query<NameRow[]>(`
+        const constraintRows = await executor.queryRows<NameRow>(`
             SELECT CONSTRAINT_NAME AS name
             FROM information_schema.TABLE_CONSTRAINTS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
@@ -191,8 +191,8 @@ const verifyTable = async (connection: Connection, spec: TableVerificationSpec):
     return true;
 };
 
-const verifySeedRoles = async (connection: Connection): Promise<boolean> => {
-    const [rows] = await connection.query<RoleRow[]>(`
+const verifySeedRoles = async (executor: DatabaseExecutor): Promise<boolean> => {
+    const rows = await executor.queryRows<RoleRow>(`
         SELECT \`key\`, name, rights
         FROM Auto_Admin__roles
         WHERE \`key\` IN ('user', 'manager', 'admin')
@@ -207,10 +207,10 @@ const verifySeedRoles = async (connection: Connection): Promise<boolean> => {
         && roles.get('admin')?.rights === 'full';
 };
 
-export const verifyMigrationApplied = async (connection: Connection, version: string): Promise<boolean> => {
-    if (version === '0007') return verifySeedRoles(connection);
+export const verifyMigrationApplied = async (executor: DatabaseExecutor, version: string): Promise<boolean> => {
+    if (version === '0007') return verifySeedRoles(executor);
 
     const spec = tableSpecs[version];
     if (!spec) return false;
-    return verifyTable(connection, spec);
+    return verifyTable(executor, spec);
 };

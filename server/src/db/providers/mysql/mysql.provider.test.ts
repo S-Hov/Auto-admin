@@ -12,6 +12,7 @@ describe('MySqlDatabaseProvider', () => {
         commit: ReturnType<typeof vi.fn>;
         rollback: ReturnType<typeof vi.fn>;
         release: ReturnType<typeof vi.fn>;
+        destroy: ReturnType<typeof vi.fn>;
     };
     let fakePool: {
         query: ReturnType<typeof vi.fn>;
@@ -35,6 +36,7 @@ describe('MySqlDatabaseProvider', () => {
             commit: vi.fn().mockResolvedValue(undefined),
             rollback: vi.fn().mockResolvedValue(undefined),
             release: vi.fn(),
+            destroy: vi.fn(),
         };
 
         fakePool = {
@@ -97,6 +99,15 @@ describe('MySqlDatabaseProvider', () => {
 
         expect(result).toBe('success_result');
         expect(fakeConnection.release).toHaveBeenCalledTimes(1);
+    });
+
+    it('discard() закрывает соединение и не возвращает его в pool', async () => {
+        await provider.withConnection(async (connection) => {
+            connection.discard();
+        });
+
+        expect(fakeConnection.destroy).toHaveBeenCalledTimes(1);
+        expect(fakeConnection.release).not.toHaveBeenCalled();
     });
 
     it('release() вызывается после ошибки callback', async () => {

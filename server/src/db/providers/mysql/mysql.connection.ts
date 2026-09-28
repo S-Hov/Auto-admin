@@ -10,10 +10,21 @@ export class MySqlDatabaseConnection
     implements DatabaseConnection
 {
     private readonly connection: mysql.PoolConnection;
+    private discarded = false;
 
     constructor(connection: mysql.PoolConnection) {
         super(connection);
         this.connection = connection;
+    }
+
+    discard(): void {
+        if (this.discarded) return;
+        this.discarded = true;
+        this.connection.destroy();
+    }
+
+    release(): void {
+        if (!this.discarded) this.connection.release();
     }
 
     async transaction<T>(

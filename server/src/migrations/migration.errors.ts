@@ -1,3 +1,12 @@
+import type { DatabaseType } from "../db/contracts/database.types";
+
+export class MigrationProviderNotFoundError extends Error {
+    constructor(public readonly databaseType: DatabaseType) {
+        super(`Migration provider for ${databaseType} is not registered`);
+        this.name = "MigrationProviderNotFoundError";
+    }
+}
+
 export class MigrationLockUnavailableError extends Error {
     constructor() {
         super('Другой процесс уже выполняет миграции');
