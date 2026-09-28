@@ -1,4 +1,4 @@
-import type { DatabaseType } from "../db/database.types";
+import type { DatabaseType } from "../db/contracts/database.types";
 
 declare global {
     namespace NodeJS {

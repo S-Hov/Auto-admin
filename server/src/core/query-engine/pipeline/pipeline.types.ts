@@ -1,5 +1,5 @@
-import { QueryResult } from "../drivers/driver.types";
-import { UnifiedQuery } from "../types/query.types";
+import type { QueryResult } from "../types/query-result.types";
+import type { UnifiedQuery } from "../types/query.types";
 
 // Один шаг пайплайна
 export interface PipelineStep {

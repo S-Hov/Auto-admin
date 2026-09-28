@@ -1,0 +1,166 @@
+import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
+import type {
+    InformationSchemaColumnRow,
+    InformationSchemaForeignKeyRow,
+    InformationSchemaIndexRow,
+    InformationSchemaKeyConstraintRow,
+    InformationSchemaRows,
+    InformationSchemaTableRow,
+} from "./mysql-information-schema.types";
+
+const readTableRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaTableRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaTableRow>(
+        `
+            SELECT
+                TABLE_SCHEMA AS schemaName,
+                TABLE_NAME AS tableName,
+                TABLE_TYPE AS tableType,
+                ENGINE AS engine,
+                TABLE_COMMENT AS tableComment
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME
+        `,
+        [schemaName],
+    );
+
+    return rows;
+};
+
+const readColumnRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaColumnRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaColumnRow>(
+        `
+            SELECT
+                TABLE_NAME AS tableName,
+                COLUMN_NAME AS columnName,
+                ORDINAL_POSITION AS ordinalPosition,
+                COLUMN_DEFAULT AS columnDefault,
+                IS_NULLABLE AS isNullable,
+                DATA_TYPE AS dataType,
+                CHARACTER_MAXIMUM_LENGTH AS characterMaximumLength,
+                NUMERIC_PRECISION AS numericPrecision,
+                NUMERIC_SCALE AS numericScale,
+                DATETIME_PRECISION AS datetimePrecision,
+                COLUMN_TYPE AS columnType,
+                EXTRA AS extra,
+                GENERATION_EXPRESSION AS generationExpression,
+                CHARACTER_SET_NAME AS characterSetName,
+                COLLATION_NAME AS collationName,
+                COLUMN_COMMENT AS columnComment
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME, ORDINAL_POSITION
+        `,
+        [schemaName],
+    );
+
+    return rows;
+};
+
+const readKeyConstraintRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaKeyConstraintRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaKeyConstraintRow>(
+        `
+            SELECT
+                tc.TABLE_NAME AS tableName,
+                tc.CONSTRAINT_NAME AS constraintName,
+                tc.CONSTRAINT_TYPE AS constraintType,
+                kcu.COLUMN_NAME AS columnName,
+                kcu.ORDINAL_POSITION AS ordinalPosition
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc
+
+            JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+                ON kcu.CONSTRAINT_SCHEMA = tc.CONSTRAINT_SCHEMA
+                AND kcu.TABLE_SCHEMA = tc.TABLE_SCHEMA
+                AND kcu.TABLE_NAME = tc.TABLE_NAME
+                AND kcu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+            WHERE tc.TABLE_SCHEMA = ?
+            AND tc.CONSTRAINT_TYPE IN ('PRIMARY KEY', 'UNIQUE')
+            ORDER BY tc.TABLE_NAME, tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+        `,
+        [schemaName],
+    );
+
+    return rows;
+};
+
+const readForeignKeyRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaForeignKeyRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaForeignKeyRow>(
+        `
+            SELECT
+                kcu.TABLE_NAME AS tableName,
+                kcu.CONSTRAINT_NAME AS constraintName,
+                kcu.COLUMN_NAME AS columnName,
+                kcu.ORDINAL_POSITION AS ordinalPosition,
+                kcu.REFERENCED_TABLE_SCHEMA AS referencedSchemaName,
+                kcu.REFERENCED_TABLE_NAME AS referencedTableName,
+                kcu.REFERENCED_COLUMN_NAME AS referencedColumnName,
+                rc.UPDATE_RULE AS updateRule,
+                rc.DELETE_RULE AS deleteRule
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS kcu
+            JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS rc
+                ON kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
+                AND kcu.TABLE_NAME = rc.TABLE_NAME
+                AND kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+            WHERE kcu.TABLE_SCHEMA = ?
+                AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+            ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+        `,
+        [schemaName],
+    );
+    return rows;
+};
+
+const readIndexRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaIndexRow[]> => {
+    const rows = await executor.queryRows<InformationSchemaIndexRow>(
+        `
+            SELECT
+                TABLE_NAME AS tableName,
+                INDEX_NAME AS indexName,
+                NON_UNIQUE AS nonUnique,
+                SEQ_IN_INDEX AS sequenceInIndex,
+                COLUMN_NAME AS columnName,
+                EXPRESSION AS expression,
+                INDEX_TYPE AS indexType,
+                COLLATION AS collation,
+                SUB_PART AS subPart,
+                IS_VISIBLE AS isVisible,
+                INDEX_COMMENT AS indexComment
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX
+        `,
+        [schemaName],
+    );
+    return rows;
+};
+
+export const readInformationSchemaRows = async (
+    executor: DatabaseExecutor,
+    schemaName: string,
+): Promise<InformationSchemaRows> => {
+    const [tables, columns, keyConstraints, foreignKeys, indexes] =
+        await Promise.all([
+            readTableRows(executor, schemaName),
+            readColumnRows(executor, schemaName),
+            readKeyConstraintRows(executor, schemaName),
+            readForeignKeyRows(executor, schemaName),
+            readIndexRows(executor, schemaName),
+        ]);
+
+    return { tables, columns, keyConstraints, foreignKeys, indexes };
+};

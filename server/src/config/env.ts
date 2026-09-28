@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { z } from "zod";
-import { DATABASE_TYPES } from "../db/database.types";
+import { DATABASE_TYPES } from "../db/contracts/database.types";
 
 dotenv.config();
 

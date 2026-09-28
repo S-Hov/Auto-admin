@@ -3,9 +3,9 @@ import path from 'node:path';
 import { type MigrationDescriptor } from "./migration.types";
 import { createHash } from 'node:crypto';
 
-export async function loadMigrationCatalog(): Promise<ReadonlyArray<MigrationDescriptor>> {
+export async function loadMigrationCatalog(directory: string): Promise<ReadonlyArray<MigrationDescriptor>> {
 
-    const entries = await fs.readdir(path.join(__dirname, 'sql/'), { withFileTypes: true });
+    const entries = await fs.readdir(directory, { withFileTypes: true });
 
     const seenVersions = new Set<string>();
     const seenNames = new Set<string>();
@@ -53,7 +53,7 @@ export async function loadMigrationCatalog(): Promise<ReadonlyArray<MigrationDes
     const catalog: MigrationDescriptor[] = [];
 
     for (const file of validFiles) {
-        const absolutePath = path.resolve(__dirname, 'sql', file.fileName);
+        const absolutePath = path.resolve(directory, file.fileName);
         const sqlBuffer = await fs.readFile(absolutePath);
         let normalizedSql = sqlBuffer.toString('utf-8').replace(/\r\n/g, '\n').trim();
 

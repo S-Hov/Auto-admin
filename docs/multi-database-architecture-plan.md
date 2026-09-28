@@ -101,9 +101,19 @@ Provider базы не должен содержать `AuthRepository`, `MenuRe
 - `MySqlSchemaIntrospector`;
 - `MySqlMigrationProvider`.
 
-### Composition root
+### Runtime binding
 
-Единственное место, где при запуске приложения читается конфигурация и выбираются конкретные реализации интерфейсов.
+Для файлов и папок, которые выбирают активную реализацию и экспортируют готовый
+module-level singleton, используется только термин `runtime`:
+
+```text
+runtime/database.runtime.ts       → activeDatabaseProvider
+runtime/query-engine.runtime.ts   → activeQueryEngineProvider
+runtime/auth-repository.runtime.ts → activeAuthRepository
+```
+
+`Composition root` — более широкое архитектурное понятие: место сборки всего
+приложения. Это не альтернативное имя для subsystem runtime-файлов.
 
 ## 5. Главные архитектурные правила
 
@@ -269,11 +279,12 @@ server/src/modules/auth/
 ├─ auth.controller.ts
 ├─ auth.types.ts
 └─ repository/
-   ├─ auth.repository.interface.ts
-   ├─ auth.repository.factory.ts
+   ├─ repository.interface.ts
+   ├─ repository.factory.ts
+   ├─ runtime/
+   │  └─ auth-repository.runtime.ts
    └─ mysql/
-      ├─ mysql-auth.repository.ts
-      └─ mysql-auth.repository.types.ts
+      └─ mysql.repository.ts
 ```
 
 Позже:
@@ -297,6 +308,11 @@ repository/sqlite/sqlite-auth.repository.ts
 Factory получает активный Database Provider или `DatabaseType` и один раз создаёт нужную реализацию.
 
 Factory не должен выбираться заново при каждом вызове метода.
+
+Если repository живёт всё время работы приложения, runtime-файл один раз вызывает
+factory и экспортирует `activeXRepository`. Если repository нужен только внутри
+транзакции, отдельный active singleton не создаётся: factory вызывается с
+транзакционным `DatabaseExecutor`.
 
 ### Repository contract
 
@@ -364,18 +380,30 @@ repositoryFactory.create(context)
 
 ```text
 core/query-engine/
-├─ compiler/
-│  ├─ query-compiler.interface.ts
-│  └─ mysql/
-│     └─ mysql.compiler.ts
-├─ drivers/
+├─ contracts/
 │  ├─ database-driver.interface.ts
+│  ├─ query-compiler.interface.ts
+│  └─ query-engine-provider.interface.ts
+├─ providers/
+│  ├─ provider.registry.ts
+│  ├─ query-engine-provider.errors.ts
 │  └─ mysql/
-│     └─ mysql.driver.ts
-├─ query-engine.provider.ts
+│     ├─ mysql-query-engine.provider.ts
+│     ├─ mysql-query.compiler.ts
+│     └─ mysql-query.driver.ts
+├─ runtime/
+│  └─ query-engine.runtime.ts
+├─ types/
+│  ├─ compiled-query.types.ts
+│  ├─ query-result.types.ts
+│  └─ query.types.ts
 ├─ query-engine.service.ts
 └─ pipeline/
 ```
+
+Диалект организуется вертикальным срезом: compiler, driver и provider одной
+СУБД находятся в одной папке. Общие service, pipeline, contracts и types не
+импортируют dialect-specific реализации напрямую.
 
 Целевая цепочка:
 
@@ -512,7 +540,7 @@ Install flow в будущем:
 
 Пока UI выбора не реализован, `mysql` используется по умолчанию.
 
-## 15. Composition Root
+## 15. Application Composition Root
 
 Нужно определить одно место сборки runtime-зависимостей. Оно может находиться, например, в:
 
@@ -534,6 +562,11 @@ server/src/app.dependencies.ts
 ```
 
 Нельзя превращать composition root в service locator, который вызывается из каждой функции. После сборки готовые зависимости передаются потребителям явно или через ограниченные module-level singleton instances.
+
+Пока единый application composition root ещё не выделен, локальные точки сборки
+именуются строго как `runtime/<component>.runtime.ts`, а выбранные экземпляры —
+`active<Component>`. Registry и factory сохраняют собственные названия, потому что
+выполняют другие задачи.
 
 ## 16. Порядок реализации
 
@@ -754,4 +787,3 @@ SQL разных диалектов имеет разные checksum. Migration 
 5. Не начинать следующий этап, пока критерий текущего не выполнен.
 6. Не писать PostgreSQL/SQLite реализации раньше завершения отделения MySQL.
 7. Не менять код вместо разработчика без его прямой просьбы.
-

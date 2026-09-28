@@ -1,20 +1,21 @@
 import mysql, { type Pool } from "mysql2/promise";
-import type { DatabaseProvider } from "../../database-provider.interface";
-import { DATABASE_CATALOG } from "../../database.catalog";
+import type { DatabaseProvider } from "../../contracts/provider.interface";
+import { DATABASE_CATALOG } from "../../catalog/database.catalog";
 import { envConfig } from "../../../config/env";
 import { logger } from "../../../shared/logger";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
 import type {
     DatabaseCommandResult,
     DatabaseConnection,
+    DatabaseExecuteOptions,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { MySqlDatabaseConnection } from "./mysql.connection";
 import type {
     DatabaseConnectionCheckResult,
     DatabaseConnectionConfig,
     NetworkDatabaseConnectionConfig,
-} from "../../database-connection.types";
+} from "../../contracts/connection.types";
 
 export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     readonly type = "mysql";
@@ -118,10 +119,11 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     async execute(
         sql: string,
         params?: readonly unknown[],
+        options?: DatabaseExecuteOptions,
     ): Promise<DatabaseCommandResult> {
         const pool = this.getPool();
         const executor = new MySqlDatabaseExecutor(pool);
-        return executor.execute(sql, params);
+        return executor.execute(sql, params, options);
     }
 
     async withConnection<T>(
@@ -129,11 +131,12 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
     ): Promise<T> {
         const pool = this.getPool();
         const connection = await pool.getConnection();
+        const wrappedConnection = new MySqlDatabaseConnection(connection);
 
         try {
-            return await callback(new MySqlDatabaseConnection(connection));
+            return await callback(wrappedConnection);
         } finally {
-            connection.release();
+            wrappedConnection.release();
         }
     }
 
@@ -159,30 +162,20 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
         return this.parseConnectionConfig() !== null;
     }
 
-    async checkConnection({
-        host,
-        port,
-        user,
-        password,
-        database,
-    }: DatabaseConnectionConfig<"mysql">): Promise<DatabaseConnectionCheckResult> {
-        let connection: mysql.Connection | null = null;
-
+    async checkConnection(
+        config: DatabaseConnectionConfig<"mysql">,
+    ): Promise<DatabaseConnectionCheckResult> {
         try {
-            connection = await mysql.createConnection({
-                host,
-                port,
-                user,
-                password,
-                database,
-                connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
-            });
+            return await this.withTemporaryConnection(
+                config,
+                async (connection) => {
+                    const version = await this.getVersion(
+                        new MySqlDatabaseExecutor(connection),
+                    );
 
-            const version = await this.getVersion(
-                new MySqlDatabaseExecutor(connection),
+                    return { version };
+                },
             );
-
-            return { version };
         } catch (error) {
             const safeError =
                 error instanceof Error
@@ -198,16 +191,63 @@ export class MySqlDatabaseProvider implements DatabaseProvider<"mysql"> {
                 "Failed to check database connection",
             );
             throw error;
-        } finally {
-            await connection?.end();
         }
     }
 
-    async getVersion(executor: DatabaseExecutor): Promise<string> {
+    private async withTemporaryConnection<T>(
+        config: DatabaseConnectionConfig<"mysql">,
+        callback: (connection: mysql.Connection) => Promise<T>,
+    ): Promise<T> {
+        const connection = await mysql.createConnection({
+            host: config.host,
+            port: config.port,
+            user: config.user,
+            password: config.password,
+            database: config.database,
+            connectTimeout: envConfig.Auto_Admin__DB_CONNECT_TIMEOUT_MS,
+        });
+
+        let operationError: unknown;
+        let hasOperationError = false;
+        let result: T;
+
+        try {
+            result = await callback(connection);
+        } catch (error) {
+            operationError = error;
+            hasOperationError = true;
+        }
+
+        try {
+            await connection.end();
+        } catch (endError) {
+            if (hasOperationError) {
+                throw new AggregateError(
+                    [operationError, endError],
+                    "Failed to close temporary connection after error",
+                );
+            }
+            throw endError;
+        }
+
+        if (hasOperationError) {
+            throw operationError;
+        }
+
+        return result!;
+    }
+
+    private async getVersion(executor: DatabaseExecutor): Promise<string> {
         const rows = await executor.queryRows<{ version: string }>(
             "SELECT VERSION() as version",
         );
-        if (!rows[0]) throw new Error("Failed to get database version");
+        if (
+            !rows[0] ||
+            typeof rows[0].version !== "string" ||
+            rows[0].version.trim() === ""
+        ) {
+            throw new Error("Failed to get database version");
+        }
 
         return rows[0].version;
     }
