@@ -3,6 +3,7 @@ import { MySqlCompiler } from './mysql-query.compiler';
 import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from '../../types/query.types';
 
 describe('MySqlCompiler', () => {
+    const compiler = new MySqlCompiler();
 
     describe('compileRead', () => {
         it('должен скомпилировать простой запрос SELECT * без условий', () => {
@@ -11,7 +12,7 @@ describe('MySqlCompiler', () => {
                 table: 'users',
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`');
             expect(result.params).toEqual([]);
@@ -24,7 +25,7 @@ describe('MySqlCompiler', () => {
                 select: ['id', 'username'],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT `id`, `username` FROM `users`');
             expect(result.params).toEqual([]);
@@ -39,7 +40,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `status` = ?');
             expect(result.params).toEqual(['active']);
@@ -53,7 +54,7 @@ describe('MySqlCompiler', () => {
                 offset: 20,
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toContain('LIMIT ? OFFSET ?');
             expect(result.params).toEqual([10, 20]);
@@ -68,7 +69,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `id` IN (?, ?, ?)');
             expect(result.params).toEqual([1, 2, 3]);
@@ -83,7 +84,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `id` NOT IN (?, ?, ?)');
             expect(result.params).toEqual([1, 2, 3]);
@@ -98,7 +99,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` >= ? AND `age` <= ?');
             expect(result.params).toEqual([20, 30]);
@@ -116,7 +117,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` = ? OR `age` = ?)');
             expect(result.params).toEqual([20, 30]);
@@ -134,7 +135,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` >= ? AND `age` <= ?)');
             expect(result.params).toEqual([20, 30]);
@@ -154,7 +155,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE NOT ((`age` >= ? AND `age` <= ?))');
             expect(result.params).toEqual([20, 30]);
@@ -177,7 +178,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE (`age` >= ? AND (`name` = ? OR `name` = ?))');
             expect(result.params).toEqual([20, 'John', 'Jane']);
@@ -192,7 +193,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` IS NULL');
             expect(result.params).toEqual([]);
@@ -207,7 +208,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` IS NOT NULL');
             expect(result.params).toEqual([]);
@@ -227,7 +228,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
@@ -248,7 +249,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` RIGHT JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
@@ -269,7 +270,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `users` INNER JOIN `posts` ON `users`.`id` = `posts`.`id`');
             expect(result.params).toEqual([]);
@@ -294,7 +295,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` WHERE `users`.`id` = ?');
             expect(result.params).toEqual([1]);
@@ -326,7 +327,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT `users`.`id`, `users`.`name` FROM `users` LEFT JOIN `posts` ON `users`.`id` = `posts`.`id` LEFT JOIN `comments` ON `posts`.`id` = `comments`.`id` WHERE `users`.`id` = ?');
             expect(result.params).toEqual([1]);
@@ -341,7 +342,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  ORDER BY `created_at` DESC');
             expect(result.params).toEqual([]);
@@ -357,7 +358,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  ORDER BY `role` ASC, `id` DESC');
             expect(result.params).toEqual([]);
@@ -374,7 +375,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('SELECT * FROM `users`  WHERE `age` > ? AND `age` < ? AND `status` != ? AND `name` LIKE ?');
             expect(result.params).toEqual([18, 60, 'banned', '%admin%']);
@@ -396,7 +397,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.replace(/\s+/g, ' ').trim()).toBe('SELECT * FROM `posts` INNER JOIN `users` AS `author` ON `posts`.`author_id` = `author`.`id`');
             expect(result.params).toEqual([]);
@@ -414,7 +415,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('INSERT INTO `users` (`username`, `age`) VALUES (?, ?)');
             expect(result.params).toEqual(['john_doe', 25]);
@@ -430,7 +431,7 @@ describe('MySqlCompiler', () => {
                 ],
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('INSERT INTO `users` (`username`, `age`) VALUES (?, ?), (?, ?)');
             expect(result.params).toEqual(['alice', 20, 'bob', 30]);
@@ -452,7 +453,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('UPDATE `users` SET `name` = ?, `age` = ?, `sex` = ? WHERE `id` = ?');
             expect(result.params).toEqual(['John Doe', 26, 'male', 1]);
@@ -469,7 +470,7 @@ describe('MySqlCompiler', () => {
                 },
             };
 
-            const result = MySqlCompiler.compile(query);
+            const result = compiler.compile(query);
 
             expect(result.sql.trim()).toBe('DELETE FROM `users` WHERE `id` = ?');
             expect(result.params).toEqual([1]);
@@ -480,7 +481,7 @@ describe('MySqlCompiler', () => {
         it('должен выбрасывать ошибку при неизвестном action', () => {
             const invalidQuery = { action: 'unknown_action', table: 'users' } as any;
 
-            expect(() => MySqlCompiler.compile(invalidQuery)).toThrow('Unsupported action');
+            expect(() => compiler.compile(invalidQuery)).toThrow('Unsupported action');
         });
     });
 });

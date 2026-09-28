@@ -1,5 +1,5 @@
 export interface CompiledQuery {
-    resultType: 'rows' | 'command'
+    resultType: "rows" | "command";
     sql: string;
-    params: unknown[];
+    params: readonly unknown[];
 }
