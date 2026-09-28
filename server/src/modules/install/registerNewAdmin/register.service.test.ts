@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PagePaths } from "../../../constants/pagePaths";
-import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
 import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
 import { createInstallRepository } from "../repository/repository.factory";
 import { createRegisterAdminRepository } from "./repository/repository.factory";
@@ -14,6 +13,13 @@ import type { InstallRepository } from "../repository/repository.interface";
 import type { RegisterAdminRepository } from "./repository/repository.interface";
 import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 
+const runtimeFakes = vi.hoisted(() => ({
+    databaseProvider: {
+        type: "mysql" as const,
+        transaction: vi.fn(),
+    },
+}));
+
 vi.mock("bcryptjs", () => ({
     default: {
         hash: vi.fn().mockImplementation(async (pw: string) => `hashed_${pw}`),
@@ -21,9 +27,8 @@ vi.mock("bcryptjs", () => ({
 }));
 
 vi.mock("../../../db/runtime/database.runtime", () => ({
-    activeDatabaseProvider: {
-        type: "mysql",
-        transaction: vi.fn(),
+    databaseRuntime: {
+        getProvider: () => runtimeFakes.databaseProvider,
     },
 }));
 
@@ -88,7 +93,7 @@ describe("registerService", () => {
             registerLogger: vi.fn().mockResolvedValue(undefined),
         };
 
-        vi.mocked(activeDatabaseProvider.transaction).mockImplementation(
+        runtimeFakes.databaseProvider.transaction.mockImplementation(
             async (callback) => callback(fakeExecutor),
         );
 
@@ -134,16 +139,16 @@ describe("registerService", () => {
 
             const response = await registerService(validData, meta);
 
-            // 1. Вызывается activeDatabaseProvider.transaction
-            expect(activeDatabaseProvider.transaction).toHaveBeenCalledTimes(1);
+            // 1. Вызывается транзакция активного провайдера базы данных
+            expect(runtimeFakes.databaseProvider.transaction).toHaveBeenCalledTimes(1);
 
             // 2. Обе фабрики получают один и тот же транзакционный executor
             expect(createInstallRepository).toHaveBeenCalledWith(
-                activeDatabaseProvider.type,
+                runtimeFakes.databaseProvider.type,
                 fakeExecutor,
             );
             expect(createRegisterAdminRepository).toHaveBeenCalledWith(
-                activeDatabaseProvider.type,
+                runtimeFakes.databaseProvider.type,
                 fakeExecutor,
             );
 

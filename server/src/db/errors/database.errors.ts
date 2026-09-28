@@ -26,3 +26,10 @@ export class DatabaseProviderNotFoundError extends Error {
         this.name = "DatabaseProviderNotFoundError";
     }
 }
+
+export class DatabaseProviderNotConfiguredError extends Error {
+    constructor() {
+        super("Database is not configured");
+        this.name = "DatabaseProviderNotConfiguredError";
+    }
+}

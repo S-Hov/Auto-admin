@@ -1,34 +1,46 @@
 import type { DatabaseExecutor } from "../db/contracts/executor.interface";
-import { activeDatabaseProvider } from "../db/runtime/database.runtime";
+import { databaseRuntime } from "../db/runtime/database.runtime";
+import type { MigrationProvider } from "./contracts/migration-provider.interface";
 import { MigrationVersionConflictError } from "./migration.errors";
 import { buildMigrationPlan } from "./migration.plan";
 import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
-import { activeMigrationProvider } from "./runtime/migration.runtime";
+import { getActiveMigrationProvider } from "./runtime/migration.runtime";
 
 export const loadCurrentMigrationPlan = async (
     executor: DatabaseExecutor,
+    migrationProvider: MigrationProvider = getActiveMigrationProvider(),
 ): Promise<MigrationPlan> => {
-    const repository = activeMigrationProvider.createRepository(executor);
+    const repository = migrationProvider.createRepository(executor);
     await repository.ensureMigrationHistoryTable();
-    const catalog = await activeMigrationProvider.loadCatalog();
+    const catalog = await migrationProvider.loadCatalog();
     const history = await repository.getMigrationHistory();
     return buildMigrationPlan(catalog, history);
 };
 
 export const getCurrentMigrationPlan = async (): Promise<MigrationPlan> => {
-    return activeDatabaseProvider.withConnection(loadCurrentMigrationPlan);
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
+    return databaseProvider.withConnection((connection) =>
+        loadCurrentMigrationPlan(connection, migrationProvider),
+    );
 };
 
 export const applyNextMigration = async (
     expectedVersion: string,
 ): Promise<MigrationExecutionResult> => {
-    return activeDatabaseProvider.withConnection(async (connection) => {
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
+
+    return databaseProvider.withConnection(async (connection) => {
         let lockAcquired = false;
         try {
-            await activeMigrationProvider.acquireLock(connection);
+            await migrationProvider.acquireLock(connection);
             lockAcquired = true;
 
-            const plan = await loadCurrentMigrationPlan(connection);
+            const plan = await loadCurrentMigrationPlan(
+                connection,
+                migrationProvider,
+            );
             const next = plan.next;
             if (next === null) {
                 return { applied: null, next: null, isComplete: true };
@@ -37,7 +49,7 @@ export const applyNextMigration = async (
                 throw new MigrationVersionConflictError(expectedVersion, next.version);
             }
 
-            const repository = activeMigrationProvider.createRepository(connection);
+            const repository = migrationProvider.createRepository(connection);
             const startedAt = Date.now();
             await repository.insertRunningMigration(next, null);
 
@@ -71,7 +83,7 @@ export const applyNextMigration = async (
                 throw migrationError;
             }
         } finally {
-            if (lockAcquired) await activeMigrationProvider.releaseLock(connection);
+            if (lockAcquired) await migrationProvider.releaseLock(connection);
         }
     });
 };

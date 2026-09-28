@@ -1,3 +1,4 @@
+import type { DatabaseType } from "../../db/contracts/database.types";
 import type { MigrationStatus } from "../../migrations/migration.types";
 
 export interface DbCheckResponse {
@@ -34,4 +35,8 @@ export interface RecoveryMigrationResponse {
     name: string;
     checksum: string;
     status: Exclude<MigrationStatus, "applied">;
+}
+
+export interface SystemConfigurationOptionsResponse {
+    supportedDatabases: DatabaseType[];
 }

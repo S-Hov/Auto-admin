@@ -24,7 +24,6 @@ export const checkConnectionSchema = z.object({
     password: z
         .string()
         .max(255, { message: 'Пароль не должен превышать 255 символов' }),
-    type: z.literal('mysql')
 })
 
 export type CheckConnectionData = z.infer<typeof checkConnectionSchema>;

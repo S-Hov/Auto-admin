@@ -3,7 +3,7 @@ import cors from 'cors';
 import { errorHandler } from './shared/middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import ApiRouter from './routes/ApiRouter';
-import { activeDatabaseProvider } from './db/runtime/database.runtime';
+import { databaseRuntime } from './db/runtime/database.runtime';
 import { envConfig } from './config/env';
 import { httpLogger } from './shared/middleware/logger';
 import { logger } from './shared/logger';
@@ -74,7 +74,7 @@ const shutdown = async (signal: string) => {
 
   server.close(async () => {
     try {
-      await activeDatabaseProvider.close();
+      await databaseRuntime.close();
       logger.info({
         service: 'db-cleanup',
       }, `Database connection closed`);

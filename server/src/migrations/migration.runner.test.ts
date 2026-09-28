@@ -28,10 +28,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock("../db/runtime/database.runtime", () => ({
-    activeDatabaseProvider: fakes.databaseProvider,
+    databaseRuntime: {
+        getProvider: () => fakes.databaseProvider,
+    },
 }));
 vi.mock("./runtime/migration.runtime", () => ({
-    activeMigrationProvider: fakes.provider,
+    getActiveMigrationProvider: () => fakes.provider,
 }));
 import { applyNextMigration } from "./migration.runner";
 

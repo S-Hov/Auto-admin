@@ -1,7 +1,7 @@
-import { activeDatabaseProvider } from "../../../../db/runtime/database.runtime";
+import { databaseRuntime } from "../../../../db/runtime/database.runtime";
 import { createInstallRepository } from "../repository.factory";
 
-export const activeInstallRepository = createInstallRepository(
-    activeDatabaseProvider.type,
-    activeDatabaseProvider,
-);
+export const getActiveInstallRepository = () => {
+    const databaseProvider = databaseRuntime.getProvider();
+    return createInstallRepository(databaseProvider.type, databaseProvider);
+};

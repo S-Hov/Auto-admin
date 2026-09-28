@@ -3,16 +3,20 @@ import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from "../install";
 import type { BootstrapStage } from "./bootstrap.types";
 import { logger } from "../../shared/logger";
-import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
+import { databaseRuntime } from "../../db/runtime/database.runtime";
 
 export const getBootstrapStatusService = async (): Promise<BootstrapStage> => {
     try {
-        if (!activeDatabaseProvider.hasCompleteConfig()) {
+        if (!databaseRuntime.isConfigured()) {
+            return "system_configuration_required";
+        }
+
+        if (!databaseRuntime.getProvider().hasCompleteConfig()) {
             return "database_required";
         }
 
         try {
-            const provider = activeDatabaseProvider;
+            const provider = databaseRuntime.getProvider();
             await provider.checkConnection(provider.getConnectionConfig());
         } catch {
             return "database_unavailable";

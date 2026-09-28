@@ -1,5 +1,5 @@
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
-import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
+import { databaseRuntime } from "../../db/runtime/database.runtime";
 import type { DatabaseDriver } from "./contracts/database-driver.interface";
 import type { QueryEngineProvider } from "./contracts/query-engine-provider.interface";
 import { PipelineExecutor } from "./pipeline/pipeline.executor";
@@ -7,23 +7,27 @@ import type {
     PipelineDefinition,
     PipelineResult,
 } from "./pipeline/pipeline.types";
-import { activeQueryEngineProvider } from "./runtime/query-engine.runtime";
+import { getActiveQueryEngineProvider } from "./runtime/query-engine.runtime";
 import type { QueryResult } from "./types/query-result.types";
 import type { UnifiedQuery } from "./types/query.types";
 
 export class QueryEngineService {
-    private readonly driver: DatabaseDriver;
-    private readonly pipelineExecutor: PipelineExecutor;
-
     constructor(
-        private readonly databaseProvider: DatabaseProvider = activeDatabaseProvider,
-        private readonly queryEngineProvider: QueryEngineProvider = activeQueryEngineProvider,
-    ) {
-        this.driver = queryEngineProvider.createDriver(databaseProvider);
-        this.pipelineExecutor = new PipelineExecutor(
-            databaseProvider,
-            queryEngineProvider,
-        );
+        private readonly configuredDatabaseProvider?: DatabaseProvider,
+        private readonly configuredQueryEngineProvider?: QueryEngineProvider,
+    ) {}
+
+    private resolveProviders(): {
+        databaseProvider: DatabaseProvider;
+        queryEngineProvider: QueryEngineProvider;
+    } {
+        return {
+            databaseProvider:
+                this.configuredDatabaseProvider ?? databaseRuntime.getProvider(),
+            queryEngineProvider:
+                this.configuredQueryEngineProvider ??
+                getActiveQueryEngineProvider(),
+        };
     }
 
     async execute<T = unknown>(query: UnifiedQuery): Promise<QueryResult<T>>;
@@ -35,14 +39,17 @@ export class QueryEngineService {
     async execute<T = unknown>(
         query: UnifiedQuery | UnifiedQuery[],
     ): Promise<QueryResult<T> | QueryResult<T>[]> {
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+
         if (Array.isArray(query)) {
-            return this.databaseProvider.transaction(async (executor) => {
-                const driver = this.queryEngineProvider.createDriver(executor);
+            return databaseProvider.transaction(async (executor) => {
+                const driver = queryEngineProvider.createDriver(executor);
                 const results: QueryResult<T>[] = [];
 
                 for (const command of query) {
                     const compiled =
-                        this.queryEngineProvider.compiler.compile(command);
+                        queryEngineProvider.compiler.compile(command);
                     results.push(await driver.execute<T>(compiled));
                 }
 
@@ -50,17 +57,25 @@ export class QueryEngineService {
             });
         }
 
-        const compiled = this.queryEngineProvider.compiler.compile(query);
-        return this.driver.execute<T>(compiled);
+        const compiled = queryEngineProvider.compiler.compile(query);
+        const driver = queryEngineProvider.createDriver(databaseProvider);
+        return driver.execute<T>(compiled);
     }
 
     async ping(): Promise<boolean> {
-        return this.driver.ping();
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+        return queryEngineProvider.createDriver(databaseProvider).ping();
     }
 
     async executePipeline<T = unknown>(
         definition: PipelineDefinition,
     ): Promise<PipelineResult<T>> {
-        return this.pipelineExecutor.execute<T>(definition);
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+        return new PipelineExecutor(
+            databaseProvider,
+            queryEngineProvider,
+        ).execute<T>(definition);
     }
 }

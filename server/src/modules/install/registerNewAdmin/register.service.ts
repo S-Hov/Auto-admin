@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { PagePaths } from "../../../constants/pagePaths";
-import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
+import { databaseRuntime } from "../../../db/runtime/database.runtime";
 import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
 import {
     conflict,
@@ -24,14 +24,15 @@ export const registerService = async (
 
     const normalizedUsername = userName.trim().toLowerCase();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const databaseProvider = databaseRuntime.getProvider();
 
-    await activeDatabaseProvider.transaction(async (executor) => {
+    await databaseProvider.transaction(async (executor) => {
         const transactionInstallRepository = createInstallRepository(
-            activeDatabaseProvider.type,
+            databaseProvider.type,
             executor,
         );
         const transactionRegisterRepository = createRegisterAdminRepository(
-            activeDatabaseProvider.type,
+            databaseProvider.type,
             executor,
         );
 

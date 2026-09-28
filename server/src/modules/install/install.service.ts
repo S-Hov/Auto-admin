@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-import fs from "fs/promises";
-import path from "path";
+import { updateEnvironment } from "../../config/env-file";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
 import type {
     ApplyNextMigrationResponse,
@@ -8,6 +6,7 @@ import type {
     MigrationPlanResponse,
     MigrationStepResponse,
     RecoveryMigrationResponse,
+    SystemConfigurationOptionsResponse,
 } from "./install.types";
 import { PagePaths } from "../../constants/pagePaths";
 import {
@@ -19,30 +18,33 @@ import {
     MigrationVersionConflictError,
 } from "../../migrations/migration.errors";
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
-import { randomUUID } from "crypto";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import {
     markMigrationAppliedManually,
     retryMigration,
 } from "../../migrations/migration.recovery";
-import { activeMigrationProvider } from "../../migrations/runtime/migration.runtime";
+import { getActiveMigrationProvider } from "../../migrations/runtime/migration.runtime";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
-import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
 import type { CheckConnectionData } from "./schema/checkConnection.schema";
 import { getDatabaseProvider } from "../../db/providers/provider.registry";
-import { activeInstallRepository } from "./repository/runtime/install-repository.runtime";
+import { getActiveInstallRepository } from "./repository/runtime/install-repository.runtime";
+import { getSupportedDatabases } from "../../db/catalog/database.catalog";
+import type { DatabaseType } from "../../db/contracts/database.types";
+import type { DatabaseConnectionConfig } from "../../db/contracts/connection.types";
+import { databaseRuntime } from "../../db/runtime/database.runtime";
+import { UnsupportedDatabaseError } from "../../db/errors/database.errors";
 
-const envPath = path.join(process.cwd(), ".env");
 const databaseConfigurationMutex = new AsyncMutex();
 
 export const checkConnectionService = async (
     data: CheckConnectionData,
 ): Promise<DbCheckResponse> => {
     const release = await databaseConfigurationMutex.acquire();
-    let temporaryPath: string | null = null;
     try {
-        if (activeDatabaseProvider.hasCompleteConfig()) {
+        const provider = databaseRuntime.getProvider();
+
+        if (provider.hasCompleteConfig()) {
             throw conflict(
                 ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED,
             );
@@ -51,8 +53,11 @@ export const checkConnectionService = async (
         let versionInfo: { version?: string };
 
         try {
-            const provider = getDatabaseProvider(data.type);
-            versionInfo = await provider.checkConnection(data);
+            const connectionConfig = {
+                ...data,
+                type: provider.type,
+            } as DatabaseConnectionConfig;
+            versionInfo = await provider.checkConnection(connectionConfig);
         } catch (error) {
             throw badRequest(ERROR_CODES.INSTALL_DATABASE_CONNECTION_FAILED);
         }
@@ -63,46 +68,13 @@ export const checkConnectionService = async (
             Auto_Admin__DB_DATABASE: data.database,
             Auto_Admin__DB_USERNAME: data.user,
             Auto_Admin__DB_PASSWORD: data.password,
-            Auto_Admin__DB_TYPE: data.type,
         };
 
-        let currentContent = "";
-
-        try {
-            currentContent = await fs.readFile(envPath, "utf8");
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-                throw error;
-            }
-        }
-
-        const currentEnv = dotenv.parse(currentContent);
-        const updatedEnv = { ...currentEnv, ...databaseEnv };
-
-        const updatedContent =
-            Object.entries(updatedEnv)
-                .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-                .join("\n") + "\n";
-
-        temporaryPath = `${envPath}.${Date.now()}.${randomUUID()}.tmp`;
-
-        await fs.writeFile(temporaryPath, updatedContent, {
-            encoding: "utf8",
-            mode: 0o600,
-        });
-
-        await fs.rename(temporaryPath, envPath);
-        temporaryPath = null;
-
-        Object.assign(process.env, databaseEnv);
-
-        await activeDatabaseProvider.close();
+        await updateEnvironment(databaseEnv);
+        await provider.close();
 
         return { ...versionInfo, redirectedTo: PagePaths.login };
     } finally {
-        if (temporaryPath) {
-            await fs.unlink(temporaryPath).catch(() => undefined);
-        }
         release();
     }
 };
@@ -132,7 +104,7 @@ export const applyNextMigrationService = async (
     try {
         result = await applyNextMigration(expectedVersion);
         if (result.isComplete)
-            await activeInstallRepository.markMigrationsCompleted();
+            await getActiveInstallRepository().markMigrationsCompleted();
     } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
@@ -174,7 +146,7 @@ export const retryMigrationService = async (
     try {
         result = await retryMigration(expectedVersion, checksum, meta);
         if (result.isComplete)
-            await activeInstallRepository.markMigrationsCompleted();
+            await getActiveInstallRepository().markMigrationsCompleted();
     } catch (error) {
         if (error instanceof MigrationLockUnavailableError) {
             throw conflict(ERROR_CODES.INSTALL_MIGRATIONS_ALREADY_RUNNING);
@@ -217,7 +189,7 @@ export const markMigrationAppliedService = async (
             meta,
         );
         if (result.isComplete)
-            await activeInstallRepository.markMigrationsCompleted();
+            await getActiveInstallRepository().markMigrationsCompleted();
 
         return {
             applied:
@@ -249,7 +221,9 @@ export const markMigrationAppliedService = async (
 
 export const recoveryMigrationService =
     async (): Promise<RecoveryMigrationResponse> => {
-        const repository = activeMigrationProvider.createRepository(activeDatabaseProvider);
+        const repository = getActiveMigrationProvider().createRepository(
+            databaseRuntime.getProvider(),
+        );
         const history = await repository.getMigrationHistory();
 
         if (history.length === 0) {
@@ -267,4 +241,42 @@ export const recoveryMigrationService =
             checksum: lastMigration.checksum,
             status: lastMigration.status,
         };
+    };
+
+export const getSystemConfigurationOptionsService =
+    (): SystemConfigurationOptionsResponse => {
+        const supportedDatabases = getSupportedDatabases();
+
+        return {
+            supportedDatabases: supportedDatabases.map(
+                (database) => database.type,
+            ),
+        };
+    };
+
+export const systemConfigurationService =
+    async (type: DatabaseType): Promise<void> => {
+        const release = await databaseConfigurationMutex.acquire();
+
+        try {
+            if (databaseRuntime.isConfigured()) {
+                throw conflict(
+                    ERROR_CODES.INSTALL_DATABASE_CONFIGURATION_NOT_ALLOWED,
+                );
+            }
+
+            try {
+                getDatabaseProvider(type);
+            } catch (error) {
+                if (error instanceof UnsupportedDatabaseError) {
+                    throw badRequest(ERROR_CODES.UNSUPPORTED_DATABASE);
+                }
+                throw error;
+            }
+
+            await updateEnvironment({ Auto_Admin__DB_TYPE: type });
+            await databaseRuntime.configure(type);
+        } finally {
+            release();
+        }
     };

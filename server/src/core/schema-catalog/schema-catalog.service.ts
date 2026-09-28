@@ -1,5 +1,5 @@
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
-import { activeDatabaseProvider } from "../../db/runtime/database.runtime";
+import { databaseRuntime } from "../../db/runtime/database.runtime";
 import { logger } from "../../shared/logger";
 import { createSnapshotFingerprint } from "./builder/snapshot-fingerprint";
 import {
@@ -8,7 +8,7 @@ import {
     type SchemaCatalogCache,
 } from "./cache/schema-catalog.cache";
 import type { SchemaCatalogProvider } from "./contracts/schema-catalog-provider.interface";
-import { activeSchemaCatalogProvider } from "./runtime/schema-catalog.runtime";
+import { getActiveSchemaCatalogProvider } from "./runtime/schema-catalog.runtime";
 import {
     SchemaCatalogError,
     SchemaCatalogNotReadyError,
@@ -30,26 +30,45 @@ const errorCodeForScan = (error: unknown): string => {
 
 export class SchemaCatalogService {
     constructor(
-        private readonly databaseProvider: DatabaseProvider =
-            activeDatabaseProvider,
-        private readonly schemaCatalogProvider: SchemaCatalogProvider =
-            activeSchemaCatalogProvider,
+        private readonly configuredDatabaseProvider?: DatabaseProvider,
+        private readonly configuredSchemaCatalogProvider?: SchemaCatalogProvider,
         private readonly cache: SchemaCatalogCache = schemaCatalogCache,
         private readonly configuredSchemaName?: string,
     ) {}
 
-    private resolveSchemaName(): string {
+    private resolveProviders(): {
+        databaseProvider: DatabaseProvider;
+        schemaCatalogProvider: SchemaCatalogProvider;
+    } {
+        return {
+            databaseProvider:
+                this.configuredDatabaseProvider ?? databaseRuntime.getProvider(),
+            schemaCatalogProvider:
+                this.configuredSchemaCatalogProvider ??
+                getActiveSchemaCatalogProvider(),
+        };
+    }
+
+    private resolveSchemaName(
+        databaseProvider: DatabaseProvider,
+        schemaCatalogProvider: SchemaCatalogProvider,
+    ): string {
         if (this.configuredSchemaName) return this.configuredSchemaName;
 
-        return this.schemaCatalogProvider.resolveSchemaName(
-            this.databaseProvider.getConnectionConfig(),
+        return schemaCatalogProvider.resolveSchemaName(
+            databaseProvider.getConnectionConfig(),
         );
     }
 
     async getCatalog(): Promise<CachedSchemaCatalog> {
-        const schemaName = this.resolveSchemaName();
-        const repository = this.schemaCatalogProvider.createRepository(
-            this.databaseProvider,
+        const { databaseProvider, schemaCatalogProvider } =
+            this.resolveProviders();
+        const schemaName = this.resolveSchemaName(
+            databaseProvider,
+            schemaCatalogProvider,
+        );
+        const repository = schemaCatalogProvider.createRepository(
+            databaseProvider,
         );
 
         return this.cache.getOrLoad(async () => {
@@ -60,9 +79,14 @@ export class SchemaCatalogService {
     }
 
     async refreshCache(): Promise<CachedSchemaCatalog> {
-        const schemaName = this.resolveSchemaName();
-        const repository = this.schemaCatalogProvider.createRepository(
-            this.databaseProvider,
+        const { databaseProvider, schemaCatalogProvider } =
+            this.resolveProviders();
+        const schemaName = this.resolveSchemaName(
+            databaseProvider,
+            schemaCatalogProvider,
+        );
+        const repository = schemaCatalogProvider.createRepository(
+            databaseProvider,
         );
         const catalog = await repository.readPersistedCatalog(schemaName);
 
@@ -75,17 +99,22 @@ export class SchemaCatalogService {
     }
 
     async scan(createdBy: number | null = null): Promise<SchemaScanResult> {
-        const schemaName = this.resolveSchemaName();
+        const { databaseProvider, schemaCatalogProvider } =
+            this.resolveProviders();
+        const schemaName = this.resolveSchemaName(
+            databaseProvider,
+            schemaCatalogProvider,
+        );
 
-        return this.databaseProvider.withConnection(async (connection) => {
+        return databaseProvider.withConnection(async (connection) => {
             const connectionRepository =
-                this.schemaCatalogProvider.createRepository(connection);
+                schemaCatalogProvider.createRepository(connection);
             let lockAcquired = false;
             let scanSucceeded = false;
             let scanId: number | null = null;
 
             try {
-                await this.schemaCatalogProvider.acquireScanLock(connection);
+                await schemaCatalogProvider.acquireScanLock(connection);
                 lockAcquired = true;
 
                 const runningScanId =
@@ -95,7 +124,7 @@ export class SchemaCatalogService {
                 );
                 scanId = runningScanId;
 
-                const snapshot = await this.schemaCatalogProvider.introspect(
+                const snapshot = await schemaCatalogProvider.introspect(
                     connection,
                     schemaName,
                     new Date(),
@@ -105,7 +134,7 @@ export class SchemaCatalogService {
                 const { counts, catalog } = await connection.transaction(
                     async (executor) => {
                         const repository =
-                            this.schemaCatalogProvider.createRepository(
+                            schemaCatalogProvider.createRepository(
                                 executor,
                             );
                         const counts = await synchronizeSchemaCatalog(
@@ -158,7 +187,7 @@ export class SchemaCatalogService {
             } finally {
                 if (lockAcquired) {
                     try {
-                        await this.schemaCatalogProvider.releaseScanLock(
+                        await schemaCatalogProvider.releaseScanLock(
                             connection,
                         );
                     } catch (releaseError) {

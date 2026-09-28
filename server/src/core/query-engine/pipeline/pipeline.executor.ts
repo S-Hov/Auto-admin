@@ -1,8 +1,6 @@
 import type { DatabaseProvider } from "../../../db/contracts/provider.interface";
-import { activeDatabaseProvider } from "../../../db/runtime/database.runtime";
 import type { DatabaseDriver } from "../contracts/database-driver.interface";
 import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
-import { activeQueryEngineProvider } from "../runtime/query-engine.runtime";
 import type { QueryResult } from "../types/query-result.types";
 import { ContextResolver } from "./context.resolver";
 import type {
@@ -14,8 +12,8 @@ import type {
 
 export class PipelineExecutor {
     constructor(
-        private readonly databaseProvider: DatabaseProvider = activeDatabaseProvider,
-        private readonly queryEngineProvider: QueryEngineProvider = activeQueryEngineProvider,
+        private readonly databaseProvider: DatabaseProvider,
+        private readonly queryEngineProvider: QueryEngineProvider,
     ) {}
 
     async execute<T>(
