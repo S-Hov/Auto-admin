@@ -3,11 +3,11 @@ import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-helpers"
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import { createLoginAttempt, createSession, deleteLoginAttemptById, getActiveSessionByTokenHash, getLoginAttempts, getUserByUserName, revokeSessionByTokenHash } from "./auth.repository"
 import { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { envConfig } from '../../config/env';
+import { getActiveAuthRepository } from "./repository/runtime/auth-repository.runtime";
 
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
 
@@ -16,10 +16,22 @@ const homePagePath = '/' as const;
 export const loginService = async (data: LoginData, meta: RequestMeta): Promise<LoginServiceResult> => {
     const { userName, password } = data;
     const normalizeUsername = userName.trim().toLowerCase();
+    const repository = getActiveAuthRepository();
 
-    const attemptId = await createLoginAttempt(normalizeUsername, meta.ipAddress);
+    const attemptId = await repository.createLoginAttempt(
+        normalizeUsername,
+        meta.ipAddress,
+    );
 
-    const attempts = await getLoginAttempts(normalizeUsername, meta.ipAddress);
+    const attempts = await repository.getLoginAttempts(
+        normalizeUsername,
+        meta.ipAddress,
+        {
+            shortWindowSeconds:
+                envConfig.Auto_Admin__AUTH_SHORT_WINDOW_SECONDS,
+            ipWindowSeconds: envConfig.Auto_Admin__AUTH_IP_WINDOW_SECONDS,
+        },
+    );
 
     if (
         attempts.userCountInWindow >= envConfig.Auto_Admin__AUTH_USER_ATTEMPT_LIMIT
@@ -29,7 +41,7 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
         throw tooManyRequests(ERROR_CODES.AUTH_TOO_MANY_ATTEMPTS, { params: { seconds: 900 } });
     }
 
-    const user = await getUserByUserName(userName);
+    const user = await repository.getUserByUserName(normalizeUsername);
     if (!user || !user.is_active) {
         throw unauthorized(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
     }
@@ -39,13 +51,13 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
         throw unauthorized(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
     }
 
-    await deleteLoginAttemptById(attemptId);
+    await repository.deleteLoginAttemptById(attemptId);
 
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
-    await createSession({
+    await repository.createSession({
         user_id: user.id,
         token_hash: tokenHash,
         expires_at: expiresAt,
@@ -59,7 +71,7 @@ export const loginService = async (data: LoginData, meta: RequestMeta): Promise<
 export const getMeService = async (token: string): Promise<GetMeServiceResult> => {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    const session = await getActiveSessionByTokenHash(tokenHash);
+    const session = await getActiveAuthRepository().getActiveSessionByTokenHash(tokenHash);
     if (!session) throw unauthorized(ERROR_CODES.AUTH_SESSION_INVALID);
 
     const response: GetMeServiceResult = {
@@ -78,7 +90,11 @@ export const logoutService = async (token: unknown): Promise<LogoutResponse> => 
     if (!checkAuthToken(token)) return { redirectedTo: PagePaths.login };
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    await revokeSessionByTokenHash(tokenHash);
+    await getActiveAuthRepository().revokeSessionByTokenHash(tokenHash);
 
     return { redirectedTo: PagePaths.login };
 }
+
+export const cleanOldLoginAttempts = async (days: number): Promise<number> => {
+    return getActiveAuthRepository().cleanOldLoginAttempts(days);
+};

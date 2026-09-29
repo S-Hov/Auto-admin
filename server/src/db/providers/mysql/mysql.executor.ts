@@ -1,7 +1,8 @@
 import type {
     DatabaseCommandResult,
+    DatabaseExecuteOptions,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { envConfig } from "../../../config/env";
 import type { MySqlDbExecutor } from "./mysql.types";
 
@@ -29,11 +30,14 @@ export class MySqlDatabaseExecutor implements DatabaseExecutor {
     async execute(
         sql: string,
         params?: readonly unknown[],
+        options?: DatabaseExecuteOptions,
     ): Promise<DatabaseCommandResult> {
         const sqlParams = !params || params.length === 0 ? [] : params;
         const [result] = await this.executor.query({
             sql,
-            timeout: envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS,
+            ...(options?.timeoutMs === null
+                ? {}
+                : { timeout: options?.timeoutMs ?? envConfig.Auto_Admin__DB_QUERY_TIMEOUT_MS }),
             values: [...sqlParams],
         });
 

@@ -1,168 +1,168 @@
+import { databaseRuntime } from "../db/runtime/database.runtime";
 import { ERROR_CODES } from "../shared/api/codes/error-codes";
 import { badRequest, conflict } from "../shared/api/errors/error-helpers";
-import { createMigrationConnection } from "./migration.db";
-import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
-import { getMigrationHistory, markMigrationApplied, markMigrationAppliedFromRecovery, markMigrationFailed, prepareMigrationForRetry } from "./migration.repository";
+import type { RecoveryAuditMeta } from "./contracts/migrations.types";
 import { loadCurrentMigrationPlan } from "./migration.runner";
-import { MigrationExecutionResult } from "./migration.types";
-import { loadMigrationCatalog } from "./migration.catalog";
-import { verifyMigrationApplied } from "./migration.verification";
-import {
-    ensureMigrationRecoveryAuditTable,
-    finishMigrationRecoveryEvent,
-    startMigrationRecoveryEvent,
-    type RecoveryAuditMeta,
-} from "./migration.recovery.repository";
+import type { MigrationExecutionResult } from "./migration.types";
+import { getActiveMigrationProvider } from "./runtime/migration.runtime";
 
-const errorSummary = (error: unknown): string => error instanceof Error ? error.message : String(error);
+const errorSummary = (error: unknown): string =>
+    error instanceof Error ? error.message : String(error);
 
 export const retryMigration = async (
     expectedVersion: string,
     checksum: string,
     meta: RecoveryAuditMeta,
 ): Promise<MigrationExecutionResult> => {
-    const connection = await createMigrationConnection();
-    let lockAcquired = false;
-    let recoveryEventId: number | null = null;
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
 
-    try {
-        await acquireMigrationLock(connection);
-        lockAcquired = true;
-        const history = await getMigrationHistory(connection);
-        const catalog = await loadMigrationCatalog();
-        const descriptor = catalog.find(m => m.version === expectedVersion);
+    return databaseProvider.withConnection(async (connection) => {
+        const repository = migrationProvider.createRepository(connection);
+        let lockAcquired = false;
+        let recoveryEventId: number | null = null;
 
-        if (history.length === 0) {
-            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
-        }
-
-        const lastMigration = history[history.length - 1];
-        if (lastMigration.status === 'applied') {
-            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
-        }
-        if (!descriptor || lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
-            throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
-        }
-
-        await ensureMigrationRecoveryAuditTable(connection);
-        recoveryEventId = await startMigrationRecoveryEvent(connection, expectedVersion, 'retry', meta);
-        const startedAt = Date.now();
-
-        await prepareMigrationForRetry(connection, expectedVersion);
         try {
-            await connection.query(descriptor.sql);
-            await markMigrationApplied(connection, expectedVersion, Date.now() - startedAt);
-        }
-        catch (migrationError) {
-            try {
-                await markMigrationFailed(connection, expectedVersion, Date.now() - startedAt, errorSummary(migrationError));
-            }
-            catch (historyError) {
-                throw new AggregateError(
-                    [migrationError, historyError],
-                    'Migration retry failed and its history could not be updated',
-                );
-            }
-            throw migrationError;
-        }
+            await migrationProvider.acquireLock(connection);
+            lockAcquired = true;
+            const history = await repository.getMigrationHistory();
+            const catalog = await migrationProvider.loadCatalog();
+            const descriptor = catalog.find((migration) => migration.version === expectedVersion);
 
-        await finishMigrationRecoveryEvent(connection, recoveryEventId, 'succeeded');
-        recoveryEventId = null;
-        const plan = await loadCurrentMigrationPlan(connection);
+            if (history.length === 0) {
+                throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
+            }
+            const lastMigration = history[history.length - 1];
+            if (lastMigration.status === "applied") {
+                throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
+            }
+            if (!descriptor || lastMigration.version !== expectedVersion
+                || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
+                throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
+            }
 
-        return {
-            applied: descriptor,
-            next: plan.next,
-            isComplete: plan.isComplete
-        };
-    }
-    catch (error) {
-        if (recoveryEventId !== null) {
+            await repository.ensureMigrationRecoveryAuditTable();
+            recoveryEventId = await repository.startMigrationRecoveryEvent(
+                expectedVersion, "retry", meta,
+            );
+            const startedAt = Date.now();
+
+            await repository.prepareMigrationForRetry(expectedVersion);
             try {
-                await finishMigrationRecoveryEvent(connection, recoveryEventId, 'failed', errorSummary(error));
+                await connection.execute(descriptor.sql, undefined, { timeoutMs: null });
+                await repository.markMigrationApplied(expectedVersion, Date.now() - startedAt);
+            } catch (migrationError) {
+                try {
+                    await repository.markMigrationFailed(
+                        expectedVersion,
+                        Date.now() - startedAt,
+                        errorSummary(migrationError),
+                    );
+                } catch (historyError) {
+                    throw new AggregateError(
+                        [migrationError, historyError],
+                        "Migration retry failed and its history could not be updated",
+                    );
+                }
+                throw migrationError;
             }
-            catch (auditError) {
-                throw new AggregateError([error, auditError], 'Migration retry and recovery audit both failed');
+
+            await repository.finishMigrationRecoveryEvent(recoveryEventId, "succeeded", null);
+            recoveryEventId = null;
+            const plan = await loadCurrentMigrationPlan(
+                connection,
+                migrationProvider,
+            );
+            return { applied: descriptor, next: plan.next, isComplete: plan.isComplete };
+        } catch (error) {
+            if (recoveryEventId !== null) {
+                try {
+                    await repository.finishMigrationRecoveryEvent(
+                        recoveryEventId, "failed", errorSummary(error),
+                    );
+                } catch (auditError) {
+                    throw new AggregateError(
+                        [error, auditError],
+                        "Migration retry and recovery audit both failed",
+                    );
+                }
             }
-        }
-        throw error;
-    }
-    finally {
-        try {
-            if (lockAcquired) {
-                await releaseMigrationLock(connection);
-            }
+            throw error;
         } finally {
-            await connection.end();
+            if (lockAcquired) await migrationProvider.releaseLock(connection);
         }
-    }
-}
+    });
+};
 
 export const markMigrationAppliedManually = async (
     expectedVersion: string,
     checksum: string,
     meta: RecoveryAuditMeta,
 ): Promise<MigrationExecutionResult> => {
-    const connection = await createMigrationConnection();
-    let lockAcquired = false;
-    let recoveryEventId: number | null = null;
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
 
-    try {
-        await acquireMigrationLock(connection);
-        lockAcquired = true;
-        const history = await getMigrationHistory(connection);
-        const catalog = await loadMigrationCatalog();
-        const descriptor = catalog.find(m => m.version === expectedVersion);
+    return databaseProvider.withConnection(async (connection) => {
+        const repository = migrationProvider.createRepository(connection);
+        let lockAcquired = false;
+        let recoveryEventId: number | null = null;
 
-        if (history.length === 0) {
-            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
-        }
-
-        const lastMigration = history[history.length - 1];
-        if (lastMigration.status === 'applied') {
-            throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
-        }
-        if (!descriptor || lastMigration.version !== expectedVersion || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
-            throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
-        }
-
-        await ensureMigrationRecoveryAuditTable(connection);
-        recoveryEventId = await startMigrationRecoveryEvent(connection, expectedVersion, 'mark_applied', meta);
-
-        const schemaMatches = await verifyMigrationApplied(connection, expectedVersion);
-        if (!schemaMatches) {
-            throw conflict(ERROR_CODES.INSTALL_MIGRATION_SCHEMA_VERIFICATION_FAILED);
-        }
-
-        await markMigrationAppliedFromRecovery(connection, expectedVersion);
-        await finishMigrationRecoveryEvent(connection, recoveryEventId, 'succeeded');
-        recoveryEventId = null;
-
-        const plan = await loadCurrentMigrationPlan(connection);
-        return {
-            applied: descriptor!,
-            next: plan.next,
-            isComplete: plan.isComplete
-        };
-    }
-    catch (error) {
-        if (recoveryEventId !== null) {
-            try {
-                await finishMigrationRecoveryEvent(connection, recoveryEventId, 'failed', errorSummary(error));
-            }
-            catch (auditError) {
-                throw new AggregateError([error, auditError], 'Manual migration recovery and audit both failed');
-            }
-        }
-        throw error;
-    }
-    finally {
         try {
-            if (lockAcquired) {
-                await releaseMigrationLock(connection);
+            await migrationProvider.acquireLock(connection);
+            lockAcquired = true;
+            const history = await repository.getMigrationHistory();
+            const catalog = await migrationProvider.loadCatalog();
+            const descriptor = catalog.find((migration) => migration.version === expectedVersion);
+
+            if (history.length === 0) {
+                throw badRequest(ERROR_CODES.INSTALL_MIGRATION_NOT_FOUND);
             }
+            const lastMigration = history[history.length - 1];
+            if (lastMigration.status === "applied") {
+                throw badRequest(ERROR_CODES.INSTALL_MIGRATION_ALREADY_APPLIED);
+            }
+            if (!descriptor || lastMigration.version !== expectedVersion
+                || lastMigration.checksum !== checksum || descriptor.checksum !== checksum) {
+                throw conflict(ERROR_CODES.INSTALL_MIGRATION_VERSION_CONFLICT);
+            }
+
+            await repository.ensureMigrationRecoveryAuditTable();
+            recoveryEventId = await repository.startMigrationRecoveryEvent(
+                expectedVersion, "mark_applied", meta,
+            );
+
+            const schemaMatches = await migrationProvider.verifyApplied(
+                connection, expectedVersion,
+            );
+            if (!schemaMatches) {
+                throw conflict(ERROR_CODES.INSTALL_MIGRATION_SCHEMA_VERIFICATION_FAILED);
+            }
+
+            await repository.markMigrationAppliedFromRecovery(expectedVersion);
+            await repository.finishMigrationRecoveryEvent(recoveryEventId, "succeeded", null);
+            recoveryEventId = null;
+
+            const plan = await loadCurrentMigrationPlan(
+                connection,
+                migrationProvider,
+            );
+            return { applied: descriptor, next: plan.next, isComplete: plan.isComplete };
+        } catch (error) {
+            if (recoveryEventId !== null) {
+                try {
+                    await repository.finishMigrationRecoveryEvent(
+                        recoveryEventId, "failed", errorSummary(error),
+                    );
+                } catch (auditError) {
+                    throw new AggregateError(
+                        [error, auditError],
+                        "Manual migration recovery and audit both failed",
+                    );
+                }
+            }
+            throw error;
         } finally {
-            await connection.end();
+            if (lockAcquired) await migrationProvider.releaseLock(connection);
         }
-    }
-}
+    });
+};

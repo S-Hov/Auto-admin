@@ -1,82 +1,89 @@
-import type { Connection } from "mysql2/promise";
-import { loadMigrationCatalog } from "./migration.catalog";
-import { acquireMigrationLock, releaseMigrationLock } from "./migration.lock";
-import { buildMigrationPlan } from "./migration.plan";
-import { ensureMigrationHistoryTable, getMigrationHistory, insertRunningMigration, markMigrationApplied, markMigrationFailed } from "./migration.repository";
-import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
+import type { DatabaseExecutor } from "../db/contracts/executor.interface";
+import { databaseRuntime } from "../db/runtime/database.runtime";
+import type { MigrationProvider } from "./contracts/migration-provider.interface";
 import { MigrationVersionConflictError } from "./migration.errors";
-import { createMigrationConnection } from "./migration.db";
+import { buildMigrationPlan } from "./migration.plan";
+import type { MigrationExecutionResult, MigrationPlan } from "./migration.types";
+import { getActiveMigrationProvider } from "./runtime/migration.runtime";
 
-export const applyNextMigration = async (expectedVersion: string): Promise<MigrationExecutionResult> => {
-    const connection = await createMigrationConnection();
-    let lockAcquired = false;
-
-    try {
-        await acquireMigrationLock(connection);
-        lockAcquired = true;
-
-        const plan = await loadCurrentMigrationPlan(connection);
-
-        const next = plan.next;
-        if (next === null) return {applied: null, next: null, isComplete: true};
-        if (next.version !== expectedVersion) {
-            throw new MigrationVersionConflictError(expectedVersion, next.version);
-        }
-        const startedAt = Date.now();
-
-        await insertRunningMigration(connection, next, null);
-
-        try {
-            await connection.query(next.sql);
-            const executionMs = Date.now() - startedAt;
-            await markMigrationApplied(connection, next.version, executionMs);
-            const followingMigration = plan.pending[1] ?? null;
-            return {
-                applied: next,
-                next: followingMigration,
-                isComplete: followingMigration === null
-            };
-        }
-        catch (migrationError) {
-            const executionMs = Date.now() - startedAt;
-            const errorMessage = migrationError instanceof Error ? migrationError.message : String(migrationError);
-            try {
-                await markMigrationFailed(connection, next.version, executionMs, errorMessage);
-            }
-            catch (historyError) {
-                throw new AggregateError(
-                    [migrationError, historyError],
-                    'Миграция завершилась с ошибкой, и ошибка не была записана в историю'
-                );
-            }
-            throw migrationError;
-        }
-    }
-    finally {
-        try {
-            if (lockAcquired) {
-                await releaseMigrationLock(connection);
-            }
-        } finally {
-            await connection.end();
-        }
-    }
+export const loadCurrentMigrationPlan = async (
+    executor: DatabaseExecutor,
+    migrationProvider: MigrationProvider = getActiveMigrationProvider(),
+): Promise<MigrationPlan> => {
+    const repository = migrationProvider.createRepository(executor);
+    await repository.ensureMigrationHistoryTable();
+    const catalog = await migrationProvider.loadCatalog();
+    const history = await repository.getMigrationHistory();
+    return buildMigrationPlan(catalog, history);
 };
 
-export const loadCurrentMigrationPlan = async (connection: Connection): Promise<MigrationPlan> => {
-    await ensureMigrationHistoryTable(connection);
-    const catalog = await loadMigrationCatalog();
-    const history = await getMigrationHistory(connection);
-
-    return buildMigrationPlan(catalog, history);
-}
-
 export const getCurrentMigrationPlan = async (): Promise<MigrationPlan> => {
-    const connection = await createMigrationConnection();
-    try {
-        return await loadCurrentMigrationPlan(connection);
-    }
-    finally {
-        await connection.end();
-    }
-}
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
+    return databaseProvider.withConnection((connection) =>
+        loadCurrentMigrationPlan(connection, migrationProvider),
+    );
+};
+
+export const applyNextMigration = async (
+    expectedVersion: string,
+): Promise<MigrationExecutionResult> => {
+    const databaseProvider = databaseRuntime.getProvider();
+    const migrationProvider = getActiveMigrationProvider();
+
+    return databaseProvider.withConnection(async (connection) => {
+        let lockAcquired = false;
+        try {
+            await migrationProvider.acquireLock(connection);
+            lockAcquired = true;
+
+            const plan = await loadCurrentMigrationPlan(
+                connection,
+                migrationProvider,
+            );
+            const next = plan.next;
+            if (next === null) {
+                return { applied: null, next: null, isComplete: true };
+            }
+            if (next.version !== expectedVersion) {
+                throw new MigrationVersionConflictError(expectedVersion, next.version);
+            }
+
+            const repository = migrationProvider.createRepository(connection);
+            const startedAt = Date.now();
+            await repository.insertRunningMigration(next, null);
+
+            try {
+                // MySQL DDL commits implicitly. History deliberately records a running
+                // migration before the SQL and marks success only after execution.
+                await connection.execute(next.sql, undefined, { timeoutMs: null });
+                await repository.markMigrationApplied(next.version, Date.now() - startedAt);
+                const followingMigration = plan.pending[1] ?? null;
+                return {
+                    applied: next,
+                    next: followingMigration,
+                    isComplete: followingMigration === null,
+                };
+            } catch (migrationError) {
+                const errorMessage = migrationError instanceof Error
+                    ? migrationError.message
+                    : String(migrationError);
+                try {
+                    await repository.markMigrationFailed(
+                        next.version,
+                        Date.now() - startedAt,
+                        errorMessage,
+                    );
+                } catch (historyError) {
+                    throw new AggregateError(
+                        [migrationError, historyError],
+                        "Migration failed and its history could not be updated",
+                    );
+                }
+                throw migrationError;
+            }
+        } finally {
+            if (lockAcquired) await migrationProvider.releaseLock(connection);
+        }
+    });
+};

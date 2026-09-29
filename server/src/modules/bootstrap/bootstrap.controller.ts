@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ok } from '../../shared/api/success';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { getBootstrapStatusService } from "./bootstrap.service";
-import { BootstrapStatusResponse } from "./bootstrap.types";
+import type { BootstrapStatusResponse } from "./bootstrap.types";
 import { SUCCESS_CODES } from "../../shared/api/codes/success-codes";
 
 export const getBootstrapStatusController = asyncHandler(async (_req: Request, res: Response) => {

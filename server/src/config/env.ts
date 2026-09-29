@@ -1,13 +1,13 @@
 import dotenv from "dotenv";
 import { z } from "zod";
-import { DATABASE_TYPES } from "../db/database.types";
+import { DATABASE_TYPES } from "../db/contracts/database.types";
 
 dotenv.config();
 
 export const envSchema = z.object({
     Auto_Admin__PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     Auto_Admin__HOST: z.string().trim().min(1).default("localhost"),
-    Auto_Admin__DB_TYPE: z.enum(DATABASE_TYPES).default("mysql"),
+    Auto_Admin__DB_TYPE: z.enum(DATABASE_TYPES).optional(),
     Auto_Admin__NODE_ENV: z.enum(["development", "production", "test"] as const).default("development"),
     Auto_Admin__DB_HOST: z.string().optional(),
     Auto_Admin__DB_PORT: z.string().optional(),

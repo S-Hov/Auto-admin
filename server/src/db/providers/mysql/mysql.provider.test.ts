@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import mysql, { type Pool } from 'mysql2/promise';
 import { MySqlDatabaseProvider } from './mysql.provider';
+import type { DatabaseConnectionConfig } from '../../contracts/connection.types';
+import { logger } from '../../../shared/logger';
 
 describe('MySqlDatabaseProvider', () => {
     let provider: MySqlDatabaseProvider;
@@ -10,6 +12,7 @@ describe('MySqlDatabaseProvider', () => {
         commit: ReturnType<typeof vi.fn>;
         rollback: ReturnType<typeof vi.fn>;
         release: ReturnType<typeof vi.fn>;
+        destroy: ReturnType<typeof vi.fn>;
     };
     let fakePool: {
         query: ReturnType<typeof vi.fn>;
@@ -33,6 +36,7 @@ describe('MySqlDatabaseProvider', () => {
             commit: vi.fn().mockResolvedValue(undefined),
             rollback: vi.fn().mockResolvedValue(undefined),
             release: vi.fn(),
+            destroy: vi.fn(),
         };
 
         fakePool = {
@@ -48,7 +52,12 @@ describe('MySqlDatabaseProvider', () => {
     afterEach(async () => {
         await provider.close();
         createPoolSpy.mockRestore();
-        process.env = { ...originalEnv };
+        for (const key of Object.keys(process.env)) {
+            if (!(key in originalEnv)) {
+                delete process.env[key];
+            }
+        }
+        Object.assign(process.env, originalEnv);
     });
 
     it('обычные запросы делегируются executor', async () => {
@@ -90,6 +99,15 @@ describe('MySqlDatabaseProvider', () => {
 
         expect(result).toBe('success_result');
         expect(fakeConnection.release).toHaveBeenCalledTimes(1);
+    });
+
+    it('discard() закрывает соединение и не возвращает его в pool', async () => {
+        await provider.withConnection(async (connection) => {
+            connection.discard();
+        });
+
+        expect(fakeConnection.destroy).toHaveBeenCalledTimes(1);
+        expect(fakeConnection.release).not.toHaveBeenCalled();
     });
 
     it('release() вызывается после ошибки callback', async () => {
@@ -179,5 +197,239 @@ describe('MySqlDatabaseProvider', () => {
 
         expect(isEndCompleted).toBe(true);
         expect(isResetResolved).toBe(true);
+    });
+
+    describe('getConnectionConfig and hasCompleteConfig', () => {
+        it('getConnectionConfig() возвращает config с type: "mysql"', () => {
+            const config = provider.getConnectionConfig();
+            expect(config).toEqual({
+                type: 'mysql',
+                host: '127.0.0.1',
+                port: 3306,
+                user: 'test_user',
+                password: 'test_password',
+                database: 'test_db',
+            });
+        });
+
+        it('пустой пароль разрешён', () => {
+            process.env.Auto_Admin__DB_PASSWORD = '';
+            const config = provider.getConnectionConfig();
+            expect(config.password).toBe('');
+            expect(provider.hasCompleteConfig()).toBe(true);
+        });
+
+        it.each([
+            ['Auto_Admin__DB_HOST'],
+            ['Auto_Admin__DB_PORT'],
+            ['Auto_Admin__DB_USERNAME'],
+            ['Auto_Admin__DB_PASSWORD'],
+            ['Auto_Admin__DB_DATABASE'],
+        ])('отсутствующий параметр %s вызывает ошибку', (envKey) => {
+            delete process.env[envKey];
+            expect(() => provider.getConnectionConfig()).toThrow('Missing or invalid database connection data');
+        });
+
+        it.each(['0', '-1', '65536', 'abc', '3306.5', ''])(
+            'неправильный port (%s) даёт ошибку',
+            (invalidPort) => {
+                process.env.Auto_Admin__DB_PORT = invalidPort;
+                expect(() => provider.getConnectionConfig()).toThrow('Missing or invalid database connection data');
+            }
+        );
+
+        it('hasCompleteConfig() возвращает true/false, не бросая ошибку', () => {
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(true);
+
+            delete process.env.Auto_Admin__DB_HOST;
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(false);
+
+            process.env.Auto_Admin__DB_HOST = '127.0.0.1';
+            process.env.Auto_Admin__DB_PORT = 'invalid_port';
+            expect(() => provider.hasCompleteConfig()).not.toThrow();
+            expect(provider.hasCompleteConfig()).toBe(false);
+        });
+    });
+
+    describe('checkConnection and withTemporaryConnection', () => {
+        let fakeTempConnection: {
+            query: ReturnType<typeof vi.fn>;
+            end: ReturnType<typeof vi.fn>;
+        };
+        let createConnectionSpy: ReturnType<typeof vi.spyOn>;
+        let loggerWarnSpy: ReturnType<typeof vi.spyOn>;
+
+        const checkConfig: DatabaseConnectionConfig<'mysql'> = {
+            type: 'mysql',
+            host: '127.0.0.1',
+            port: 3306,
+            user: 'test_user',
+            password: 'test_password',
+            database: 'test_db',
+        };
+
+        beforeEach(() => {
+            fakeTempConnection = {
+                query: vi.fn(),
+                end: vi.fn().mockResolvedValue(undefined),
+            };
+            createConnectionSpy = vi.spyOn(mysql, 'createConnection').mockResolvedValue(
+                fakeTempConnection as unknown as mysql.Connection
+            );
+            loggerWarnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+        });
+
+        afterEach(() => {
+            createConnectionSpy.mockRestore();
+            loggerWarnSpy.mockRestore();
+        });
+
+        it('checkConnection() использует именно mysql.createConnection', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            await provider.checkConnection(checkConfig);
+
+            expect(createConnectionSpy).toHaveBeenCalledTimes(1);
+            expect(createConnectionSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    host: checkConfig.host,
+                    port: checkConfig.port,
+                    user: checkConfig.user,
+                    password: checkConfig.password,
+                    database: checkConfig.database,
+                })
+            );
+        });
+
+        it('основной createPool() во время проверки не вызывается', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            await provider.checkConnection(checkConfig);
+
+            expect(createPoolSpy).not.toHaveBeenCalled();
+        });
+
+        it('версия читается через временное соединение', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            const result = await provider.checkConnection(checkConfig);
+
+            expect(fakeTempConnection.query).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    sql: 'SELECT VERSION() as version',
+                })
+            );
+            expect(result).toEqual({ version: '8.0.32' });
+        });
+
+        it('временное соединение закрывается после успеха', async () => {
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+
+            await provider.checkConnection(checkConfig);
+
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('закрывается после ошибки запроса', async () => {
+            fakeTempConnection.query.mockRejectedValueOnce(new Error('Connection query error'));
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow();
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            ['пустая строка', [{ version: '' }]],
+            ['строка из пробелов', [{ version: '   ' }]],
+            ['пустой массив строк', []],
+            ['отсутствует свойство version', [{ other: 123 }]],
+        ])('пустая версия (%s) считается ошибкой', async (_, rows) => {
+            fakeTempConnection.query.mockResolvedValueOnce([rows, []]);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(
+                'Failed to get database version'
+            );
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('ошибка запроса сохраняется', async () => {
+            const originalQueryError = new Error('Original SQL query syntax error');
+            fakeTempConnection.query.mockRejectedValueOnce(originalQueryError);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(originalQueryError);
+        });
+
+        it('операция успешна, end упал → выбрасывает ошибку end', async () => {
+            const endError = new Error('End error');
+            fakeTempConnection.query.mockResolvedValueOnce([[{ version: '8.0.32' }], []]);
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            await expect(provider.checkConnection(checkConfig)).rejects.toThrow(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('одновременная ошибка запроса и end() превращается в AggregateError', async () => {
+            const opError = new Error('Operation query failed');
+            const endError = new Error('End failed');
+            fakeTempConnection.query.mockRejectedValueOnce(opError);
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            let caughtError: unknown;
+            try {
+                await provider.checkConnection(checkConfig);
+            } catch (err) {
+                caughtError = err;
+            }
+
+            expect(caughtError).toBeInstanceOf(AggregateError);
+            const agg = caughtError as AggregateError;
+            expect(agg.errors).toHaveLength(2);
+            expect(agg.errors[0]).toBe(opError);
+            expect(agg.errors[1]).toBe(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('withTemporaryConnection передаёт соединение в callback и возвращает результат callback', async () => {
+            const result = await (provider as unknown as {
+                withTemporaryConnection: <T>(
+                    config: DatabaseConnectionConfig<'mysql'>,
+                    cb: (conn: unknown) => Promise<T>
+                ) => Promise<T>;
+            }).withTemporaryConnection(checkConfig, async (conn) => {
+                expect(conn).toBe(fakeTempConnection);
+                return { custom: 'data' };
+            });
+
+            expect(result).toEqual({ custom: 'data' });
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
+
+        it('withTemporaryConnection выбрасывает AggregateError с сохранением порядка ошибок', async () => {
+            const callbackError = new Error('Custom callback failure');
+            const endError = new Error('End failure');
+            fakeTempConnection.end.mockRejectedValueOnce(endError);
+
+            let caught: unknown;
+            try {
+                await (provider as unknown as {
+                    withTemporaryConnection: <T>(
+                        config: DatabaseConnectionConfig<'mysql'>,
+                        cb: (conn: unknown) => Promise<T>
+                    ) => Promise<T>;
+                }).withTemporaryConnection(checkConfig, async () => {
+                    throw callbackError;
+                });
+            } catch (err) {
+                caught = err;
+            }
+
+            expect(caught).toBeInstanceOf(AggregateError);
+            const agg = caught as AggregateError;
+            expect(agg.errors).toHaveLength(2);
+            expect(agg.errors[0]).toBe(callbackError);
+            expect(agg.errors[1]).toBe(endError);
+            expect(fakeTempConnection.end).toHaveBeenCalledTimes(1);
+        });
     });
 });

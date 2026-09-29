@@ -1,21 +1,16 @@
-import { RowDataPacket } from "mysql2";
-import { AutoAdmin } from "../../db/db.types";
-import { MigrationStatus } from "../../migrations/migration.types";
+import type { DatabaseType } from "../../db/contracts/database.types";
+import type { MigrationStatus } from "../../migrations/migration.types";
 
 export interface DbCheckResponse {
     version?: string;
     redirectedTo?: string;
 }
 
-export interface RegisterResponse {
-    redirectedTo?: string,
+export type InstallationStatusValue = "new" | "migrated" | "ready";
+
+export interface InstallationStatus {
+    status: InstallationStatusValue;
 }
-
-export type InstallationStatus = RowDataPacket &
-    Pick<AutoAdmin.Installation, 'status'>
-
-export type InstallationStatusValue =
-    AutoAdmin.Installation['status'];
 
 export interface MigrationStepResponse {
     version: string;
@@ -40,4 +35,8 @@ export interface RecoveryMigrationResponse {
     name: string;
     checksum: string;
     status: Exclude<MigrationStatus, "applied">;
+}
+
+export interface SystemConfigurationOptionsResponse {
+    supportedDatabases: DatabaseType[];
 }

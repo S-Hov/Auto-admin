@@ -1,4 +1,5 @@
 export type BootstrapStage =
+    | 'system_configuration_required'
     | 'database_required'
     | 'database_unavailable'
     | 'migrations_required'

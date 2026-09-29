@@ -1,49 +1,81 @@
-import { withTransaction } from "../../db";
-import { MySqlCompiler } from "./compiler/mysql.compiler";
-import type { DatabaseDriver, QueryResult } from "./drivers/driver.types";
-import { MySqlDriver } from "./drivers/mysql.driver";
+import type { DatabaseProvider } from "../../db/contracts/provider.interface";
+import { databaseRuntime } from "../../db/runtime/database.runtime";
+import type { DatabaseDriver } from "./contracts/database-driver.interface";
+import type { QueryEngineProvider } from "./contracts/query-engine-provider.interface";
 import { PipelineExecutor } from "./pipeline/pipeline.executor";
-import type { PipelineDefinition, PipelineResult } from "./pipeline/pipeline.types";
+import type {
+    PipelineDefinition,
+    PipelineResult,
+} from "./pipeline/pipeline.types";
+import { getActiveQueryEngineProvider } from "./runtime/query-engine.runtime";
+import type { QueryResult } from "./types/query-result.types";
 import type { UnifiedQuery } from "./types/query.types";
 
 export class QueryEngineService {
-    private executor: PipelineExecutor;
+    constructor(
+        private readonly configuredDatabaseProvider?: DatabaseProvider,
+        private readonly configuredQueryEngineProvider?: QueryEngineProvider,
+    ) {}
 
-    constructor(private driver: DatabaseDriver = new MySqlDriver()) {
-        this.executor = new PipelineExecutor(this.driver);
+    private resolveProviders(): {
+        databaseProvider: DatabaseProvider;
+        queryEngineProvider: QueryEngineProvider;
+    } {
+        return {
+            databaseProvider:
+                this.configuredDatabaseProvider ?? databaseRuntime.getProvider(),
+            queryEngineProvider:
+                this.configuredQueryEngineProvider ??
+                getActiveQueryEngineProvider(),
+        };
     }
 
     async execute<T = unknown>(query: UnifiedQuery): Promise<QueryResult<T>>;
 
-    async execute<T = unknown>(query: UnifiedQuery[]): Promise<QueryResult<T>[]>;
+    async execute<T = unknown>(
+        query: UnifiedQuery[],
+    ): Promise<QueryResult<T>[]>;
 
-    async execute<T = unknown>(query: UnifiedQuery | UnifiedQuery[]): Promise<QueryResult<T> | QueryResult<T>[]> {
+    async execute<T = unknown>(
+        query: UnifiedQuery | UnifiedQuery[],
+    ): Promise<QueryResult<T> | QueryResult<T>[]> {
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+
         if (Array.isArray(query)) {
-            return await withTransaction(async (transaction) => {
-                const result: QueryResult<T>[] = [];
-                const txDriver = new MySqlDriver(transaction);
-                for (const c of query) {
-                    const compiled = MySqlCompiler.compile(c);
-                    result.push(await txDriver.execute<T>(compiled))
+            return databaseProvider.transaction(async (executor) => {
+                const driver = queryEngineProvider.createDriver(executor);
+                const results: QueryResult<T>[] = [];
+
+                for (const command of query) {
+                    const compiled =
+                        queryEngineProvider.compiler.compile(command);
+                    results.push(await driver.execute<T>(compiled));
                 }
-                return result;
-            })
+
+                return results;
+            });
         }
-        else {
-            const compiled = MySqlCompiler.compile(query);
-            return await this.driver.execute<T>(compiled);
-        }
+
+        const compiled = queryEngineProvider.compiler.compile(query);
+        const driver = queryEngineProvider.createDriver(databaseProvider);
+        return driver.execute<T>(compiled);
     }
 
     async ping(): Promise<boolean> {
-        return await this.driver.ping();
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+        return queryEngineProvider.createDriver(databaseProvider).ping();
     }
 
-    async close(): Promise<void> {
-        return await this.driver.close();
-    }
-
-    async executePipeline<T = unknown>(definition: PipelineDefinition): Promise<PipelineResult<T>> {
-        return await this.executor.execute<T>(definition);
+    async executePipeline<T = unknown>(
+        definition: PipelineDefinition,
+    ): Promise<PipelineResult<T>> {
+        const { databaseProvider, queryEngineProvider } =
+            this.resolveProviders();
+        return new PipelineExecutor(
+            databaseProvider,
+            queryEngineProvider,
+        ).execute<T>(definition);
     }
 }

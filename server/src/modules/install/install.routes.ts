@@ -3,9 +3,11 @@ import {
     applyNextMigrationController,
     checkConnectionController,
     getMigrationPlanController,
+    getSystemConfigurationOptionsController,
     markMigrationAppliedController,
     recoveryMigrationController,
     retryMigrationController,
+    systemConfigurationController,
 } from "./install.controller";
 import registerRouter from "./registerNewAdmin/register.routes";
 import { statusMigrated } from "../../shared/middleware/checkInstallationStatus";
@@ -19,6 +21,7 @@ import { recoverySchema } from "./schema/recovery.schema";
 import { createRateLimiter } from "../../shared/middleware/rateLimiter";
 import { envConfig } from "../../config/env";
 import { requireMigrationRecovery } from "../../shared/middleware/requireMigrationRecovery";
+import { checkDatabaseTypeSchema } from "./schema/checkDatabaseType.schema";
 
 const installRouter = express.Router();
 const installRateLimiter = createRateLimiter({
@@ -26,7 +29,11 @@ const installRateLimiter = createRateLimiter({
     windowMs: envConfig.Auto_Admin__INSTALL_RATE_WINDOW_MS,
 });
 
+installRouter.get("/system-configuration/options", installRateLimiter, getSystemConfigurationOptionsController);
+
 installRouter.use(requireInstallToken);
+
+installRouter.post("/system-configuration", installRateLimiter, validate(checkDatabaseTypeSchema), systemConfigurationController)
 
 installRouter.post("/check-connection", installRateLimiter, canConfigureDatabase, validate(checkConnectionSchema), checkConnectionController);
 

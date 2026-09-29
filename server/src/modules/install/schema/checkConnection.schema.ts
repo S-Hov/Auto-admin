@@ -23,5 +23,7 @@ export const checkConnectionSchema = z.object({
         .max(32, { message: 'Имя пользователя не должно превышать 32 символа' }),
     password: z
         .string()
-        .max(255, { message: 'Пароль не должен превышать 255 символов' })
+        .max(255, { message: 'Пароль не должен превышать 255 символов' }),
 })
+
+export type CheckConnectionData = z.infer<typeof checkConnectionSchema>;

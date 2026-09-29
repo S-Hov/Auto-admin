@@ -1,7 +1,7 @@
 import type {
     DatabaseConnection,
     DatabaseExecutor,
-} from "../../database-executor.interface";
+} from "../../contracts/executor.interface";
 import { MySqlDatabaseExecutor } from "./mysql.executor";
 import type mysql from "mysql2/promise";
 
@@ -10,10 +10,21 @@ export class MySqlDatabaseConnection
     implements DatabaseConnection
 {
     private readonly connection: mysql.PoolConnection;
+    private discarded = false;
 
     constructor(connection: mysql.PoolConnection) {
         super(connection);
         this.connection = connection;
+    }
+
+    discard(): void {
+        if (this.discarded) return;
+        this.discarded = true;
+        this.connection.destroy();
+    }
+
+    release(): void {
+        if (!this.discarded) this.connection.release();
     }
 
     async transaction<T>(

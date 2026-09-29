@@ -61,6 +61,19 @@ describe('MySqlDatabaseExecutor', () => {
     });
 
     describe('execute', () => {
+        it('может выполнить долгую DDL-команду без обычного таймаута', async () => {
+            const fake = createFakeExecutor();
+            const executor = new MySqlDatabaseExecutor(fake);
+            fake.query.mockResolvedValueOnce([{ affectedRows: 0, insertId: 0 }, []]);
+
+            await executor.execute('CREATE TABLE example (id INT)', undefined, { timeoutMs: null });
+
+            expect(fake.query).toHaveBeenCalledWith({
+                sql: 'CREATE TABLE example (id INT)',
+                values: [],
+            });
+        });
+
         it('execute() возвращает affectedRows и insertId', async () => {
             const fake = createFakeExecutor();
             const executor = new MySqlDatabaseExecutor(fake);
