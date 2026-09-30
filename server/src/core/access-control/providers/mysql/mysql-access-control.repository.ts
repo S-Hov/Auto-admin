@@ -23,7 +23,7 @@ export class MySqlAccessControlRepository implements AccessControlRepository {
                 this.getUserResourceRules(userId),
                 this.getRoleFieldRules(roleId),
                 this.getUserFieldRules(userId),
-            ])
+            ]);
 
         return {
             roleResourceRules: roleResourceRules.map((row) => ({
@@ -49,10 +49,10 @@ export class MySqlAccessControlRepository implements AccessControlRepository {
         };
     }
 
-    async getRoleResourceRules(
+    private async getRoleResourceRules(
         roleId: number,
     ): Promise<MySqlResourcePermissionRow[]> {
-        return await this.executor.queryRows<MySqlResourcePermissionRow>(
+        return this.executor.queryRows<MySqlResourcePermissionRow>(
             `
             SELECT
                 resource_id,
@@ -66,7 +66,7 @@ export class MySqlAccessControlRepository implements AccessControlRepository {
         );
     }
 
-    async getUserResourceRules(
+    private async getUserResourceRules(
         userId: number,
     ): Promise<MySqlResourcePermissionRow[]> {
         return this.executor.queryRows<MySqlResourcePermissionRow>(
@@ -83,10 +83,10 @@ export class MySqlAccessControlRepository implements AccessControlRepository {
         );
     }
 
-    async getRoleFieldRules(
+    private async getRoleFieldRules(
         roleId: number,
     ): Promise<MySqlFieldPermissionRow[]> {
-        return await this.executor.queryRows<MySqlFieldPermissionRow>(
+        return this.executor.queryRows<MySqlFieldPermissionRow>(
             `
                 SELECT
                     field_id,
@@ -100,10 +100,10 @@ export class MySqlAccessControlRepository implements AccessControlRepository {
         );
     }
 
-    async getUserFieldRules(
+    private async getUserFieldRules(
         userId: number,
     ): Promise<MySqlFieldPermissionRow[]> {
-        return await this.executor.queryRows<MySqlFieldPermissionRow>(
+        return this.executor.queryRows<MySqlFieldPermissionRow>(
             `
             SELECT
                 field_id,
