@@ -17,7 +17,7 @@ export type PermissionAction = ResourcePermissionAction | FieldPermissionAction;
 
 export interface ResourcePermissionRule {
     resourceId: number;
-    action: PermissionAction;
+    action: ResourcePermissionAction;
     effect: PermissionEffect;
 }
 

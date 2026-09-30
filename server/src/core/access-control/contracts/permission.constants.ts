@@ -5,7 +5,7 @@ export const RESOURCE_PERMISSION_ACTIONS = [
     "delete",
 ] as const;
 
-export const FIELD_PERMISSION_ACTIONS = ["read", "update", "delete"] as const;
+export const FIELD_PERMISSION_ACTIONS = ["read", "update", "create"] as const;
 
 export const PERMISSION_EFFECTS = ["allow", "deny"] as const;
 
