@@ -20,6 +20,7 @@ export const DATABASE_CATALOG = {
             queryEngine: true,
             schemaCatalog: true,
             migrations: true,
+            accessControl: true,
         },
     },
     'postgresql': {
@@ -33,6 +34,7 @@ export const DATABASE_CATALOG = {
             queryEngine: false,
             schemaCatalog: false,
             migrations: false,
+            accessControl: false,
         },
     },
     'sqlite': {
@@ -46,6 +48,7 @@ export const DATABASE_CATALOG = {
             queryEngine: false,
             schemaCatalog: false,
             migrations: false,
+            accessControl: false,
         },
     },
 } as const satisfies Readonly<Record<DatabaseType, DatabaseDescriptor>>;
