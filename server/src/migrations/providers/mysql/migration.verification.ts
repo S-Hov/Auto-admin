@@ -154,6 +154,81 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
             'fk_index_parts_index', 'fk_index_parts_field', 'chk_index_parts_source',
         ],
     },
+    '0018': {
+        table: 'Auto_Admin__role_resource_permissions',
+        columns: [
+            'id', 'role_id', 'resource_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_role_resource_permission',
+            'idx_role_resource_permissions_resource',
+        ],
+        constraints: [
+            'fk_role_resource_permissions_role',
+            'fk_role_resource_permissions_resource',
+        ],
+    },
+    '0019': {
+        table: 'Auto_Admin__user_resource_permissions',
+        columns: [
+            'id', 'user_id', 'resource_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_user_resource_permission',
+            'idx_user_resource_permissions_resource',
+        ],
+        constraints: [
+            'fk_user_resource_permissions_user',
+            'fk_user_resource_permissions_resource',
+        ],
+    },
+    '0020': {
+        table: 'Auto_Admin__role_field_permissions',
+        columns: [
+            'id', 'role_id', 'field_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_role_field_permission',
+            'idx_role_field_permissions_field',
+        ],
+        constraints: [
+            'fk_role_field_permissions_role',
+            'fk_role_field_permissions_field',
+        ],
+    },
+    '0021': {
+        table: 'Auto_Admin__user_field_permissions',
+        columns: [
+            'id', 'user_id', 'field_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_user_field_permission',
+            'idx_user_field_permissions_field',
+        ],
+        constraints: [
+            'fk_user_field_permissions_user',
+            'fk_user_field_permissions_field',
+        ],
+    },
+    '0022': {
+        table: 'Auto_Admin__permission_audit_events',
+        columns: [
+            'id', 'actor_user_id', 'subject_type', 'subject_id', 'target_type',
+            'target_id', 'action', 'previous_effect', 'new_effect',
+            'created_at', 'request_id',
+        ],
+        indexes: [
+            'idx_permission_audit_actor_created',
+            'idx_permission_audit_subject',
+            'idx_permission_audit_target',
+            'idx_permission_audit_created_at',
+        ],
+        constraints: ['fk_permission_audit_actor'],
+    },
 };
 
 const containsAll = (actual: readonly string[], expected: readonly string[]): boolean => {
