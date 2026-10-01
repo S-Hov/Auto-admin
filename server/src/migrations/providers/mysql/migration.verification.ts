@@ -53,7 +53,7 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
     '0008': {
         table: 'Auto_Admin__menu',
         columns: ['id', 'parent_id', 'name', 'slug', 'icon', 'icon_type', 'sort_order', 'is_active', 'created_at', 'updated_at', 'updated_by'],
-        indexes: ['idx_menu_parent_order'],
+        indexes: ['idx_menu_parent_order', 'uq_menu_slug'],
         constraints: ['fk_menu_parent', 'fk_menu_updated_by'],
     },
     '0009': {
@@ -153,6 +153,87 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
         constraints: [
             'fk_index_parts_index', 'fk_index_parts_field', 'chk_index_parts_source',
         ],
+    },
+    '0018': {
+        table: 'Auto_Admin__role_resource_permissions',
+        columns: [
+            'id', 'role_id', 'resource_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_role_resource_permission',
+            'idx_role_resource_permissions_resource',
+        ],
+        constraints: [
+            'fk_role_resource_permissions_role',
+            'fk_role_resource_permissions_resource',
+        ],
+    },
+    '0019': {
+        table: 'Auto_Admin__user_resource_permissions',
+        columns: [
+            'id', 'user_id', 'resource_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_user_resource_permission',
+            'idx_user_resource_permissions_resource',
+        ],
+        constraints: [
+            'fk_user_resource_permissions_user',
+            'fk_user_resource_permissions_resource',
+        ],
+    },
+    '0020': {
+        table: 'Auto_Admin__role_field_permissions',
+        columns: [
+            'id', 'role_id', 'field_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_role_field_permission',
+            'idx_role_field_permissions_field',
+        ],
+        constraints: [
+            'fk_role_field_permissions_role',
+            'fk_role_field_permissions_field',
+        ],
+    },
+    '0021': {
+        table: 'Auto_Admin__user_field_permissions',
+        columns: [
+            'id', 'user_id', 'field_id', 'action', 'effect',
+            'created_at', 'updated_at',
+        ],
+        indexes: [
+            'uq_user_field_permission',
+            'idx_user_field_permissions_field',
+        ],
+        constraints: [
+            'fk_user_field_permissions_user',
+            'fk_user_field_permissions_field',
+        ],
+    },
+    '0022': {
+        table: 'Auto_Admin__permission_audit_events',
+        columns: [
+            'id', 'actor_user_id', 'subject_type', 'subject_id', 'target_type',
+            'target_id', 'action', 'previous_effect', 'new_effect',
+            'created_at', 'request_id',
+        ],
+        indexes: [
+            'idx_permission_audit_actor_created',
+            'idx_permission_audit_subject',
+            'idx_permission_audit_target',
+            'idx_permission_audit_created_at',
+        ],
+        constraints: ['fk_permission_audit_actor'],
+    },
+    '0023': {
+        table: 'Auto_Admin__menu_audit_events',
+        columns: ['id', 'menu_id', 'action', 'actor_user_id', 'previous_value', 'new_value', 'request_id', 'created_at'],
+        indexes: ['idx_menu_audit_item_created'],
+        constraints: ['fk_menu_audit_actor'],
     },
 };
 

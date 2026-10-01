@@ -1,57 +1,88 @@
-import { randomUUID } from 'node:crypto';
-import { expect, it } from 'vitest';
+import { randomUUID } from "node:crypto";
+import { expect, it } from "vitest";
 
-const enabled = process.env.Auto_Admin__RUN_MYSQL_TESTS === '1';
+const enabled = process.env.Auto_Admin__RUN_MYSQL_TESTS === "1";
 
 const integrationTest = enabled ? it : it.skip;
 
-integrationTest('migration runner applies a clean catalog once and in order', async () => {
-    const host = process.env.Auto_Admin__TEST_DB_HOST;
-    const user = process.env.Auto_Admin__TEST_DB_USERNAME;
-    const password = process.env.Auto_Admin__TEST_DB_PASSWORD ?? '';
-    const port = Number(process.env.Auto_Admin__TEST_DB_PORT ?? 3306);
+integrationTest(
+    "migration runner applies a clean catalog once and in order",
+    async () => {
+        const host = process.env.Auto_Admin__TEST_DB_HOST;
+        const user = process.env.Auto_Admin__TEST_DB_USERNAME;
+        const password = process.env.Auto_Admin__TEST_DB_PASSWORD ?? "";
+        const port = Number(process.env.Auto_Admin__TEST_DB_PORT ?? 3306);
 
-    if (!host || !user || !Number.isInteger(port)) {
-        throw new Error('Dedicated MySQL test credentials are missing');
-    }
-
-    const mysql = await import('mysql2/promise');
-    const adminConnection = await mysql.createConnection({ host, port, user, password });
-    const database = `auto_admin_test_${randomUUID().replaceAll('-', '')}`;
-
-    await adminConnection.query(`CREATE DATABASE \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-
-    process.env.Auto_Admin__INSTALL_TOKEN = process.env.Auto_Admin__INSTALL_TOKEN ?? 'test-install-token-that-is-at-least-32-characters';
-    process.env.Auto_Admin__DB_HOST = host;
-    process.env.Auto_Admin__DB_PORT = String(port);
-    process.env.Auto_Admin__DB_USERNAME = user;
-    process.env.Auto_Admin__DB_PASSWORD = password;
-    process.env.Auto_Admin__DB_DATABASE = database;
-
-    try {
-        const { applyNextMigration, getCurrentMigrationPlan } = await import('../../src/migrations/migration.runner');
-        const { resetPool } = await import('../../src/db');
-
-        await expect(applyNextMigration('9999')).rejects.toThrow(/expected|next|version/i);
-
-        let plan = await getCurrentMigrationPlan();
-        while (plan.next) {
-            await applyNextMigration(plan.next.version);
-            plan = await getCurrentMigrationPlan();
+        if (!host || !user || !Number.isInteger(port)) {
+            throw new Error("Dedicated MySQL test credentials are missing");
         }
 
-        expect(plan.isComplete).toBe(true);
-        expect(plan.pending).toHaveLength(0);
+        const mysql = await import("mysql2/promise");
+        const adminConnection = await mysql.createConnection({
+            host,
+            port,
+            user,
+            password,
+        });
+        const database = `auto_admin_test_${randomUUID().replaceAll("-", "")}`;
 
-        const [historyRows] = await adminConnection.query<Array<{ count: number } & import('mysql2/promise').RowDataPacket>>(
-            `SELECT COUNT(*) AS count FROM \`${database}\`.Auto_Admin__migration_history WHERE status = 'applied'`,
+        await adminConnection.query(
+            `CREATE DATABASE \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
         );
-        expect(Number(historyRows[0]?.count)).toBe(plan.applied.length);
 
-        await resetPool();
-    }
-    finally {
-        await adminConnection.query(`DROP DATABASE IF EXISTS \`${database}\``);
-        await adminConnection.end();
-    }
-});
+        process.env.Auto_Admin__INSTALL_TOKEN =
+            process.env.Auto_Admin__INSTALL_TOKEN ??
+            "test-install-token-that-is-at-least-32-characters";
+        process.env.Auto_Admin__DB_HOST = host;
+        process.env.Auto_Admin__DB_PORT = String(port);
+        process.env.Auto_Admin__DB_USERNAME = user;
+        process.env.Auto_Admin__DB_PASSWORD = password;
+        process.env.Auto_Admin__DB_DATABASE = database;
+        process.env.Auto_Admin__DB_TYPE = "mysql";
+
+        let closeDatabase = async () => {};
+        try {
+            const { applyNextMigration, getCurrentMigrationPlan } =
+                await import("../../src/migrations/migration.runner");
+            const { databaseRuntime } =
+                await import("../../src/db/runtime/database.runtime");
+            const { MigrationVersionConflictError } =
+                await import("../../src/migrations/migration.errors");
+            closeDatabase = () => databaseRuntime.close();
+
+            await expect(applyNextMigration("9999")).rejects.toBeInstanceOf(
+                MigrationVersionConflictError,
+            );
+
+            let plan = await getCurrentMigrationPlan();
+            while (plan.next) {
+                await applyNextMigration(plan.next.version);
+                plan = await getCurrentMigrationPlan();
+            }
+
+            expect(plan.isComplete).toBe(true);
+            expect(plan.pending).toHaveLength(0);
+
+            const [historyRows] = await adminConnection.query<
+                Array<
+                    { count: number } & import("mysql2/promise").RowDataPacket
+                >
+            >(
+                `SELECT COUNT(*) AS count FROM \`${database}\`.Auto_Admin__migration_history WHERE status = 'applied'`,
+            );
+            expect(Number(historyRows[0]?.count)).toBe(plan.applied.length);
+        } finally {
+            try {
+                await closeDatabase();
+            } finally {
+                try {
+                    await adminConnection.query(
+                        `DROP DATABASE IF EXISTS \`${database}\``,
+                    );
+                } finally {
+                    await adminConnection.end();
+                }
+            }
+        }
+    },
+);

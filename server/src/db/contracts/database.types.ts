@@ -1,10 +1,16 @@
 export const DATABASE_TYPES = ["mysql", "postgresql", "sqlite"] as const;
 
-export type DatabaseType = typeof DATABASE_TYPES[number];
+export type DatabaseType = (typeof DATABASE_TYPES)[number];
 
-export type DatabaseSupportStatus = 'supported' | 'planned';
+export type DatabaseSupportStatus = "supported" | "planned";
 
-export type DatabaseSubsystem = 'connection' | 'systemRepositories' | 'queryEngine' | 'schemaCatalog' | 'migrations';
+export type DatabaseSubsystem =
+    | "connection"
+    | "systemRepositories"
+    | "queryEngine"
+    | "schemaCatalog"
+    | "migrations"
+    | "accessControl";
 
 export interface DatabaseDescriptor {
     type: DatabaseType;

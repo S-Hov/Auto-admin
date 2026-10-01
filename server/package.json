@@ -9,7 +9,7 @@
     "start": "node dist/app.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration": "vitest run tests/integration/mysql.test.ts"
+    "test:integration": "vitest run tests/integration"
   },
   "keywords": [],
   "author": "",

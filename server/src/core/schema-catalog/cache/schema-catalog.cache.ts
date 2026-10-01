@@ -9,20 +9,28 @@ import type {
 export type DeepReadonly<T> = T extends (...args: never[]) => unknown
     ? T
     : T extends readonly (infer Item)[]
-        ? readonly DeepReadonly<Item>[]
-        : T extends object
-            ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
-            : T;
+      ? readonly DeepReadonly<Item>[]
+      : T extends object
+        ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
+        : T;
 
 export type CachedSchemaCatalog = DeepReadonly<SchemaCatalog>;
 
 const deepFreeze = <T>(value: T): DeepReadonly<T> => {
-    if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+    if (
+        value !== null &&
+        typeof value === "object" &&
+        !Object.isFrozen(value)
+    ) {
         for (const child of Object.values(value)) deepFreeze(child);
         Object.freeze(value);
     }
     return value as DeepReadonly<T>;
 };
+
+export const createReadonlyCatalog = (
+    catalog: SchemaCatalog,
+): CachedSchemaCatalog => deepFreeze(structuredClone(catalog));
 
 export class SchemaCatalogCache {
     private catalog: CachedSchemaCatalog | null = null;
@@ -31,9 +39,18 @@ export class SchemaCatalogCache {
     private resourcesById = new Map<number, DeepReadonly<StoredResource>>();
     private resourcesByName = new Map<string, DeepReadonly<StoredResource>>();
     private fieldsById = new Map<number, DeepReadonly<StoredField>>();
-    private fieldsByResourceId = new Map<number, readonly DeepReadonly<StoredField>[]>();
-    private constraintsByResourceId = new Map<number, readonly DeepReadonly<StoredConstraint>[]>();
-    private indexesByResourceId = new Map<number, readonly DeepReadonly<StoredIndex>[]>();
+    private fieldsByResourceId = new Map<
+        number,
+        readonly DeepReadonly<StoredField>[]
+    >();
+    private constraintsByResourceId = new Map<
+        number,
+        readonly DeepReadonly<StoredConstraint>[]
+    >();
+    private indexesByResourceId = new Map<
+        number,
+        readonly DeepReadonly<StoredIndex>[]
+    >();
 
     isLoaded(): boolean {
         return this.catalog !== null;
@@ -43,14 +60,17 @@ export class SchemaCatalogCache {
         return this.catalog;
     }
 
-    async getOrLoad(loader: () => Promise<SchemaCatalog>): Promise<CachedSchemaCatalog> {
+    async getOrLoad(
+        loader: () => Promise<SchemaCatalog>,
+    ): Promise<CachedSchemaCatalog> {
         if (this.catalog) return this.catalog;
         if (this.pendingLoad) return this.pendingLoad;
 
         const revisionAtStart = this.revision;
         const pendingLoad = loader()
             .then((catalog) => {
-                if (this.revision === revisionAtStart) return this.replace(catalog);
+                if (this.revision === revisionAtStart)
+                    return this.replace(catalog);
                 return this.catalog ?? deepFreeze(structuredClone(catalog));
             })
             .finally(() => {
@@ -62,13 +82,22 @@ export class SchemaCatalogCache {
     }
 
     replace(catalog: SchemaCatalog): CachedSchemaCatalog {
-        const frozenCatalog = deepFreeze(structuredClone(catalog));
+        const frozenCatalog = createReadonlyCatalog(catalog);
         const resourcesById = new Map<number, DeepReadonly<StoredResource>>();
         const resourcesByName = new Map<string, DeepReadonly<StoredResource>>();
         const fieldsById = new Map<number, DeepReadonly<StoredField>>();
-        const fieldsByResourceId = new Map<number, DeepReadonly<StoredField>[]>();
-        const constraintsByResourceId = new Map<number, DeepReadonly<StoredConstraint>[]>();
-        const indexesByResourceId = new Map<number, DeepReadonly<StoredIndex>[]>();
+        const fieldsByResourceId = new Map<
+            number,
+            DeepReadonly<StoredField>[]
+        >();
+        const constraintsByResourceId = new Map<
+            number,
+            DeepReadonly<StoredConstraint>[]
+        >();
+        const indexesByResourceId = new Map<
+            number,
+            DeepReadonly<StoredIndex>[]
+        >();
 
         for (const resource of frozenCatalog.resources) {
             resourcesById.set(resource.id, resource);
@@ -76,24 +105,32 @@ export class SchemaCatalogCache {
         }
         for (const field of frozenCatalog.fields) {
             fieldsById.set(field.id, field);
-            const resourceFields = fieldsByResourceId.get(field.resourceId) ?? [];
+            const resourceFields =
+                fieldsByResourceId.get(field.resourceId) ?? [];
             resourceFields.push(field);
             fieldsByResourceId.set(field.resourceId, resourceFields);
         }
         for (const constraint of frozenCatalog.constraints) {
-            const resourceConstraints = constraintsByResourceId.get(constraint.resourceId) ?? [];
+            const resourceConstraints =
+                constraintsByResourceId.get(constraint.resourceId) ?? [];
             resourceConstraints.push(constraint);
-            constraintsByResourceId.set(constraint.resourceId, resourceConstraints);
+            constraintsByResourceId.set(
+                constraint.resourceId,
+                resourceConstraints,
+            );
         }
         for (const index of frozenCatalog.indexes) {
-            const resourceIndexes = indexesByResourceId.get(index.resourceId) ?? [];
+            const resourceIndexes =
+                indexesByResourceId.get(index.resourceId) ?? [];
             resourceIndexes.push(index);
             indexesByResourceId.set(index.resourceId, resourceIndexes);
         }
 
         for (const fields of fieldsByResourceId.values()) Object.freeze(fields);
-        for (const constraints of constraintsByResourceId.values()) Object.freeze(constraints);
-        for (const indexes of indexesByResourceId.values()) Object.freeze(indexes);
+        for (const constraints of constraintsByResourceId.values())
+            Object.freeze(constraints);
+        for (const indexes of indexesByResourceId.values())
+            Object.freeze(indexes);
 
         this.resourcesById = resourcesById;
         this.resourcesByName = resourcesByName;
@@ -130,15 +167,21 @@ export class SchemaCatalogCache {
         return this.fieldsById.get(id) ?? null;
     }
 
-    getFieldsForResource(resourceId: number): readonly DeepReadonly<StoredField>[] {
+    getFieldsForResource(
+        resourceId: number,
+    ): readonly DeepReadonly<StoredField>[] {
         return this.fieldsByResourceId.get(resourceId) ?? [];
     }
 
-    getConstraintsForResource(resourceId: number): readonly DeepReadonly<StoredConstraint>[] {
+    getConstraintsForResource(
+        resourceId: number,
+    ): readonly DeepReadonly<StoredConstraint>[] {
         return this.constraintsByResourceId.get(resourceId) ?? [];
     }
 
-    getIndexesForResource(resourceId: number): readonly DeepReadonly<StoredIndex>[] {
+    getIndexesForResource(
+        resourceId: number,
+    ): readonly DeepReadonly<StoredIndex>[] {
         return this.indexesByResourceId.get(resourceId) ?? [];
     }
 }

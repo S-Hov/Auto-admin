@@ -6,6 +6,7 @@ import {
     schemaCatalogCache,
     type CachedSchemaCatalog,
     type SchemaCatalogCache,
+    createReadonlyCatalog,
 } from "./cache/schema-catalog.cache";
 import type { SchemaCatalogProvider } from "./contracts/schema-catalog-provider.interface";
 import { getActiveSchemaCatalogProvider } from "./runtime/schema-catalog.runtime";
@@ -42,7 +43,8 @@ export class SchemaCatalogService {
     } {
         return {
             databaseProvider:
-                this.configuredDatabaseProvider ?? databaseRuntime.getProvider(),
+                this.configuredDatabaseProvider ??
+                databaseRuntime.getProvider(),
             schemaCatalogProvider:
                 this.configuredSchemaCatalogProvider ??
                 getActiveSchemaCatalogProvider(),
@@ -67,9 +69,8 @@ export class SchemaCatalogService {
             databaseProvider,
             schemaCatalogProvider,
         );
-        const repository = schemaCatalogProvider.createRepository(
-            databaseProvider,
-        );
+        const repository =
+            schemaCatalogProvider.createRepository(databaseProvider);
 
         return this.cache.getOrLoad(async () => {
             const catalog = await repository.readPersistedCatalog(schemaName);
@@ -85,13 +86,30 @@ export class SchemaCatalogService {
             databaseProvider,
             schemaCatalogProvider,
         );
-        const repository = schemaCatalogProvider.createRepository(
-            databaseProvider,
-        );
+        const repository =
+            schemaCatalogProvider.createRepository(databaseProvider);
         const catalog = await repository.readPersistedCatalog(schemaName);
 
         if (!catalog) throw new SchemaCatalogNotReadyError();
         return this.cache.replace(catalog);
+    }
+
+    /** A consistent persisted snapshot for authorization, including scans made by other processes. */
+    async getAuthorizationCatalog(): Promise<CachedSchemaCatalog> {
+        const { databaseProvider, schemaCatalogProvider } =
+            this.resolveProviders();
+        const schemaName = this.resolveSchemaName(
+            databaseProvider,
+            schemaCatalogProvider,
+        );
+        const catalog = await databaseProvider.transaction(async (executor) => {
+            const result = await schemaCatalogProvider
+                .createRepository(executor)
+                .readPersistedCatalog(schemaName);
+            if (!result) throw new SchemaCatalogNotReadyError();
+            return result;
+        });
+        return createReadonlyCatalog(catalog);
     }
 
     clearCache(): void {
@@ -119,9 +137,9 @@ export class SchemaCatalogService {
 
                 const runningScanId =
                     await connectionRepository.createRunningScan(
-                    schemaName,
-                    createdBy,
-                );
+                        schemaName,
+                        createdBy,
+                    );
                 scanId = runningScanId;
 
                 const snapshot = await schemaCatalogProvider.introspect(
@@ -134,19 +152,16 @@ export class SchemaCatalogService {
                 const { counts, catalog } = await connection.transaction(
                     async (executor) => {
                         const repository =
-                            schemaCatalogProvider.createRepository(
-                                executor,
-                            );
+                            schemaCatalogProvider.createRepository(executor);
                         const counts = await synchronizeSchemaCatalog(
                             repository,
                             snapshot,
                             runningScanId,
                         );
-                        const catalog =
-                            await repository.readPersistedCatalog(
-                                schemaName,
-                                fingerprint,
-                            );
+                        const catalog = await repository.readPersistedCatalog(
+                            schemaName,
+                            fingerprint,
+                        );
 
                         if (!catalog) {
                             throw new Error(
@@ -187,9 +202,7 @@ export class SchemaCatalogService {
             } finally {
                 if (lockAcquired) {
                     try {
-                        await schemaCatalogProvider.releaseScanLock(
-                            connection,
-                        );
+                        await schemaCatalogProvider.releaseScanLock(connection);
                     } catch (releaseError) {
                         logger.error(
                             { releaseError },
