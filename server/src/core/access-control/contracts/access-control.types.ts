@@ -1,3 +1,9 @@
+import type { CachedSchemaCatalog } from "../../schema-catalog";
+import type {
+    FieldPermissionAction,
+    ResourcePermissionAction,
+} from "./permission.types";
+
 export interface AccessPrincipal {
     userId: number;
     roleId: number;
@@ -29,3 +35,16 @@ export type AccessDecision =
           source: AccessDecisionSource;
           reason: AccessDenialReason;
       };
+
+export interface PreparedAccessContext {
+    readonly catalog: CachedSchemaCatalog;
+    checkResource(
+        resourceId: number,
+        action: ResourcePermissionAction,
+    ): AccessDecision;
+    checkField(
+        resourceId: number,
+        fieldId: number,
+        action: FieldPermissionAction,
+    ): AccessDecision;
+}
