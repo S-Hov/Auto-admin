@@ -53,7 +53,7 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
     '0008': {
         table: 'Auto_Admin__menu',
         columns: ['id', 'parent_id', 'name', 'slug', 'icon', 'icon_type', 'sort_order', 'is_active', 'created_at', 'updated_at', 'updated_by'],
-        indexes: ['idx_menu_parent_order'],
+        indexes: ['idx_menu_parent_order', 'uq_menu_slug'],
         constraints: ['fk_menu_parent', 'fk_menu_updated_by'],
     },
     '0009': {
@@ -228,6 +228,12 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
             'idx_permission_audit_created_at',
         ],
         constraints: ['fk_permission_audit_actor'],
+    },
+    '0023': {
+        table: 'Auto_Admin__menu_audit_events',
+        columns: ['id', 'menu_id', 'action', 'actor_user_id', 'previous_value', 'new_value', 'request_id', 'created_at'],
+        indexes: ['idx_menu_audit_item_created'],
+        constraints: ['fk_menu_audit_actor'],
     },
 };
 

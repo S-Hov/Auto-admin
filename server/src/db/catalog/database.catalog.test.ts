@@ -27,6 +27,7 @@ describe('Database Catalog', () => {
                     queryEngine: true,
                     schemaCatalog: true,
                     migrations: true,
+                    accessControl: true,
                 },
             });
             expect(descriptor).toBe(DATABASE_CATALOG.mysql);
@@ -96,17 +97,18 @@ describe('Database Catalog', () => {
     });
 
     describe('assertDatabaseSubsystemSupported', () => {
-        it('MySQL поддерживает все пять заявленных подсистем', () => {
+        it('MySQL поддерживает все шесть заявленных подсистем', () => {
             const subsystems: DatabaseSubsystem[] = [
                 'connection',
                 'systemRepositories',
                 'queryEngine',
                 'schemaCatalog',
                 'migrations',
+                'accessControl',
             ];
 
             const mysqlDescriptor = getDatabaseDescriptor('mysql');
-            expect(Object.keys(mysqlDescriptor.support)).toHaveLength(5);
+            expect(Object.keys(mysqlDescriptor.support)).toHaveLength(6);
 
             for (const subsystem of subsystems) {
                 expect(mysqlDescriptor.support[subsystem]).toBe(true);
@@ -121,6 +123,7 @@ describe('Database Catalog', () => {
                 'queryEngine',
                 'schemaCatalog',
                 'migrations',
+                'accessControl',
             ];
 
             for (const subsystem of subsystems) {

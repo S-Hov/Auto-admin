@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS Auto_Admin__menu (
     CONSTRAINT fk_menu_updated_by FOREIGN KEY (updated_by) 
         REFERENCES Auto_Admin__users(id) ON DELETE SET NULL,
         
+    UNIQUE KEY uq_menu_slug (slug),
+
     INDEX idx_menu_parent_order (parent_id, sort_order)
 ) ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4

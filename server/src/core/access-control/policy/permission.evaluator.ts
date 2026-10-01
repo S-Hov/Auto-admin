@@ -2,9 +2,7 @@ import type {
     StoredField,
     StoredResource,
 } from "../../schema-catalog/types/schema-catalog.types";
-import type {
-    PermissionRuleSet,
-} from "../contracts/access-control-repository.types";
+import type { PermissionRuleSet } from "../contracts/access-control-repository.types";
 import type {
     AccessDecision,
     AccessPrincipal,
@@ -15,7 +13,7 @@ import type {
     ResourcePermissionAction,
 } from "../contracts/permission.types";
 
-function isSystemAdmin(principal: AccessPrincipal): boolean {
+export function isSystemAdmin(principal: AccessPrincipal): boolean {
     return principal.roleKey === "admin" && principal.rights === "full";
 }
 
@@ -38,7 +36,10 @@ export function evaluateResourcePermission(
     if (resource.state !== "present") {
         return { allowed: false, source: "schema", reason: "RESOURCE_MISSING" };
     }
-    if (resource.isServiceTable) {
+    if (
+        resource.isServiceTable ||
+        resource.tableName.toLowerCase().startsWith("auto_admin__")
+    ) {
         return {
             allowed: false,
             source: "schema",
@@ -46,7 +47,11 @@ export function evaluateResourcePermission(
         };
     }
     if (resource.type === "view" && action !== "read") {
-        return { allowed: false, source: "schema", reason: "VIEW_WRITE_FORBIDDEN" };
+        return {
+            allowed: false,
+            source: "schema",
+            reason: "VIEW_WRITE_FORBIDDEN",
+        };
     }
     if (isSystemAdmin(principal)) {
         return { allowed: true, source: "admin" };
