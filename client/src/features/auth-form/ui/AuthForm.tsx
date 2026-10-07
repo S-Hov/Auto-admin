@@ -9,6 +9,7 @@ import { auth } from '../../../shared/api/auth';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
 import { apiMessage } from '../../../shared/i18n/api-message';
 import { applyFieldErrors } from '../../../shared/api/apply-field-errors';
+import { useTranslation } from 'react-i18next';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -17,13 +18,22 @@ interface FieldConfig {
     placeholder: string;
 }
 
-const FIELDS: FieldConfig[] = [
-    { name: 'userName', label: 'Имя пользователя', placeholder: 'admin' },
-    { name: 'password', label: 'Пароль', type: 'password', placeholder: '••••••••' },
-] as const;
-
 const AuthForm = () => {
+    const { i18n } = useTranslation();
     const { refreshAuth } = useAuth();
+    const fields: FieldConfig[] = [
+        {
+            name: 'userName',
+            label: i18n.t('authForm:fields.userName.label'),
+            placeholder: i18n.t('authForm:fields.userName.placeholder'),
+        },
+        {
+            name: 'password',
+            label: i18n.t('authForm:fields.password.label'),
+            type: 'password',
+            placeholder: i18n.t('authForm:fields.password.placeholder'),
+        },
+    ];
 
     const {
         control,
@@ -42,7 +52,7 @@ const AuthForm = () => {
     const onSubmit = async (data: AuthSchemaFormValues) => {
         try {
             await toast.promise(auth.login(data), {
-                loading: 'Выполняется запрос...',
+                loading: i18n.t('authForm:requestInProgress'),
                 success: (response) => apiMessage(response),
                 error: (err) => {
                     applyFieldErrors(err, setError, ['userName', 'password']);
@@ -59,12 +69,12 @@ const AuthForm = () => {
 
     return (
         <CardForm
-            headerTitle="Вход в админ панель"
-            headerDescription="Введите имя и пароль пользователя"
+            headerTitle={i18n.t('authForm:title')}
+            headerDescription={i18n.t('authForm:description')}
             onSubmit={handleSubmit(onSubmit)}
         >
             {
-                FIELDS.map((field) => (
+                fields.map((field) => (
                     <ControlledInput
                         key={field.name}
                         control={control}
@@ -82,7 +92,7 @@ const AuthForm = () => {
                 disabled={isSubmitting}
                 isLoading={isSubmitting}
             >
-                Вход
+                {i18n.t('authForm:submit')}
             </Button>
         </CardForm>
     );
