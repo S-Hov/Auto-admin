@@ -12,18 +12,19 @@ const LocaleLayout = () => {
   const { locale } = useParams<{ locale: string }>();
   const location = useLocation();
   const validLocale = isAppLocale(locale) ? locale: null;
-  const [isLanguageReady, setIsLanguageReady] = useState(
-    validLocale !== null && i18n.resolvedLanguage === validLocale,
+  const [readyLocale, setReadyLocale] = useState(
+    validLocale !== null && i18n.resolvedLanguage === validLocale
+      ? validLocale
+      : null,
   );
 
   useEffect(() => {
     if (!validLocale) return;
 
     let isActive = true;
-    setIsLanguageReady(i18n.resolvedLanguage === validLocale);
 
     void i18n.changeLanguage(validLocale).then(() => {
-      if (isActive) setIsLanguageReady(true);
+      if (isActive) setReadyLocale(validLocale);
     });
 
     document.documentElement.lang = validLocale;
@@ -44,7 +45,7 @@ const LocaleLayout = () => {
     );
   }
 
-  if (!isLanguageReady || i18n.resolvedLanguage !== validLocale) {
+  if (readyLocale !== validLocale || i18n.resolvedLanguage !== validLocale) {
     return <div>Loading...</div>;
   }
 

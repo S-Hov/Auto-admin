@@ -10,7 +10,6 @@ import { useAuth } from '../../../app/providers/auth/AuthContext';
 import { apiMessage } from '../../../shared/i18n/api-message';
 import { applyFieldErrors } from '../../../shared/api/apply-field-errors';
 import { useTranslation } from 'react-i18next';
-import { t } from 'i18next';
 
 interface FieldConfig {
     name: keyof AuthSchemaFormValues;
@@ -19,22 +18,22 @@ interface FieldConfig {
     placeholder: string;
 }
 
-const fields: FieldConfig[] = [
-    { 
-      name: 'userName', 
-      label: t('authForm:fields.password.label'),
-      placeholder: t('authForm:fields.password.placeholder'),
-    },
-    { name: 'password', 
-      label: t('authForm:fields.password.label'), 
-      type: 'password', 
-      placeholder: t('authForm:fields.password.placeholder') 
-    },
-] as const;
-
 const AuthForm = () => {
-    const { t } = useTranslation('authForm');
+    const { i18n } = useTranslation();
     const { refreshAuth } = useAuth();
+    const fields: FieldConfig[] = [
+        {
+            name: 'userName',
+            label: i18n.t('authForm:fields.userName.label'),
+            placeholder: i18n.t('authForm:fields.userName.placeholder'),
+        },
+        {
+            name: 'password',
+            label: i18n.t('authForm:fields.password.label'),
+            type: 'password',
+            placeholder: i18n.t('authForm:fields.password.placeholder'),
+        },
+    ];
 
     const {
         control,
@@ -53,7 +52,7 @@ const AuthForm = () => {
     const onSubmit = async (data: AuthSchemaFormValues) => {
         try {
             await toast.promise(auth.login(data), {
-                loading: t('requestInProgress'),
+                loading: i18n.t('authForm:requestInProgress'),
                 success: (response) => apiMessage(response),
                 error: (err) => {
                     applyFieldErrors(err, setError, ['userName', 'password']);
@@ -70,8 +69,8 @@ const AuthForm = () => {
 
     return (
         <CardForm
-            headerTitle={t('title')}
-            headerDescription={t('description')}
+            headerTitle={i18n.t('authForm:title')}
+            headerDescription={i18n.t('authForm:description')}
             onSubmit={handleSubmit(onSubmit)}
         >
             {
@@ -92,9 +91,8 @@ const AuthForm = () => {
                 className="check-button w-100__percent"
                 disabled={isSubmitting}
                 isLoading={isSubmitting}
-                
             >
-                Вход
+                {i18n.t('authForm:submit')}
             </Button>
         </CardForm>
     );

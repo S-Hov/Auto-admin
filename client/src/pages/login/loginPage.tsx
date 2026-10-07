@@ -3,11 +3,12 @@ import { useTranslation} from 'react-i18next';
 import AuthForm from "../../features/auth-form/ui/AuthForm";
 
 const LoginPage = () => {
-    const { t } = useTranslation('loginPage');
-    
+    const { i18n } = useTranslation();
+    const language = i18n.resolvedLanguage;
+
     useEffect(() => {
-        document.title = t('documentTitle');
-    }, [t]);
+        document.title = i18n.t('loginPage:documentTitle');
+    }, [i18n, language]);
 
     return (
         <section className="section login-page h-100">

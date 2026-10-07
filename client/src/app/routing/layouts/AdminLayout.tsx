@@ -4,11 +4,18 @@ import { Button } from '../../../shared/ui/Button/Button';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { apiMessage } from '../../../shared/i18n/api-message';
+import { useAppLocale } from '../locale/use-app-locale';
+import { appPaths } from '../app-paths';
 
 export default function AdminLayout() {
   const location = useLocation();
+  const locale = useAppLocale();
   const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const paths = {
+    home: appPaths.home(locale),
+    users: appPaths.users(locale),
+  };
 
   if (!user) {
     return <div>Данные пользователя не получены</div>;
@@ -38,14 +45,14 @@ export default function AdminLayout() {
         <h3>Auto Admin</h3>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
           <Link
-            to="/"
-            style={{ color: location.pathname === '/' ? '#38bdf8' : '#fff', textDecoration: 'none' }}
+            to={paths.home}
+            style={{ color: location.pathname === paths.home ? '#38bdf8' : '#fff', textDecoration: 'none' }}
           >
             Панель управления
           </Link>
           <Link
-            to="/users" 
-            style={{ color: location.pathname === '/users' ? '#38bdf8' : '#fff', textDecoration: 'none' }}
+            to={paths.users}
+            style={{ color: location.pathname === paths.users ? '#38bdf8' : '#fff', textDecoration: 'none' }}
           >
             Пользователи
           </Link>
