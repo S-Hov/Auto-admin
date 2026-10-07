@@ -28,7 +28,10 @@ export function apiMessage(obj: unknown): string {
 
 function getMessage(key: string, params?: TranslationParams): string {
     if (i18n.exists(key)) {
-        return i18n.t(key, params);
+        return i18n.t(key, {
+            ...params,
+            defaultValue: i18n.t('api:COMMON.UNKNOWN_ERROR'),
+        });
     }
 
     return i18n.t('api:COMMON.UNKNOWN_ERROR');

@@ -1,0 +1,16 @@
+{
+  "title": "Sign in to the admin panel",
+  "description": "Enter your username and password",
+  "fields": {
+    "userName": {
+      "label": "Username",
+      "placeholder": "admin"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password"
+    }
+  },
+  "submit": "Sign in",
+  "requestInProgress": "Signing in..."
+}

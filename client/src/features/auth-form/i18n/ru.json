@@ -1,0 +1,16 @@
+{
+  "title": "Вход в админ-панель",
+  "description": "Введите имя пользователя и пароль",
+  "fields": {
+    "userName": {
+      "label": "Имя пользователя",
+      "placeholder": "admin"
+    },
+    "password": {
+      "label": "Пароль",
+      "placeholder": "Введите пароль"
+    }
+  },
+  "submit": "Войти",
+  "requestInProgress": "Выполняется вход..."
+}
