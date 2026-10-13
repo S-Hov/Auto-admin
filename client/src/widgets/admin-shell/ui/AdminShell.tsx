@@ -31,7 +31,6 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         async function loadMenu() {
             try {
                 const response = await getMenu();
-                if (!response.data) throw new Error('Сервер не вернул пункты меню');
                 const items = buildMenuTree(response.data);
                 if (active) setMenuState({ status: 'ready', items });
             } catch {

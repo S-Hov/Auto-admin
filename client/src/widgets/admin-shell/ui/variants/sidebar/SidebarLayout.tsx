@@ -16,7 +16,15 @@ function hasActiveItem(item: MenuNode, locale: string, pathname: string): boolea
         || item.children.some((child) => hasActiveItem(child, locale, pathname));
 }
 
-function MenuItems({ items, onNavigate }: { items: MenuNode[]; onNavigate: () => void }) {
+interface MenuItemsProps {
+    items: MenuNode[];
+    onNavigate: () => void;
+    collapsed?: boolean;
+    expandedGroup?: number | null;
+    onExpandGroup?: (id: number) => void;
+}
+
+function MenuItems({ items, onNavigate, collapsed = false, expandedGroup, onExpandGroup }: MenuItemsProps) {
     const locale = useAppLocale();
     const { pathname } = useLocation();
     return (
@@ -24,8 +32,13 @@ function MenuItems({ items, onNavigate }: { items: MenuNode[]; onNavigate: () =>
             {items.map((item) => (
                 <li key={item.id} className="sidebar-item">
                     {item.children.length > 0 ? (
-                        <details className="sidebar-group" open={hasActiveItem(item, locale, pathname) || item.id === 1}>
-                            <summary className="sidebar-row" data-active={hasActiveItem(item, locale, pathname)}>
+                        <details className="sidebar-group" open={hasActiveItem(item, locale, pathname) || item.id === 1 || expandedGroup === item.id}>
+                            <summary className="sidebar-row" title={item.name} aria-label={item.name} data-active={hasActiveItem(item, locale, pathname)} onClick={(event) => {
+                                if (collapsed) {
+                                    event.preventDefault();
+                                    onExpandGroup?.(item.id);
+                                }
+                            }}>
                                 <MenuIcon icon={item.icon} />
                                 <span className="sidebar-label">{item.name}</span>
                                 <span className="sidebar-count">{item.children.length}</span>
@@ -38,6 +51,8 @@ function MenuItems({ items, onNavigate }: { items: MenuNode[]; onNavigate: () =>
                     ) : (
                         <NavLink
                             to={itemPath(locale, item.slug)}
+                            title={item.name}
+                            aria-label={item.name}
                             className={({ isActive }) => `sidebar-row sidebar-link${isActive ? ' is-active' : ''}`}
                             onClick={onNavigate}
                         >
@@ -54,16 +69,18 @@ function MenuItems({ items, onNavigate }: { items: MenuNode[]; onNavigate: () =>
 const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantProps) => {
     const locale = useAppLocale();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [collapsed, setCollapsed] = useState(false);
+    const [expandedGroup, setExpandedGroup] = useState<number | null>(null);
     const paths = {
         home: appPaths.home(locale),
     };
 
     return (
-        <div className="admin-shell sidebar-layout">
+        <div className={`admin-shell sidebar-layout${collapsed ? ' is-collapsed' : ''}`}>
             <aside className="sidebar-panel">
                 <div className="sidebar-brand">
                     <span className="sidebar-brand-mark" aria-hidden="true">A<span /></span>
-                    <div><strong>Auto Admin</strong><span className="sidebar-brand-caption">Рабочее пространство</span></div>
+                    <div className="sidebar-brand-text"><strong>Auto Admin</strong><span className="sidebar-brand-caption">Рабочее пространство</span></div>
                     <button className="sidebar-mobile-toggle" type="button" aria-expanded={mobileOpen} aria-controls="sidebar-navigation" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? 'Скрыть меню' : 'Открыть меню'}>
                         <MenuIcon icon="menu-hamburger-classic" />
                     </button>
@@ -73,6 +90,8 @@ const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantPr
                     <NavLink
                         to={paths.home}
                         end
+                        title="Панель управления"
+                        aria-label="Панель управления"
                         className={({ isActive }) => `sidebar-row sidebar-link${isActive ? ' is-active' : ''}`}
                         onClick={() => setMobileOpen(false)}
                     >
@@ -89,11 +108,18 @@ const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantPr
                     )}
                     {menuState.status === 'ready' && (
                         menuState.items.length > 0
-                            ? <MenuItems items={menuState.items} onNavigate={() => setMobileOpen(false)} />
+                            ? <MenuItems items={menuState.items} onNavigate={() => setMobileOpen(false)} collapsed={collapsed} expandedGroup={expandedGroup} onExpandGroup={(id) => {
+                                setExpandedGroup(id);
+                                setCollapsed(false);
+                            }} />
                             : <p className="sidebar-message">Нет доступных разделов</p>
                     )}
                 </nav>
-                <div className="sidebar-footer"><span className="sidebar-status-dot" />Локальный макет меню</div>
+                <button className="sidebar-collapse-toggle sidebar-row" type="button" aria-expanded={!collapsed} aria-controls="sidebar-navigation" aria-label={collapsed ? 'Развернуть меню' : 'Свернуть меню'} title={collapsed ? 'Развернуть меню' : 'Свернуть меню'} onClick={() => setCollapsed((value) => !value)}>
+                    <span className="sidebar-collapse-symbol" aria-hidden="true">{collapsed ? '»' : '«'}</span>
+                    <span className="sidebar-label">Свернуть меню</span>
+                </button>
+                <div className="sidebar-footer"><span className="sidebar-status-dot" /><span className="sidebar-footer-label">Локальный макет меню</span></div>
             </aside>
 
             <main>
