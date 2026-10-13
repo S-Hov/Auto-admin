@@ -38,14 +38,13 @@
     padding: 0;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--background-color-dark);
-    border-radius: var(--radius-card-1);
-    background: var(--primary-color);
+    border: none;
+    background: transparent;
     color: var(--text-color-dark);
-    box-shadow: var(--card-shadow-hover);
 }
 .gooey-dialog::backdrop {
-    background: color-mix(in srgb, var(--secondary-color) 32%, transparent);
+    background: color-mix(in srgb, white 10%, transparent);
+    backdrop-filter: blur(10px);
 }
 .gooey-heading {
     display: flex;
@@ -86,6 +85,7 @@
     font-size: 10px;
     white-space: nowrap;
     overflow-x: auto;
+    margin-top: 40px;
 }
 .gooey-breadcrumbs button {
     padding: 0;
@@ -227,7 +227,7 @@
     height: 26px;
     border: 0;
     border-radius: 8px;
-    background: var(--background-color-light);
+    background: var(--primary-color);
     color: var(--text-color-dark);
     cursor: pointer;
 }

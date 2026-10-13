@@ -129,10 +129,10 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                 event.preventDefault();
                 controls[next]?.focus();
             }}>
-                <div className="gooey-heading">
+                {/* <div className="gooey-heading">
                     <div><p>НАВИГАЦИЯ</p><h2 id={`${menuId}-title`}>{breadcrumbs.at(-1)?.name ?? 'Рабочее пространство'}</h2></div>
                     <button type="button" className="gooey-close" aria-label="Закрыть меню" onClick={close}>×</button>
-                </div>
+                </div> */}
                 <nav className="gooey-breadcrumbs" aria-label="Путь в меню">
                     <button type="button" onClick={() => { setTrail([]); setPage(0); focusCenter(); }}>Главное меню</button>
                     {breadcrumbs.map((node, index) => <span key={node.id}><span aria-hidden="true"> / </span><button type="button" onClick={() => { setTrail(trail.slice(0, index + 1)); setPage(0); focusCenter(); }}>{node.name}</button></span>)}
