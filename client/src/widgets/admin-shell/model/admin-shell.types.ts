@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import type { MenuItemDto } from '../../../shared/api/menu/menu.types';
 
-export type AdminShellVariantId = 'sidebar' | 'gooey';
+export type AdminShellVariantId = 'sidebar' | 'gooey' | 'topbar';
 
 export interface AdminShellVariantProps {
     children: ReactNode;

@@ -227,8 +227,8 @@
     height: 26px;
     border: 0;
     border-radius: 8px;
-    background: var(--primary-color);
-    color: var(--text-color-dark);
+    background: var(--background-color-dark);
+    color: var(--text-color-light);
     cursor: pointer;
 }
 .gooey-pagination button:disabled {
