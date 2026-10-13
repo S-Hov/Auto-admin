@@ -1,4 +1,5 @@
 .loader__loading {
+    display: inline-block;
     --w: 10ch;
     font-weight: bold;
     font-family: monospace;

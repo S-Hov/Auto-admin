@@ -4,6 +4,7 @@ import { Button } from "../../../shared/ui/Button/Button";
 import { useAuth } from "../../providers/auth/AuthContext";
 import { useAppLocale } from "../locale/use-app-locale";
 import { appPaths } from "../app-paths";
+import { PageLoader } from '../../../shared/ui/Loader';
 
 
 export const AppGate = () => {
@@ -24,9 +25,7 @@ export const AppGate = () => {
 
     if (state.status === 'checking') {
         return (
-            <div className="loader-container">
-                <div className="page-loader"></div>
-            </div>
+            <PageLoader />
         );
     }
 

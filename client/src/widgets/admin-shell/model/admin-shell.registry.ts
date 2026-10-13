@@ -9,11 +9,6 @@ export const defaultAdminShellVariant: AdminShellVariantDefinition = {
 
 export const AdminShellVariants: AdminShellVariantDefinition[] = [
     defaultAdminShellVariant,
-    {
-        id: "sidebar",
-        label: "Боковое меню",
-        component: SideBarLayout,
-    },
 ];
 
 
