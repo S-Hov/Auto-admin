@@ -1,12 +1,16 @@
-import type { UnifiedResponse } from "../types";
-import { mockMenuItems } from "./menu.mock";
-import type { MenuItemDto } from "./menu.types";
+import { ApiContractError } from '../apiClient';
+import { mockMenuItems } from './menu.mock';
+import { menuResponseSchema } from './menu.schema';
 
-// Пока источник — макет. Позже здесь будет вызов apiClient для /menu.
-export async function getMenu(): Promise<UnifiedResponse<MenuItemDto[]>> {
-    return {
+// Keep validation local to the mock until the API client migration is merged.
+export async function getMenu() {
+    const result = menuResponseSchema.safeParse({
         success: true,
-        code: "COMMON.OK",
+        code: 'COMMON.OK',
         data: mockMenuItems.map((item) => ({ ...item })),
-    };
+    });
+    if (!result.success) {
+        throw new ApiContractError(200);
+    }
+    return result.data;
 }
