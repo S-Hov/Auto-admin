@@ -1,25 +1,13 @@
-export interface DbCheckResponse {
-    version?: string;
-    redirectedTo?: string;
-}
+import type { z } from 'zod';
+import type { dbCheckSchema, migrationStepSchema, migrationPlanSchema, applyNextMigrationSchema, recoveryMigrationSchema } from './install.schema';
 
-export interface MigrationStepResponse {
-    version: string;
-    name: string;
-    fileName: string;
-}
+export type DbCheckResponse = z.infer<typeof dbCheckSchema>;
 
-export interface MigrationPlanResponse {
-    pending: MigrationStepResponse[];
-    nextVersion: string | null;
-    isComplete: boolean;
-}
+export type MigrationStepResponse = z.infer<typeof migrationStepSchema>;
 
-export interface ApplyNextMigrationResponse {
-    applied: MigrationStepResponse | null;
-    nextVersion: string | null;
-    isComplete: boolean;
-}
+export type MigrationPlanResponse = z.infer<typeof migrationPlanSchema>;
+
+export type ApplyNextMigrationResponse = z.infer<typeof applyNextMigrationSchema>;
 
 export interface ApplyNextMigrationRequest {
     expectedVersion: string;
@@ -39,26 +27,13 @@ export interface RetryMigrationRequest {
     checksum: string;
 }
 
-export interface RetryMigrationResponse {
-    applied: MigrationStepResponse | null;
-    nextVersion: string | null;
-    isComplete: boolean;
-}
+export type RetryMigrationResponse = z.infer<typeof applyNextMigrationSchema>;
 
 export interface MarkMigrationAppliedRequest {
     expectedVersion: string;
     checksum: string;
 }
 
-export interface MarkMigrationAppliedResponse {
-    applied: MigrationStepResponse | null;
-    nextVersion: string | null;
-    isComplete: boolean;
-}
+export type MarkMigrationAppliedResponse = z.infer<typeof applyNextMigrationSchema>;
 
-export interface RecoveryMigrationResponse {
-    version: string;
-    name: string;
-    checksum: string;
-    status: 'running' | 'failed';
-}
+export type RecoveryMigrationResponse = z.infer<typeof recoveryMigrationSchema>;

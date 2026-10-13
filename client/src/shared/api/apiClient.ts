@@ -1,37 +1,25 @@
+import type { z } from 'zod';
+import { apiErrorSchema, apiSuccessSchema } from './schema';
 import { ApiClientError } from "./ApiClientError";
-import type { ApiErrorPayload, ApiSuccessPayload, TranslationParams } from "./types";
+import type { ApiErrorPayload, ApiSuccessPayload } from "./types";
 
-const isRecord = (value: unknown): value is Record<string, unknown> => (
-    typeof value === 'object' && value !== null && !Array.isArray(value)
-);
+export const isApiErrorPayload = (value: unknown): value is ApiErrorPayload => apiErrorSchema.safeParse(value).success;
 
-const isTranslationParams = (value: unknown): value is TranslationParams => (
-    isRecord(value)
-    && Object.values(value).every((item) => (
-        typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'
-    ))
-);
+export const isApiSuccessPayload = (value: unknown): value is ApiSuccessPayload => apiSuccessSchema.safeParse(value).success;
 
-export const isApiErrorPayload = (value: unknown): value is ApiErrorPayload => {
-    if (!isRecord(value) || value.success !== false || typeof value.code !== 'string' || value.code.length === 0) {
-        return false;
+export function parseApiResponse<T>(data: unknown, schema: z.ZodType<T>, status: number): T {
+    const result = schema.safeParse(data);
+    if (!result.success) {
+        throw new ApiContractError(status, result.error);
     }
-
-    return value.params === undefined || isTranslationParams(value.params);
-};
-
-export const isApiSuccessPayload = (value: unknown): value is ApiSuccessPayload => (
-    isRecord(value)
-    && value.success === true
-    && typeof value.code === 'string'
-    && value.code.length > 0
-);
+    return result.data;
+}
 
 export class ApiContractError extends Error {
     readonly status: number;
 
-    constructor(status: number) {
-        super('The server returned an invalid API response');
+    constructor(status: number, cause?: unknown) {
+        super('The server returned an invalid API response', { cause });
         this.name = 'ApiContractError';
         this.status = status;
     }
@@ -50,8 +38,9 @@ export const getBaseUrl = (): string => {
     return 'http://127.0.0.1:5180';
 }
 
-export async function apiClient<TData = unknown>(url: string, options?: RequestInit): Promise<ApiSuccessPayload<TData>> {
-    const headers = new Headers(options?.headers as HeadersInit);
+/** Each endpoint supplies its complete server response schema. */
+export async function apiClient<T>(url: string, schema: z.ZodType<T>, options?: RequestInit): Promise<T> {
+    const headers = new Headers(options?.headers);
     const isFormDataBody: boolean = typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
     if (!isFormDataBody && !headers.has('Content-Type')) {
@@ -82,9 +71,5 @@ export async function apiClient<TData = unknown>(url: string, options?: RequestI
         throw new ApiClientError({ success: false, code: 'COMMON.UNKNOWN_ERROR' }, response.status);
     }
 
-    if (!isApiSuccessPayload(data)) {
-        throw new ApiContractError(response.status);
-    }
-
-    return data as ApiSuccessPayload<TData>;
+    return parseApiResponse(data, schema, response.status);
 }

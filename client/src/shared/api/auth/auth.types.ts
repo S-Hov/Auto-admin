@@ -1,21 +1,11 @@
+import type { z } from 'zod';
+import type { authUserSchema, loginDataSchema, logoutDataSchema } from './auth.schema';
+
 export interface LoginRequest {
     userName: string;
     password: string;
 }
 
-export interface LoginResponse {
-    redirectedTo: string;
-}
-
-export interface LogoutResponse {
-    redirectedTo: string;
-}
-
-export interface AuthUser {
-    userId: number;
-    username: string;
-    roleId: number;
-    roleKey: string;
-    rights: 'full' | 'read_only' | 'manager' | 'none' | 'custom';
-    expiresAt: string;
-}
+export type LoginResponse = z.infer<typeof loginDataSchema>;
+export type LogoutResponse = z.infer<typeof logoutDataSchema>;
+export type AuthUser = z.infer<typeof authUserSchema>;

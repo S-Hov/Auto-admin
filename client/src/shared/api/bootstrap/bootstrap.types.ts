@@ -1,12 +1,5 @@
-export type BootstrapStage =
-    | 'database_required'
-    | 'database_unavailable'
-    | 'migrations_required'
-    | 'migration_recovery_required'
-    | 'admin_required'
-    | 'ready'
-    | 'system_error';
+import type { z } from 'zod';
+import type { bootstrapStageSchema, bootstrapStatusSchema } from './bootstrap.schema';
 
-export interface BootstrapStatusResponse {
-    stage: BootstrapStage;
-}
+export type BootstrapStage = z.infer<typeof bootstrapStageSchema>;
+export type BootstrapStatusResponse = z.infer<typeof bootstrapStatusSchema>;

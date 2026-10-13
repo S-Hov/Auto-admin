@@ -1,11 +1,8 @@
-export type TranslationParams = Record<string, string | number | boolean>;
+import type { z } from 'zod';
+import type { apiErrorSchema, translationParamsSchema } from './schema';
 
-export interface ApiErrorPayload {
-    success: false;
-    code: string;
-    params?: TranslationParams;
-    details?: unknown;
-}
+export type TranslationParams = z.infer<typeof translationParamsSchema>;
+export type ApiErrorPayload = z.infer<typeof apiErrorSchema>;
 
 export interface ApiSuccessPayload<TData = unknown> {
     success: true;
