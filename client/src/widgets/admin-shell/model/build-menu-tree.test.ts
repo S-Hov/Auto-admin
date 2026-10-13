@@ -4,7 +4,7 @@ import { buildMenuTree } from './build-menu-tree';
 
 describe('buildMenuTree', () => {
     it('builds sorted nested items without modifying the source', () => {
-        const items = mockMenuItems.map((item) => ({ ...item })).reverse();
+        const items = mockMenuItems.slice(0, 4).map((item) => ({ ...item })).reverse();
         const before = structuredClone(items);
         const tree = buildMenuTree(items);
         expect(tree.map((item) => item.id)).toEqual([1, 4]);
@@ -13,7 +13,7 @@ describe('buildMenuTree', () => {
     });
 
     it('hides descendants of a hidden parent', () => {
-        const items = mockMenuItems.map((item) => ({ ...item, canView: item.id !== 1 }));
+        const items = mockMenuItems.slice(0, 4).map((item) => ({ ...item, canView: item.id !== 1 }));
         expect(buildMenuTree(items).map((item) => item.id)).toEqual([4]);
     });
 
@@ -34,5 +34,12 @@ describe('buildMenuTree', () => {
             { ...mockMenuItems[0], parentId: 2 },
             mockMenuItems[1],
         ])).toThrow();
+    });
+
+    it('builds the extended demo with three nesting levels', () => {
+        const tree = buildMenuTree(mockMenuItems);
+        expect(tree).toHaveLength(7);
+        const settings = tree.find((item) => item.id === 19);
+        expect(settings?.children.find((item) => item.id === 21)?.children.map((item) => item.id)).toEqual([22, 23]);
     });
 });
