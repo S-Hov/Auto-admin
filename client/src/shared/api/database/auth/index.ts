@@ -2,11 +2,11 @@ import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
 import type { CreateAdminFormValues } from '../../../../features/create-admin/model/CreateAdmin.schema';
 import { apiClient } from '../../apiClient';
-import type { CreateAdmin } from './auth.types';
+import { createAdminResponseSchema } from './auth.schema';
 
 export const auth = {
     register(data: CreateAdminFormValues){
-        return apiClient<CreateAdmin>('/install/auth/register', {
+        return apiClient('/install/auth/register', createAdminResponseSchema, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
