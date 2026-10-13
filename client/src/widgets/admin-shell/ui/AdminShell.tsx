@@ -3,7 +3,7 @@ import {
     AdminShellVariants,
     defaultAdminShellVariant,
 } from "../model/admin-shell.registry";
-import type { MenuState } from "../model/admin-shell.types";
+import type { AdminShellVariantId, MenuState } from "../model/admin-shell.types";
 import { getMenu } from '../../../shared/api/menu';
 import { buildMenuTree } from '../model/build-menu-tree';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
@@ -22,7 +22,7 @@ const AdminShell = ({ children }: AdminShellProps) => {
 };
 
 const AuthenticatedShell = ({ children }: AdminShellProps) => {
-    const selectedModel = "sidebar";
+    const [selectedModel, setSelectedModel] = useState<AdminShellVariantId>('gooey');
     const [menuState, setMenuState] = useState<MenuState>({ status: 'loading' });
     const [requestVersion, setRequestVersion] = useState(0);
 
@@ -51,7 +51,18 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         model = defaultAdminShellVariant;
     }
 
-    return <model.component menuState={menuState} onRetryMenu={retryMenu}>{children}</model.component>;
+    return <>
+        <model.component menuState={menuState} onRetryMenu={retryMenu}>{children}</model.component>
+        <label className="admin-shell-variant-picker">
+            <span>Вид меню</span>
+            <select value={selectedModel} onChange={(event) => {
+                const variant = AdminShellVariants.find((item) => item.id === event.target.value);
+                if (variant) setSelectedModel(variant.id);
+            }}>
+                {AdminShellVariants.map((variant) => <option key={variant.id} value={variant.id}>{variant.label}</option>)}
+            </select>
+        </label>
+    </>;
 };
 
 export default AdminShell;

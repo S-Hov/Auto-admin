@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import './MenuIcon.css';
 import { getIconById, getIconSvgContent } from '../../../shared/assets/icons-catalog';
 
 interface MenuIconProps {
@@ -28,7 +29,7 @@ export function MenuIcon({ icon, className = '' }: MenuIconProps) {
     const url = meta ? getMask(meta.component) : undefined;
     return (
         <span
-            className={`sidebar-icon ${className}`}
+            className={`menu-icon sidebar-icon ${className}`}
             aria-hidden="true"
             style={url ? { '--menu-icon': `url("${url}")` } as CSSProperties : undefined}
         />
