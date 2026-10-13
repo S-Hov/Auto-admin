@@ -2,13 +2,9 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppLocale } from "../../../../../app/routing/locale/use-app-locale";
 import { appPaths } from "../../../../../app/routing/app-paths";
 import UserPanel from "../../../../user-panel/ui/UserPanel";
-import type { ReactNode } from "react";
+import type { AdminShellVariantProps } from "../../../model/admin-shell.types";
 
-interface SideBarLayoutProps {
-    children: ReactNode;
-}
-
-const SideBarLayout = ({ children }: SideBarLayoutProps) => {
+const SideBarLayout = ({ children }: AdminShellVariantProps) => {
     const locale = useAppLocale();
     const paths = {
         home: appPaths.home(locale),

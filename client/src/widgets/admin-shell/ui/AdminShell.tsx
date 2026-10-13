@@ -1,6 +1,5 @@
 import {
     AdminShellVariants,
-    defaultAdminShellVariant,
 } from "../model/admin-shell.registry";
 import type { AdminShellVariantProps } from "../model/admin-shell.types";
 
@@ -11,7 +10,7 @@ const AdminShell = ({ children }: AdminShellVariantProps) => {
 
     let model = AdminShellVariants.find((mod) => mod.id === selectedModel);
     if (!model) {
-        model = defaultAdminShellVariant;
+        model = AdminShellVariants[0];
     }
 
     return <model.component>{children}</model.component>;
