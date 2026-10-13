@@ -15,27 +15,7 @@
     font-size: 12px;
 }
 .admin-shell-variant-picker select { max-width: 180px; padding: 5px; background: var(--primary-color); color: var(--text-color-dark); border: var(--border-lite); border-radius: var(--radius-card-5); }
-.admin-shell{
-    display: flex;
-    min-height: 100vh;
 
-    & aside {
-        width: 250px;
-        background: var(--secondary-color);
-        color: var(--text-color-light);
-        padding: 20px;
-
-        & nav {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-    }
-
-    & main {
-        flex: 1;
-        padding: 20px;
-        background: var(--primary-color);
-    }
+@media (max-width: 560px) {
+    .admin-shell-variant-picker > span { display: none; }
 }

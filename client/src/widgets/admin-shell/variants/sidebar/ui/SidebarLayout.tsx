@@ -6,7 +6,7 @@ import UserPanel from "../../../../user-panel/ui/UserPanel";
 import type { AdminShellVariantProps, MenuNode } from "../../../model/admin-shell.types";
 import { TextLoader } from '../../../../../shared/ui/Loader';
 import { Button } from '../../../../../shared/ui/Button/Button';
-import { MenuIcon } from '../../MenuIcon';
+import { MenuIcon } from '../../../ui/MenuIcon';
 import './SidebarLayout.css';
 
 const itemPath = (locale: string, slug: string) => `/${locale}/pages/${encodeURIComponent(slug)}`;

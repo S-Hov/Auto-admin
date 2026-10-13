@@ -4,8 +4,8 @@ import { useAppLocale } from '../../../../../app/routing/locale/use-app-locale';
 import { appPaths } from '../../../../../app/routing/app-paths';
 import UserPanel from '../../../../user-panel/ui/UserPanel';
 import type { AdminShellVariantProps, MenuNode } from '../../../model/admin-shell.types';
-import { getGooeyPosition, getOrbitPoint, type Point, type Viewport } from '../../../model/gooey-position';
-import { MenuIcon } from '../../MenuIcon';
+import { getGooeyPosition, getOrbitPoint, type Point, type Viewport } from '../model/gooey-position';
+import { MenuIcon } from '../../../ui/MenuIcon';
 import { DotsLoader } from '../../../../../shared/ui/Loader';
 import './GooeyLayout.css';
 

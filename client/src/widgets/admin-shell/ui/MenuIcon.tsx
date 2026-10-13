@@ -29,7 +29,7 @@ export function MenuIcon({ icon, className = '' }: MenuIconProps) {
     const url = meta ? getMask(meta.component) : undefined;
     return (
         <span
-            className={`menu-icon sidebar-icon ${className}`}
+            className={`menu-icon ${className}`}
             aria-hidden="true"
             style={url ? { '--menu-icon': `url("${url}")` } as CSSProperties : undefined}
         />

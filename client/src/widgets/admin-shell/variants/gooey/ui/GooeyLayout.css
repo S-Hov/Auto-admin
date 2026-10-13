@@ -343,7 +343,5 @@
     .gooey-launcher > span:not(.menu-icon) {
         display: none;
     }
-    .admin-shell-variant-picker > span {
-        display: none;
-    }
+    
 }

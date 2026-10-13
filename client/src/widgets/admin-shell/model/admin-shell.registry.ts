@@ -1,7 +1,7 @@
 import type { AdminShellVariantDefinition } from "./admin-shell.types";
-import SideBarLayout from "../ui/variants/sidebar/SidebarLayout";
-import GooeyLayout from '../ui/variants/gooey/GooeyLayout';
-import TopbarLayout from '../ui/variants/topbar/TopbarLayout';
+import SideBarLayout from "../variants/sidebar/ui/SidebarLayout";
+import GooeyLayout from '../variants/gooey/ui/GooeyLayout';
+import TopbarLayout from '../variants/topbar/ui/TopbarLayout';
 
 export const defaultAdminShellVariant: AdminShellVariantDefinition = {
     id: "sidebar",
