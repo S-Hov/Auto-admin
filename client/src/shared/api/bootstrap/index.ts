@@ -1,9 +1,9 @@
 import { apiClient } from "../apiClient"
-import type { BootstrapStatusResponse } from "./bootstrap.types"
+import { bootstrapResponseSchema } from "./bootstrap.schema"
 
 export const bootstrap = {
     getStatus() {
-        return apiClient<BootstrapStatusResponse>('/bootstrap/status', {
+        return apiClient('/bootstrap/status', bootstrapResponseSchema, {
             method: 'GET'
         })
     }
