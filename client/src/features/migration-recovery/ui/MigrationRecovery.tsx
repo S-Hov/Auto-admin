@@ -20,12 +20,12 @@ interface RecoveryInfoItem {
     key: keyof RecoveryMigrationResponse;
 }
 
-const recoveryInfoItems: RecoveryInfoItem[] = [
+const recoveryInfoItems = [
     { name: "Версия", key: "version" },
     { name: "Имя", key: "name" },
     { name: "Хэш", key: "checksum" },
     { name: "Статус", key: "status" }
-]
+] as const satisfies readonly RecoveryInfoItem[];
 
 const MigrationRecovery = () => {
     const {

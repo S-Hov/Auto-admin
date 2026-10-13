@@ -1,22 +1,17 @@
 import { apiClient } from '../../apiClient';
 import type {
     ApplyNextMigrationRequest,
-    ApplyNextMigrationResponse,
-    DbCheckResponse,
     DbConnectionPayload,
     MarkMigrationAppliedRequest,
-    MarkMigrationAppliedResponse,
-    MigrationPlanResponse,
-    RecoveryMigrationResponse,
     RetryMigrationRequest,
-    RetryMigrationResponse,
 } from './install.types';
+import { dbCheckResponseSchema, migrationPlanResponseSchema, applyNextMigrationResponseSchema, retryMigrationResponseSchema, markMigrationAppliedResponseSchema, recoveryMigrationResponseSchema } from './install.schema';
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
 
 export const installDatabase = {
     checkTheConnection(data: DbConnectionPayload, token: string) {
-        return apiClient<DbCheckResponse>('/install/check-connection', {
+        return apiClient('/install/check-connection', dbCheckResponseSchema, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
@@ -26,7 +21,7 @@ export const installDatabase = {
     },
 
     getMigrationPlan() {
-        return apiClient<MigrationPlanResponse>('/install/migrations/plan', {
+        return apiClient('/install/migrations/plan', migrationPlanResponseSchema, {
             method: 'GET',
             headers: {
                 [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
@@ -35,7 +30,7 @@ export const installDatabase = {
     },
 
     applyNextMigration(expectedVersion: ApplyNextMigrationRequest['expectedVersion']) {
-        return apiClient<ApplyNextMigrationResponse>('/install/migrations/apply-next', {
+        return apiClient('/install/migrations/apply-next', applyNextMigrationResponseSchema, {
             method: 'POST',
             body: JSON.stringify({ expectedVersion }),
             headers: {
@@ -45,7 +40,7 @@ export const installDatabase = {
     },
 
     retryMigration(data: RetryMigrationRequest) {
-        return apiClient<RetryMigrationResponse>('/install/migrations/retry', {
+        return apiClient('/install/migrations/retry', retryMigrationResponseSchema, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
@@ -55,7 +50,7 @@ export const installDatabase = {
     },
 
     markMigrationApplied(data: MarkMigrationAppliedRequest) {
-        return apiClient<MarkMigrationAppliedResponse>('/install/migrations/mark-applied', {
+        return apiClient('/install/migrations/mark-applied', markMigrationAppliedResponseSchema, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
@@ -65,7 +60,7 @@ export const installDatabase = {
     },
 
     getRecoveryInfo() {
-        return apiClient<RecoveryMigrationResponse>('/install/migrations/recovery', {
+        return apiClient('/install/migrations/recovery', recoveryMigrationResponseSchema, {
             method: 'GET',
             headers: {
                 [HTTP_HEADERS.INSTALL_TOKEN]: sessionStorage.getItem(STORAGE_KEYS.INSTALL_TOKEN) || ''
