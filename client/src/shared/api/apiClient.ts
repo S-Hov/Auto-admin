@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { apiErrorSchema, apiSuccessSchema } from './schema';
 import { ApiClientError } from "./ApiClientError";
 import type { ApiErrorPayload, ApiSuccessPayload } from "./types";
@@ -38,13 +38,9 @@ export const getBaseUrl = (): string => {
     return 'http://127.0.0.1:5180';
 }
 
-export function apiClient<T>(url: string, schema: z.ZodType<T>, options?: RequestInit): Promise<T>;
-// Temporary compatibility while endpoint modules are migrated in separate commits.
-export function apiClient<TData = unknown>(url: string, options?: RequestInit): Promise<ApiSuccessPayload<TData>>;
-export async function apiClient(url: string, schemaOrOptions?: z.ZodType | RequestInit, requestOptions?: RequestInit): Promise<unknown> {
-    const schema = schemaOrOptions instanceof z.ZodType ? schemaOrOptions : apiSuccessSchema;
-    const options = schemaOrOptions instanceof z.ZodType ? requestOptions : schemaOrOptions;
-    const headers = new Headers(options?.headers as HeadersInit);
+/** Each endpoint supplies its complete server response schema. */
+export async function apiClient<T>(url: string, schema: z.ZodType<T>, options?: RequestInit): Promise<T> {
+    const headers = new Headers(options?.headers);
     const isFormDataBody: boolean = typeof FormData !== 'undefined' && options?.body instanceof FormData;
 
     if (!isFormDataBody && !headers.has('Content-Type')) {
