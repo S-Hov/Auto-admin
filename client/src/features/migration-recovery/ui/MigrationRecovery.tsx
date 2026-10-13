@@ -13,7 +13,7 @@ import { MigrationRecoverySchema, type MigrationRecoveryFormValues } from "../mo
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import './MigrationRecovery.css';
-import '../../../app/styles/loaders.css';
+import { TextLoader } from '../../../shared/ui/Loader';
 
 interface RecoveryInfoItem {
     name: string;
@@ -131,7 +131,7 @@ const MigrationRecovery = () => {
                                 <span>{item.name}: </span>
                                 <strong className={`${item.key}__${migrationInfo?.[item.key] ?? ''}`} title={migrationInfo?.[item.key] ?? ''}>
                                     {migrationInfo?.[item.key] ?? (
-                                        <div className="recovery-info__item-loader loader__loading"></div>
+                                        <TextLoader className="recovery-info__item-loader" />
                                     )}
                                 </strong>
                             </div>

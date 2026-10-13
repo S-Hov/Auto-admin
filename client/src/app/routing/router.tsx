@@ -6,6 +6,7 @@ import InstallLayout from './layouts/InstallLayout';
 import { AppGate } from './guards/AppGate';
 import LocaleLayout from './layouts/LocaleLayout';
 import { RootLocaleRedirect } from './redirects/RootLocaleRedirect';
+import { PageLoader as PageLoadingIndicator } from '../../shared/ui/Loader';
 
 
 
@@ -20,9 +21,7 @@ const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/M
 
 const PageLoader = (component: React.ReactNode) => (
   <Suspense fallback={
-    <div className='loader-container'>
-      <div className="page-loader"></div>
-    </div>
+    <PageLoadingIndicator />
   }>
     {component}
   </Suspense>

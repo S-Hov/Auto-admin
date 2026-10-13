@@ -1,4 +1,5 @@
 import { type ComponentPropsWithRef } from 'react';
+import { DotsLoader } from '../Loader';
 
 import './Button.css';
 
@@ -23,7 +24,7 @@ export const Button = ({
             disabled={disabled || isLoading}
         >
             {isLoading
-                ? <span className="button-loader"></span>
+                ? <DotsLoader />
                 : children
             }
 
