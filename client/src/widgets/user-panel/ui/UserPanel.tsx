@@ -3,6 +3,7 @@ import { useAuth } from "../../../app/providers/auth/AuthContext";
 import { apiMessage } from "../../../shared/i18n/api-message";
 import { toast } from "sonner";
 import { Button } from "../../../shared/ui/Button/Button";
+import "./UserPanel.css";
 
 const UserPanel = () => {
     const { user, logout } = useAuth();
@@ -31,14 +32,8 @@ const UserPanel = () => {
     };
 
     return (
-        <header
-            style={{
-                marginBottom: "20px",
-                paddingBottom: "10px",
-                borderBottom: "1px solid #e2e8f0",
-            }}
-        >
-            <span>
+        <div className="user-panel">
+            <span className="user-panel__identity" title={user.username}>
                 Вы вошли как: <strong>{user.username}</strong>
             </span>
 
@@ -47,10 +42,11 @@ const UserPanel = () => {
                 variant="danger"
                 onClick={() => void handleLogout()}
                 isLoading={isLoggingOut}
+                title="Выйти из системы"
             >
                 Выйти
             </Button>
-        </header>
+        </div>
     );
 };
 

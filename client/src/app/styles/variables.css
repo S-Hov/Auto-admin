@@ -24,4 +24,11 @@
     --gap-lg: clamp(10px, 3vw, 20px);
     --gap-md: clamp(5px, 2vw, 10px);
     --gap-sm: clamp(2.5px, 1vw, 5px);
+    --surface-board: color-mix(in srgb, var(--primary-color) 94%, var(--accent-color));
+    --surface-raised: var(--primary-color);
+    --border-color: color-mix(in srgb, var(--text-color-muted) 55%, var(--primary-color));
+    --text-color-subtle: color-mix(in srgb, var(--text-color-dark) 75%, var(--primary-color));
+    --accent-surface: color-mix(in srgb, var(--accent-color) 12%, var(--primary-color));
+    --focus-ring: 0 0 0 5px color-mix(in srgb, var(--accent-color) 15%, transparent);
+    --shadow-node: 0 5px 16px color-mix(in srgb, var(--secondary-color) 8%, transparent);
 }

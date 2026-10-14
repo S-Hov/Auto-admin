@@ -2,7 +2,7 @@
     display: flex;
     min-height: 100vh;
 
-    & aside {
+    & > aside {
         width: 250px;
         background: var(--secondary-color);
         color: var(--text-color-light);
@@ -16,7 +16,7 @@
         }
     }
 
-    & main {
+    & > main {
         flex: 1;
         padding: 20px;
         background: var(--primary-color);

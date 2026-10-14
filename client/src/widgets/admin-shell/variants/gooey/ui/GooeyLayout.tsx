@@ -111,7 +111,7 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
             event.preventDefault();
             openAt({ x: event.clientX, y: event.clientY });
         }}>
-            <main className="gooey-content"><UserPanel />{children}</main>
+            <main className="gooey-content">{children}</main>
             <button type="button" className="gooey-launcher" aria-label="Открыть меню" aria-haspopup="dialog" aria-controls={menuId} aria-expanded={isOpen} aria-keyshortcuts="Control+Alt+M" title="Меню · Ctrl+Alt+M · ПКМ на свободном месте" onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 openAt({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
@@ -162,7 +162,7 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                     {!branch.length && <p className="gooey-empty">Нет доступных разделов</p>}
                 </div>}
                 <div className="gooey-pagination"><button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); requestAnimationFrame(focusCenter); }} aria-label="Предыдущие пункты">←</button><span aria-live="polite">{currentPage + 1} / {pageCount}</span><button type="button" disabled={currentPage + 1 >= pageCount} onClick={() => { setPage(currentPage + 1); requestAnimationFrame(focusCenter); }} aria-label="Следующие пункты">→</button></div>
-                <p className="gooey-hint">Esc — закрыть · ← — назад · Tab — выбрать</p>
+                <div className="gooey-account"><UserPanel /></div>
             </dialog>
         </div>
     );

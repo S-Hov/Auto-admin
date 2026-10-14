@@ -51,7 +51,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         model = defaultAdminShellVariant;
     }
 
-    return <>
+    return <div className="admin-shell-container">
         <model.component menuState={menuState} onRetryMenu={retryMenu}>{children}</model.component>
         <label className="admin-shell-variant-picker">
             <span>Вид меню</span>
@@ -62,7 +62,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
                 {AdminShellVariants.map((variant) => <option key={variant.id} value={variant.id}>{variant.label}</option>)}
             </select>
         </label>
-    </>;
+    </div>;
 };
 
 export default AdminShell;

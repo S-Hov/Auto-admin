@@ -19,3 +19,24 @@
 @media (max-width: 560px) {
     .admin-shell-variant-picker > span { display: none; }
 }
+.admin-shell-container:has(.menu-editor-page) {
+    height: 100dvh;
+    overflow: hidden;
+    & > .sidebar-layout, & > .topbar-layout, & > .gooey-layout {
+        height: 100%; min-height: 0; overflow: hidden;
+    }
+    & > .topbar-layout, & > .gooey-layout { display: flex; flex-direction: column; }
+    & .topbar-header { flex-shrink: 0; max-height: 45%; overflow-y: auto; }
+    & > .sidebar-layout > .sidebar-panel { min-height: 0; }
+    & > .sidebar-layout > main, & > .topbar-layout > main, & > .gooey-layout > main {
+        display: flex; flex-direction: column; flex: 1;
+        min-height: 0; min-width: 0; overflow: hidden;
+        padding: var(--gap-lg);
+        padding-bottom: 76px;
+    }
+}
+@media (max-width: 760px) {
+    .admin-shell-container:has(.menu-editor-page) > .sidebar-layout > .sidebar-panel {
+        max-height: 45%; overflow-y: auto; flex-shrink: 0;
+    }
+}

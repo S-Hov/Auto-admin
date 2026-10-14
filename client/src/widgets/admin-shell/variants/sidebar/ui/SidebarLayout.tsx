@@ -119,11 +119,10 @@ const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantPr
                     <span className="sidebar-collapse-symbol" aria-hidden="true">{collapsed ? '»' : '«'}</span>
                     <span className="sidebar-label">Свернуть меню</span>
                 </button>
-                <div className="sidebar-footer"><span className="sidebar-status-dot" /><span className="sidebar-footer-label">Локальный макет меню</span></div>
+                <UserPanel />
             </aside>
 
             <main>
-                <UserPanel />
                 {children}
             </main>
         </div>

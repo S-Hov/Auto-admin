@@ -47,9 +47,9 @@ export function MenuEditorBoard({ root, selectedId, onSelect }: MenuEditorBoardP
                 fitView
                 fitViewOptions={fitViewOptions}
             >
-                <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#c8d2ce" />
+                <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="var(--border-color)" />
                 <Controls showInteractive={false} fitViewOptions={fitViewOptions} />
-                <MiniMap pannable zoomable nodeColor={(node) => node.selected ? "#008a3b" : "#c8d2ce"} />
+                <MiniMap pannable zoomable nodeColor={(node) => node.selected ? "var(--accent-color)" : "var(--border-color)"} />
                 <Panel position="top-left" className="menu-editor__board-hint">
                     Перетаскивайте фон · Колесо — масштаб · Нажмите пункт для просмотра
                 </Panel>

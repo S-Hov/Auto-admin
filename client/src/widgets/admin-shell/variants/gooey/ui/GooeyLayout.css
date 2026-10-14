@@ -3,6 +3,18 @@
     background: var(--primary-color);
     color: var(--text-color-dark);
 }
+.gooey-account {
+    position: absolute;
+    top: 8px;
+    left: 22px;
+    right: 22px;
+    padding: 6px 10px;
+    border-radius: var(--radius-card-4);
+    background: var(--primary-color);
+    & .user-panel { justify-content: space-between; }
+}
+.gooey-dialog .gooey-breadcrumbs { margin-top: 64px; }
+.gooey-dialog.is-compact .gooey-account { position: static; margin: var(--gap-md); }
 .gooey-content {
     padding: 20px;
     padding-bottom: 100px;

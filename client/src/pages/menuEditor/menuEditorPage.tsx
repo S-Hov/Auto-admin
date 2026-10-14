@@ -82,9 +82,7 @@ const MenuEditorContent = () => {
     };
 
     return (
-        <div>
-            <h1>Редактор меню</h1>
-            {useDemoMenu && <p>Демонстрационное меню — данные не сохраняются в базу.</p>}
+        <div className="menu-editor-page">
             {status.status === "loading" && (
                 <PageLoader label="Загрузка меню" />
             )}
