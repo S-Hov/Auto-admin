@@ -18,14 +18,14 @@
     }
     
     &:focus {
-        border-color: var(--accent-color-2);
+        border-color: var(--accent-color);
         background: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+        box-shadow: var(--focus-ring);
     }
     
     &:hover {
         background: var(--primary-color);
-        border-color: var(--accent-color-2);
+        border-color: var(--accent-color);
     }
 
     &.input-error {
