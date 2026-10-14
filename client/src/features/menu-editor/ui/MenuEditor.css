@@ -1,8 +1,96 @@
 .menu-editor {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
-    gap: 24px;
+    gap: 20px;
+    align-items: start;
 }
+.menu-editor__structure { padding: 0; overflow: hidden; }
+.menu-editor__structure > h2, .menu-editor__structure > p { margin: 16px 20px; }
+.menu-editor__board {
+    height: clamp(480px, 70vh, 900px);
+    width: 100%;
+    background: #f7faf8;
+    border-top: 1px solid #dce5df;
+}
+.menu-editor__board-hint {
+    background: #ffffffeb;
+    border: 1px solid #dce5df;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #52635a;
+    font-size: 12px;
+    max-width: calc(100% - 32px);
+    pointer-events: none;
+}
+.menu-board-node {
+    width: 160px;
+    height: 136px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+.menu-board-node__circle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #b6c8bd;
+    box-shadow: 0 5px 16px #183b2412;
+    color: #345640;
+    transition: border-color 150ms, box-shadow 150ms;
+}
+.menu-board-node:hover .menu-board-node__circle,
+.menu-board-node--selected .menu-board-node__circle {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 5px #008a3b18;
+}
+.menu-board-node--selected .menu-board-node__name { color: var(--accent-color); }
+.menu-board-node--inactive { opacity: 0.55; }
+.menu-board-node__icon { width: 32px; height: 32px; }
+.menu-board-node__media { width: 36px; height: 36px; object-fit: contain; }
+.menu-board-node__count {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    background: #e7f1e9;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    min-width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+}
+.menu-board-node__name {
+    margin-top: 8px;
+    max-width: 156px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+.menu-board-node__status { font-size: 10px; color: #52635a; }
+.menu-board-node .react-flow__handle {
+    top: 38px;
+    border: none;
+    background: #9bb4a4;
+    width: 5px;
+    height: 5px;
+    pointer-events: none;
+}
+.menu-editor__board .react-flow__edge-path { stroke: #a0b8aa; stroke-width: 1.5; }
+.menu-editor__board .react-flow__node:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 5px; }
+.menu-editor__board .react-flow__minimap { width: 140px; height: 100px; border-radius: 8px; overflow: hidden; }
 .menu-editor__structure, .menu-editor__panel {
     padding: 20px;
     border: 1px solid var(--secondary-color);
