@@ -36,7 +36,6 @@
     flex: 1;
     min-height: 0;
     width: 100%;
-    background: var(--surface-board);
     border-top: 1px solid var(--border-color);
     --xy-minimap-background-color: var(--surface-raised);
     --xy-minimap-mask-background-color: color-mix(in srgb, var(--secondary-color) 8%, transparent);
