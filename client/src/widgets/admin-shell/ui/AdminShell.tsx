@@ -4,7 +4,7 @@ import {
     defaultAdminShellVariant,
 } from "../model/admin-shell.registry";
 import type { AdminShellVariantId, MenuState } from "../model/admin-shell.types";
-import { getMenu } from '../../../shared/api/menu';
+import { menu } from '../../../shared/api/menu';
 import { buildMenuTree } from '../model/build-menu-tree';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
 
@@ -30,7 +30,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         let active = true;
         async function loadMenu() {
             try {
-                const response = await getMenu();
+                const response = await menu.getMenu();
                 const items = buildMenuTree(response.data);
                 if (active) setMenuState({ status: 'ready', items });
             } catch {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { apiResponseSchema } from '../schema';
 
-export const menuItemSchema = z.looseObject({
+export const manageableMenuItemDtoSchema = z.looseObject({
     id: z.number().int(),
     parentId: z.number().int().nullable(),
     name: z.string(),
@@ -9,13 +10,14 @@ export const menuItemSchema = z.looseObject({
     iconType: z.enum(['icon', 'svg', 'image', 'video']),
     sortOrder: z.number().int(),
     isActive: z.boolean(),
+});
+
+export const visibleMenuItemDtoSchema = manageableMenuItemDtoSchema.extend({
     canView: z.boolean(),
     canCreate: z.boolean(),
     canUpdate: z.boolean(),
     canDelete: z.boolean(),
 });
-export const menuResponseSchema = z.looseObject({
-    success: z.literal(true),
-    code: z.string().min(1),
-    data: z.array(menuItemSchema),
-});
+
+export const visibleMenuResponseSchema = apiResponseSchema(z.array(visibleMenuItemDtoSchema));
+export const manageableMenuResponseSchema = apiResponseSchema(z.array(manageableMenuItemDtoSchema));
