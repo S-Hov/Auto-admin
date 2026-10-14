@@ -11,6 +11,10 @@ import { Button } from "../../shared/ui/Button/Button";
 import { PageLoader } from "../../shared/ui/Loader";
 import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
 import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
+import { mockMenuItems } from "../../shared/api/menu/menu.mock";
+
+// Temporary demo mode for developing the editor; production uses the API.
+const useDemoMenu = import.meta.env.DEV;
 
 interface StatusLoading {
     status: "loading";
@@ -49,7 +53,9 @@ const MenuEditorContent = () => {
 
         const loadMenu = async () => {
             try {
-                const response = await menu.getManageableMenu();
+                const response = useDemoMenu
+                    ? await Promise.resolve({ data: mockMenuItems.map((item) => ({ ...item })) })
+                    : await menu.getManageableMenu();
                 if (!active) return;
                 buildEditorTree(response.data);
                 setStatus({
@@ -78,6 +84,7 @@ const MenuEditorContent = () => {
     return (
         <div>
             <h1>Редактор меню</h1>
+            {useDemoMenu && <p>Демонстрационное меню — данные не сохраняются в базу.</p>}
             {status.status === "loading" && (
                 <PageLoader label="Загрузка меню" />
             )}
