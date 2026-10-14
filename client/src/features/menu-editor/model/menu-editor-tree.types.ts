@@ -5,9 +5,9 @@ export interface EditableMenuItemDto extends ManageableMenuItemDto {
     children: EditableMenuItemDto[];
 }
 
-export interface EditableVirtualMenuItem extends Omit<ManageableMenuItemDto, "id" | "name" | "parentId"> {
+export interface EditableVirtualMenuItem {
     kind: "root";
     id: "virtual-root";
-    name: "Menu";
+    name: string;
     children: EditableMenuItemDto[];
 }

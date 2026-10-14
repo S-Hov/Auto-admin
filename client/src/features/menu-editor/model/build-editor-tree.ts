@@ -1,7 +1,7 @@
 import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
 import type { EditableMenuItemDto, EditableVirtualMenuItem } from "./menu-editor-tree.types";
 
-export const buildEditorTree = (items: ManageableMenuItemDto[]): EditableVirtualMenuItem => {
+export const buildEditorTree = (items: readonly ManageableMenuItemDto[]): EditableVirtualMenuItem => {
     const nodes = new Map<number, EditableMenuItemDto>();
     for (const item of items) {
         if (nodes.has(item.id)) throw new Error('Повторяющийся идентификатор пункта меню');
@@ -11,7 +11,7 @@ export const buildEditorTree = (items: ManageableMenuItemDto[]): EditableVirtual
     const roots: EditableMenuItemDto[] = [];
     for (const node of nodes.values()) {
         const visited = new Set<number>();
-        let current = node;
+        let current: EditableMenuItemDto | undefined = node;
         while (current) {
             if (visited.has(current.id)) throw new Error('Циклическая структура меню');
             visited.add(current.id);
@@ -23,15 +23,15 @@ export const buildEditorTree = (items: ManageableMenuItemDto[]): EditableVirtual
         else nodes.get(node.parentId)!.children.push(node);
     }
 
-    const sortVisible = (siblings: EditableMenuItemDto[]): EditableMenuItemDto[] => siblings
+    const sortTree = (siblings: EditableMenuItemDto[]): EditableMenuItemDto[] => siblings
         .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-        .map((node) => ({ ...node, children: sortVisible(node.children) }));
+        .map((node) => ({ ...node, children: sortTree(node.children) }));
 
     const virtualItem: EditableVirtualMenuItem = {
         kind: "root",
         id: "virtual-root",
         name: "Menu",
-        children: sortVisible(roots),
+        children: sortTree(roots),
     };
 
     return virtualItem;
