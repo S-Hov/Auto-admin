@@ -11,3 +11,6 @@ export interface EditableVirtualMenuItem {
     name: string;
     children: EditableMenuItemDto[];
 }
+
+export type EditableMenuNode = EditableMenuItemDto | EditableVirtualMenuItem;
+export type MenuEditorSelection = EditableMenuNode["id"] | null;

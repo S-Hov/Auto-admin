@@ -9,6 +9,8 @@ import { appPaths } from "../../app/routing/app-paths";
 import { useAppLocale } from "../../app/routing/locale/use-app-locale";
 import { Button } from "../../shared/ui/Button/Button";
 import { PageLoader } from "../../shared/ui/Loader";
+import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
+import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
 
 interface StatusLoading {
     status: "loading";
@@ -49,6 +51,7 @@ const MenuEditorContent = () => {
             try {
                 const response = await menu.getManageableMenu();
                 if (!active) return;
+                buildEditorTree(response.data);
                 setStatus({
                     status: "ready",
                     items: response.data,
@@ -85,15 +88,7 @@ const MenuEditorContent = () => {
                 </div>
             )}
             {status.status === "ready" && (
-                status.items.length === 0 ? (
-                    <div>
-                        <p>Меню пока не настроено</p>
-                        <Button disabled>Создать первый пункт</Button>
-                        <p>Создание пунктов появится на следующем этапе.</p>
-                    </div>
-                ) : (
-                    <p>Загружено пунктов: {status.items.length}</p>
-                )
+                <MenuEditor items={status.items} />
             )}
         </div>
     );
