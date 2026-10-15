@@ -2,7 +2,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100svh;
-  background: linear-gradient(-135deg, #006f79, darkblue);
+  background: linear-gradient(-135deg, var(--accent-color-2), var(--accent-color));
 }
 
 .install-layout__background {

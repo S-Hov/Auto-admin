@@ -6,7 +6,7 @@ const installLayout = () => {
     <div className="install-layout">
       <iframe
         className="install-layout__background"
-        src={`${import.meta.env.BASE_URL}animations/install-particles/index.html`}
+        src={`${import.meta.env.BASE_URL}animations/particle-background/index.html`}
         title=""
         aria-hidden="true"
         tabIndex={-1}

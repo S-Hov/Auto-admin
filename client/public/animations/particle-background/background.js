@@ -22,7 +22,7 @@ let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 } catch {
-  // The installation form remains usable without the decorative canvas.
+  // The page remains usable without the decorative canvas.
 }
 
 if (renderer) {
