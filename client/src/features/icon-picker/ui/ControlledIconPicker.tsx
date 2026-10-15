@@ -1,18 +1,12 @@
-import { useForm } from "react-hook-form";
-import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
-import {
-    type ControlledIconPickerFormValues,
-    ControlledIconPickerSchema,
-} from "../model/ControlledIconPicker.schema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "../../../shared/ui/Icon";
 
 import './ControlledIconPicker.css'
 import { Button } from "../../../shared/ui/Button/Button";
+import { getIconById } from "../../../shared/assets/icons-catalog";
 
 interface IconPickerProps {
     value: string | null;
-    onChoose?: () => void;
+    onChoose: () => void;
     disabled?: boolean;
 }
 
@@ -21,31 +15,21 @@ const ControlledIconPicker = ({
     onChoose,
     disabled = false,
 }: IconPickerProps) => {
-    const { control } = useForm<ControlledIconPickerFormValues>({
-        resolver: zodResolver(ControlledIconPickerSchema),
-        defaultValues: {
-            icon: value,
-        },
-    });
+    const icon = getIconById(value);
 
     return (
         <div className="icon-picker">
             <div className="icon-picker__preview">
-                <Icon icon={value} className="icon-picker__icon" />
+                {icon?.id ? <Icon icon={icon.id} className="icon-picker__icon" /> : "-"}
             </div>
-            <ControlledInput
-                control={control}
-                name="icon"
-                label="Выберите иконку"
-                placeholder="Выберите иконку"
-                type="text"
-                defaultValue={value}
-                disabled={true}
-                showLabel={false}
-            />
+            <span className="icon-picker__name">
+                {icon?.name || "Не выбрано"}
+            </span>
             <Button
                 variant="secondary"
                 onClick={onChoose}
+                disabled={disabled}
+                type="button"
             >
                 Выбрать иконку
             </Button>
