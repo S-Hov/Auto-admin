@@ -9,7 +9,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
     isError,
     type = 'text',
     className = '',
-    defaultValue,
     ...props
 }, ref) => {
     const inputClassName = `base-input ${isError ? 'input-error' : ''} ${className}`.trim();
@@ -20,7 +19,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
             ref={ref}
             type={type}
             className={`input ${inputClassName}`}
-            value={defaultValue}
         />
     );
 });
