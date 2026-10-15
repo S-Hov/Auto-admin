@@ -11,11 +11,15 @@
 }
 .menu-editor {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-lg);
     flex: 1;
     min-height: 0;
     min-width: 0;
+
+    &.menu-editor--selected {
+        grid-template-columns: minmax(0, 1fr) clamp(350px, 20vw,650px);
+    }
 }
 .menu-editor__structure, .menu-editor__panel {
     border: 1px solid var(--border-color);
