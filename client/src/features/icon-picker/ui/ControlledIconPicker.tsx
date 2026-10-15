@@ -3,6 +3,8 @@ import { Icon } from "../../../shared/ui/Icon";
 import './ControlledIconPicker.css'
 import { Button } from "../../../shared/ui/Button/Button";
 import { getIconById } from "../../../shared/assets/icons-catalog";
+import { useState } from "react";
+import Modal from "../../../shared/ui/Modal/Modal";
 
 interface IconPickerProps {
     value: string | null;
@@ -16,6 +18,7 @@ const ControlledIconPicker = ({
     disabled = false,
 }: IconPickerProps) => {
     const icon = getIconById(value);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div className="icon-picker">
@@ -27,12 +30,19 @@ const ControlledIconPicker = ({
             </span>
             <Button
                 variant="secondary"
-                onClick={onChoose}
+                onClick={() => setIsModalOpen(true)}
                 disabled={disabled}
                 type="button"
             >
                 Выбрать иконку
             </Button>
+            <Modal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="Выбрать иконку"
+            >
+                alo
+            </Modal>
         </div>
     );
 };

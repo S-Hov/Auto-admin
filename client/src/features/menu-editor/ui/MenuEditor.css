@@ -161,6 +161,11 @@
     & dt { font-weight: 600; margin-top: var(--gap-lg); }
     & dd { margin: 4px 0 0; overflow-wrap: anywhere; }
 }
+
+.react-flow__panel.react-flow__attribution.bottom.right {
+    display: none;
+}
+
 @media (max-width: 760px) {
     .menu-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 160px); }
     .menu-editor__board-hint { font-size: 10px; }

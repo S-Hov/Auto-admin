@@ -8,12 +8,15 @@
     & .icon-picker__preview {
         aspect-ratio: 1;
         background: var(--primary-color);
-        padding: 10px;
         border-radius: var(--radius-card-2);
 
         & .icon-picker__icon {
             width: 24px;
             height: 24px;
+        }
+
+        & .icon-picker__name {
+            border-bottom: 1px solid var(--accent-color);
         }
     }
 
