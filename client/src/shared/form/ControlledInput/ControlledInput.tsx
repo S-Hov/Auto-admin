@@ -12,6 +12,7 @@ interface ControlledInputProps<T extends FieldValues> {
     placeholder?: string;
     defaultValue?: string | number;
     disabled?: boolean;
+    showLabel?: boolean;
 };
 
 export function ControlledInput<T extends FieldValues>({
@@ -22,6 +23,7 @@ export function ControlledInput<T extends FieldValues>({
     placeholder,
     defaultValue,
     disabled = false,
+    showLabel = true,
 }: ControlledInputProps<T>) {
     return (
         <Controller
@@ -30,7 +32,7 @@ export function ControlledInput<T extends FieldValues>({
             defaultValue={defaultValue as PathValue<T, Path<T>> | undefined}
             render={({ field: { onChange, value, ...fieldProps }, fieldState: { error } }) => (
                 <div className="field-group">
-                    <label htmlFor={name}>{label}</label>
+                    {showLabel && <label htmlFor={name}>{label}</label>}
 
                     <Input
                         {...fieldProps}

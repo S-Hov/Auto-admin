@@ -5,7 +5,7 @@ import { appPaths } from '../../../../../app/routing/app-paths';
 import UserPanel from '../../../../user-panel/ui/UserPanel';
 import type { AdminShellVariantProps, MenuNode } from '../../../model/admin-shell.types';
 import { getGooeyPosition, getOrbitPoint, type Point, type Viewport } from '../model/gooey-position';
-import { MenuIcon } from '../../../ui/MenuIcon';
+import { Icon } from '../../../../../shared/ui/Icon';
 import { DotsLoader } from '../../../../../shared/ui/Loader';
 import './GooeyLayout.css';
 
@@ -115,7 +115,7 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
             <button type="button" className="gooey-launcher" aria-label="Открыть меню" aria-haspopup="dialog" aria-controls={menuId} aria-expanded={isOpen} aria-keyshortcuts="Control+Alt+M" title="Меню · Ctrl+Alt+M · ПКМ на свободном месте" onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 openAt({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-            }}><MenuIcon icon="menu-hamburger-classic" /><span>Меню</span><kbd>Ctrl Alt M</kbd></button>
+            }}><Icon icon="menu-hamburger-classic" /><span>Меню</span><kbd>Ctrl Alt M</kbd></button>
 
             <dialog ref={dialog} id={menuId} className={`gooey-dialog${position.compact ? ' is-compact' : ''}`} aria-labelledby={`${menuId}-title`} style={{ left: position.left, top: position.top, width: position.width, height: position.height }} onCancel={close} onClose={close} onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
@@ -154,7 +154,7 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                         {visible.map((item, index) => {
                             const point = getOrbitPoint(index, visible.length, position.radius);
                             const style = { '--dx': `${point.x}px`, '--dy': `${point.y}px`, '--delay': `${index * 35}ms` } as CSSProperties;
-                            const content = <><MenuIcon icon={item.icon} /><span className="gooey-item-label">{item.name}</span>{item.children.length > 0 && <span className="gooey-group-mark" aria-hidden="true">+</span>}</>;
+                            const content = <><Icon icon={item.icon} /><span className="gooey-item-label">{item.name}</span>{item.children.length > 0 && <span className="gooey-group-mark" aria-hidden="true">+</span>}</>;
                             return item.children.length ? <button key={item.id} type="button" className="gooey-item" style={style} title={item.name} aria-label={`${item.name}: открыть подразделы`} onClick={() => { setTrail([...trail, item.id]); setPage(0); requestAnimationFrame(focusCenter); }}>{content}</button>
                                 : <NavLink key={item.id} to={item.id === 0 ? appPaths.home(locale) : `/${locale}/pages/${encodeURIComponent(item.slug)}`} className={({ isActive }) => `gooey-item${isActive ? ' is-active' : ''}`} style={style} title={item.name} onClick={close}>{content}</NavLink>;
                         })}

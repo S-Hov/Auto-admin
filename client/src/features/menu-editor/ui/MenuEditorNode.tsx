@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { MenuBoardNode } from "../model/menu-editor-graph.types";
-import { MenuIcon } from "../../../widgets/admin-shell/ui/MenuIcon";
+import { Icon } from "../../../shared/ui/Icon";
 import { Button } from "../../../shared/ui/Button/Button";
 
 export function MenuEditorNode({ data, selected }: NodeProps<MenuBoardNode>) {
@@ -9,7 +9,7 @@ export function MenuEditorNode({ data, selected }: NodeProps<MenuBoardNode>) {
             {!data.isRoot && <Handle type="target" position={Position.Left} isConnectable={false} />}
             <div className="menu-board-node__circle">
                 {data.iconType === "icon" || !data.icon ? (
-                    <MenuIcon icon={data.icon} className="menu-board-node__icon" />
+                    <Icon icon={data.icon} className="menu-board-node__icon" />
                 ) : data.iconType === "video" ? (
                     <video src={data.icon} muted playsInline preload="none" className="menu-board-node__media" />
                 ) : (

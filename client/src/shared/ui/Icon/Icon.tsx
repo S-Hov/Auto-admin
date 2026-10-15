@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
-import './MenuIcon.css';
-import { getIconById, getIconSvgContent } from '../../../shared/assets/icons-catalog';
+import './Icon.css';
+import { getIconById, getIconSvgContent } from '../../assets/icons-catalog';
 
-interface MenuIconProps {
+export interface IconProps {
     icon: string | null;
     className?: string;
 }
@@ -24,14 +24,14 @@ function getMask(component: string): string | undefined {
     return url;
 }
 
-export function MenuIcon({ icon, className = '' }: MenuIconProps) {
+export function Icon({ icon, className = '' }: IconProps) {
     const meta = getIconById(icon ?? '') ?? getIconById('menu-grid-2x2-squares');
     const url = meta ? getMask(meta.component) : undefined;
     return (
         <span
-            className={`menu-icon ${className}`}
+            className={`ui-icon ${className}`}
             aria-hidden="true"
-            style={url ? { '--menu-icon': `url("${url}")` } as CSSProperties : undefined}
+            style={url ? { '--ui-icon': `url("${url}")` } as CSSProperties : undefined}
         />
     );
 }

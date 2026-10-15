@@ -6,7 +6,7 @@ import { appPaths } from '../../../../../app/routing/app-paths';
 import UserPanel from '../../../../user-panel/ui/UserPanel';
 import type { AdminShellVariantProps, MenuNode } from '../../../model/admin-shell.types';
 import { getTopbarPosition } from '../model/topbar-position';
-import { MenuIcon } from '../../../ui/MenuIcon';
+import { Icon } from '../../../../../shared/ui/Icon';
 import { DotsLoader } from '../../../../../shared/ui/Loader';
 import { Button } from '../../../../../shared/ui/Button/Button';
 import './TopbarLayout.css';
@@ -23,11 +23,11 @@ function DropdownItems({ items, onNavigate }: { items: MenuNode[]; onNavigate: (
         {items.map((item) => <li key={item.id}>
             {item.children.length ? <details className="topbar-subgroup" open={isBranchActive(item, locale, pathname)}>
                 <summary className="topbar-dropdown-row" data-active={isBranchActive(item, locale, pathname)}>
-                    <MenuIcon icon={item.icon} /><span>{item.name}</span><span className="topbar-arrow" aria-hidden="true" />
+                    <Icon icon={item.icon} /><span>{item.name}</span><span className="topbar-arrow" aria-hidden="true" />
                 </summary>
                 <div className="topbar-subitems"><DropdownItems items={item.children} onNavigate={onNavigate} /></div>
             </details> : <NavLink to={menuPath(locale, item.slug)} onClick={onNavigate} className={({ isActive }) => `topbar-dropdown-row${isActive ? ' is-active' : ''}`}>
-                <MenuIcon icon={item.icon} /><span>{item.name}</span><span className="topbar-link-mark" aria-hidden="true">↗</span>
+                <Icon icon={item.icon} /><span>{item.name}</span><span className="topbar-link-mark" aria-hidden="true">↗</span>
             </NavLink>}
         </li>)}
     </ul>;
@@ -96,16 +96,16 @@ export default function TopbarLayout({ children, menuState, onRetryMenu }: Admin
             <div className="topbar-brand-row">
                 <NavLink to={appPaths.home(locale)} onClick={navigate} className="topbar-brand"><span className="topbar-brand-symbol">A</span><span>Auto Admin<small>Рабочее пространство</small></span></NavLink>
                 <UserPanel />
-                <button className="topbar-mobile-toggle" type="button" aria-label={mobileOpen ? 'Скрыть меню' : 'Открыть меню'} aria-expanded={mobileOpen} aria-controls={navigationId} onClick={() => { close(); setMobileOpen((open) => !open); }}><MenuIcon icon="menu-hamburger-classic" /></button>
+                <button className="topbar-mobile-toggle" type="button" aria-label={mobileOpen ? 'Скрыть меню' : 'Открыть меню'} aria-expanded={mobileOpen} aria-controls={navigationId} onClick={() => { close(); setMobileOpen((open) => !open); }}><Icon icon="menu-hamburger-classic" /></button>
             </div>
             <nav id={navigationId} className={`topbar-navigation${mobileOpen ? ' is-open' : ''}`} aria-label="Основное меню" aria-busy={menuState.status === 'loading'}>
-                <NavLink end to={appPaths.home(locale)} onClick={navigate} className={({ isActive }) => `topbar-nav-item${isActive ? ' is-active' : ''}`}><MenuIcon icon="menu-grid-2x2-rounded" /><span>Главная</span></NavLink>
+                <NavLink end to={appPaths.home(locale)} onClick={navigate} className={({ isActive }) => `topbar-nav-item${isActive ? ' is-active' : ''}`}><Icon icon="menu-grid-2x2-rounded" /><span>Главная</span></NavLink>
                 {menuState.status === 'loading' && <div className="topbar-loading"><DotsLoader label="Загрузка меню" /></div>}
                 {menuState.status === 'error' && <div className="topbar-error" role="alert"><span>{menuState.message}</span><Button type="button" onClick={onRetryMenu}>Повторить</Button></div>}
                 {menuState.status === 'ready' && (menuState.items.length ? menuState.items.map((item) => item.children.length ?
                     <button key={item.id} ref={(element) => { if (element) triggers.current.set(item.id, element); else triggers.current.delete(item.id); }} type="button" className={`topbar-nav-item${isBranchActive(item, locale, pathname) ? ' is-active' : ''}${popup?.id === item.id ? ' is-open' : ''}`} aria-expanded={popup?.id === item.id} aria-controls={popup?.id === item.id ? `${navigationId}-dropdown` : undefined} onClick={() => toggle(item.id)} onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); toggle(item.id, true); } }}>
-                        <MenuIcon icon={item.icon} /><span>{item.name}</span><span className="topbar-arrow" aria-hidden="true" />
-                    </button> : <NavLink key={item.id} to={menuPath(locale, item.slug)} onClick={navigate} className={({ isActive }) => `topbar-nav-item${isActive ? ' is-active' : ''}`}><MenuIcon icon={item.icon} /><span>{item.name}</span></NavLink>
+                        <Icon icon={item.icon} /><span>{item.name}</span><span className="topbar-arrow" aria-hidden="true" />
+                    </button> : <NavLink key={item.id} to={menuPath(locale, item.slug)} onClick={navigate} className={({ isActive }) => `topbar-nav-item${isActive ? ' is-active' : ''}`}><Icon icon={item.icon} /><span>{item.name}</span></NavLink>
                 ) : <span className="topbar-empty">Нет доступных разделов</span>)}
             </nav>
         </header>

@@ -7,7 +7,7 @@
 .topbar-brand-note { color: var(--text-color-muted); font-size: 11px; }
 .topbar-navigation { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 9px 0; }
 .topbar-nav-item { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 10px 13px; border: 0; border-radius: 8px; background: transparent; color: var(--text-color-light); text-decoration: none; font-family: inherit; font-size: 12px; line-height: 1.3; cursor: pointer; transition: background .15s ease, color .15s ease; }
-.topbar-nav-item .menu-icon { width: 17px; height: 17px; flex-basis: 17px; }
+.topbar-nav-item .ui-icon { width: 17px; height: 17px; flex-basis: 17px; }
 .topbar-nav-item:hover, .topbar-nav-item.is-open { background: var(--background-color-dark); }
 .topbar-nav-item.is-active { background: var(--background-color-dark); color: var(--accent-color-on-dark); }
 .topbar-arrow { display: inline-block; width: 5px; height: 5px; flex: 0 0 5px; margin-left: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .15s ease; }
@@ -22,7 +22,7 @@
 .topbar-dropdown-row > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .topbar-dropdown-row:hover { background: var(--background-color-light); }
 .topbar-dropdown-row.is-active, .topbar-dropdown-row[data-active="true"] { background: var(--background-color-light); color: var(--accent-color); }
-.topbar-dropdown-row .menu-icon { width: 18px; height: 18px; flex-basis: 18px; }
+.topbar-dropdown-row .ui-icon { width: 18px; height: 18px; flex-basis: 18px; }
 .topbar-link-mark { opacity: 0; color: var(--accent-color); }
 .topbar-dropdown-row:hover .topbar-link-mark, .topbar-dropdown-row:focus-visible .topbar-link-mark { opacity: 1; }
 .topbar-subgroup > summary { list-style: none; }
