@@ -11,7 +11,7 @@
 }
 .menu-editor {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 450px);
     gap: var(--gap-lg);
     flex: 1;
     min-height: 0;
@@ -121,11 +121,7 @@
     overflow: hidden;
     overflow-wrap: anywhere;
 }
-.menu-board-node__status { font-size: 10px; color: var(--text-color-subtle); }
-.menu-editor__properties {
-    & dt { font-weight: 600; margin-top: var(--gap-lg); }
-    & dd { margin: 4px 0 0; overflow-wrap: anywhere; }
-}
+
 @media (max-width: 760px) {
     .menu-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 160px); }
     .menu-editor__board-hint { font-size: 10px; }

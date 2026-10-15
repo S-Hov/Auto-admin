@@ -10,6 +10,8 @@ interface ControlledInputProps<T extends FieldValues> {
     label: string;
     type?: 'text' | 'number' | 'password';
     placeholder?: string;
+    defaultValue?: string | number;
+    disabled?: boolean;
 };
 
 export function ControlledInput<T extends FieldValues>({
@@ -18,6 +20,8 @@ export function ControlledInput<T extends FieldValues>({
     label,
     type = 'text',
     placeholder,
+    defaultValue,
+    disabled = false,
 }: ControlledInputProps<T>) {
     return (
         <Controller
@@ -34,7 +38,9 @@ export function ControlledInput<T extends FieldValues>({
                         placeholder={placeholder}
                         value={value ?? ''}
                         isError={!!error}
-
+                        defaultValue={defaultValue ?? ''}
+                        disabled={disabled}
+                        
                         onChange={(e) => {
                             const val = e.target.value;
                             onChange(type === 'number' ? (val === '' ? '' : Number(val)) : val);
