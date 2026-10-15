@@ -5,10 +5,14 @@ import {
     ControlledIconPickerSchema,
 } from "../model/ControlledIconPicker.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Icon } from "../../../shared/ui/Icon";
+
+import './ControlledIconPicker.css'
+import { Button } from "../../../shared/ui/Button/Button";
 
 interface IconPickerProps {
     value: string | null;
-    onChoose: () => void;
+    onChoose?: () => void;
     disabled?: boolean;
 }
 
@@ -26,6 +30,9 @@ const ControlledIconPicker = ({
 
     return (
         <div className="icon-picker">
+            <div className="icon-picker__preview">
+                <Icon icon={value} className="icon-picker__icon" />
+            </div>
             <ControlledInput
                 control={control}
                 name="icon"
@@ -33,9 +40,15 @@ const ControlledIconPicker = ({
                 placeholder="Выберите иконку"
                 type="text"
                 defaultValue={value}
-                disabled={disabled}
+                disabled={true}
                 showLabel={false}
             />
+            <Button
+                variant="secondary"
+                onClick={onChoose}
+            >
+                Выбрать иконку
+            </Button>
         </div>
     );
 };

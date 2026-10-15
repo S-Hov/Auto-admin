@@ -1,0 +1,30 @@
+.icon-picker {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    margin-bottom: 10px;
+
+    & .icon-picker__preview {
+        aspect-ratio: 1;
+        background: var(--primary-color);
+        padding: 10px;
+        border-radius: var(--radius-card-2);
+
+        & .icon-picker__icon {
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    & .field-group {
+        margin-bottom: 0;
+
+        & input {
+            border: none;
+            width: fit-content;
+            border-bottom: 1px solid var(--accent-color);
+            border-radius: 0;
+        }
+    }
+}

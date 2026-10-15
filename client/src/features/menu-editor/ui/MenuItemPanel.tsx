@@ -8,6 +8,7 @@ import {
 } from "../model/MenuItemPanel.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../../shared/ui/Button/Button";
+import ControlledIconPicker from "../../icon-picker/ui/ControlledIconPicker";
 
 interface MenuItemPanelProps {
     selectedId: MenuEditorSelection;
@@ -60,7 +61,7 @@ const MenuItemPanel = ({ selectedId, item }: MenuItemPanelProps) => {
                         defaultValue={item.parentId ?? "Корневой уровень меню"}
                         disabled={true}
                     />
-
+                    <ControlledIconPicker value={item.icon} />
                     <Button
                         type="button"
                         variant="primary"

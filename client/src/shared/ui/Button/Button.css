@@ -21,7 +21,7 @@
     &.btn-secondary {
         background: var(--primary-color);
         color: var(--text-color-dark);
-        border: 1px solid var(--secondary-color);
+        border: 1px solid var(--accent-color);
 
         &:hover {
             box-shadow: var(--card-shadow-hover);

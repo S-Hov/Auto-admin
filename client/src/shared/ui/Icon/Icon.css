@@ -3,7 +3,7 @@
     width: 20px;
     height: 20px;
     flex: 0 0 20px;
-    background: currentColor;
+    background: var(--accent-color);
     mask: var(--ui-icon) center / contain no-repeat;
     -webkit-mask: var(--ui-icon) center / contain no-repeat;
 }
