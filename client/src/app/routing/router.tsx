@@ -8,9 +8,6 @@ import LocaleLayout from './layouts/LocaleLayout';
 import { RootLocaleRedirect } from './redirects/RootLocaleRedirect';
 import { PageLoader as PageLoadingIndicator } from '../../shared/ui/Loader';
 
-
-
-
 const InstallPage = lazy(() => import('../../pages/install/installPage'));
 const HomePage = lazy(() => import('../../pages/home/homePage'));
 const NotFoundPage = lazy(() => import('../../pages/notFound/notFoundPage'));
@@ -18,6 +15,7 @@ const CreateAdminPage = lazy(() => import('../../pages/createAdmin/createAdminPa
 const LoginPage = lazy(() => import('../../pages/login/loginPage'));
 const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'));
 const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/MigrationRecoveryPage'));
+const MenuEditorPage = lazy(() => import('../../pages/menuEditor/menuEditorPage'));
 
 const PageLoader = (component: React.ReactNode) => (
   <Suspense fallback={
@@ -46,6 +44,15 @@ const router = createBrowserRouter([
                 index: true,
                 element: PageLoader(<HomePage />),
               },
+              {
+                path: 'settings',
+                children: [
+                  {
+                    path: 'menu',
+                    element: PageLoader(<MenuEditorPage />),
+                  }
+                ]
+              }
             ],
           },
           {

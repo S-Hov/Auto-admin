@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type { MenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { VisibleMenuItemDto } from '../../../shared/api/menu/menu.types';
 
 export type AdminShellVariantId = 'sidebar' | 'gooey' | 'topbar';
 
@@ -9,7 +9,7 @@ export interface AdminShellVariantProps {
     onRetryMenu: () => void;
 }
 
-export interface MenuNode extends MenuItemDto {
+export interface MenuNode extends VisibleMenuItemDto {
     children: MenuNode[];
 }
 

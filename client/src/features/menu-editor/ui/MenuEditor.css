@@ -1,0 +1,136 @@
+.menu-editor-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: var(--gap-md);
+    overflow: hidden;
+    color: var(--text-color-dark);
+    & > h1 { font-size: clamp(18px, 2vw, 28px); }
+    & > p { font-size: 12px; }
+}
+.menu-editor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    gap: var(--gap-lg);
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+}
+.menu-editor__structure, .menu-editor__panel {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card-3);
+    min-width: 0;
+    min-height: 0;
+    background: var(--surface-raised);
+}
+.menu-editor__structure {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    & > h2, & > p { margin: var(--gap-md) var(--gap-lg); flex-shrink: 0; }
+    & > h2 { font-size: 16px; }
+}
+.menu-editor__panel { padding: var(--gap-lg); overflow-y: auto; }
+.menu-editor__board {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    --xy-minimap-background-color: var(--surface-raised);
+    --xy-minimap-mask-background-color: color-mix(in srgb, var(--secondary-color) 8%, transparent);
+    --xy-controls-button-background-color: var(--surface-raised);
+    --xy-controls-button-background-color-hover: var(--accent-surface);
+    --xy-controls-button-color: var(--text-color-dark);
+    --xy-controls-button-border-color: var(--border-color);
+    & .react-flow__edge-path { stroke: var(--border-color); stroke-width: 1.5; }
+    & .react-flow__node:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 5px; }
+    & .react-flow__minimap { width: 140px; height: 100px; border-radius: var(--radius-card-4); overflow: hidden; }
+}
+.menu-editor__board-hint {
+    background: var(--surface-raised);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card-4);
+    padding: var(--gap-md);
+    color: var(--text-color-subtle);
+    font-size: 12px;
+    max-width: calc(100% - 32px);
+    pointer-events: none;
+}
+.menu-board-node {
+    width: 160px;
+    height: 136px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    & .react-flow__handle {
+        top: 38px;
+        border: none;
+        background: var(--border-color);
+        width: 5px;
+        height: 5px;
+        pointer-events: none;
+    }
+    &:hover .menu-board-node__circle, &.menu-board-node--selected .menu-board-node__circle {
+        border-color: var(--accent-color);
+        box-shadow: var(--focus-ring);
+    }
+    &.menu-board-node--selected .menu-board-node__name { color: var(--accent-color); }
+    &.menu-board-node--inactive { opacity: 0.55; }
+}
+.menu-board-node__circle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--surface-raised);
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-node);
+    color: var(--accent-color);
+    transition: var(--transition);
+}
+.menu-board-node__icon { width: 32px; height: 32px; }
+.menu-board-node__media { width: 36px; height: 36px; object-fit: contain; }
+.menu-board-node__count {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    background: var(--accent-surface);
+    border: 2px solid var(--surface-raised);
+    border-radius: 50%;
+    min-width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+}
+.menu-board-node__name {
+    margin-top: 8px;
+    max-width: 156px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+.menu-board-node__status { font-size: 10px; color: var(--text-color-subtle); }
+.menu-editor__properties {
+    & dt { font-weight: 600; margin-top: var(--gap-lg); }
+    & dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+}
+@media (max-width: 760px) {
+    .menu-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 160px); }
+    .menu-editor__board-hint { font-size: 10px; }
+    .menu-editor__board .react-flow__minimap { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .menu-board-node__circle { transition: none; }
+}

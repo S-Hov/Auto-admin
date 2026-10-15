@@ -4,7 +4,7 @@ import {
     defaultAdminShellVariant,
 } from "../model/admin-shell.registry";
 import type { AdminShellVariantId, MenuState } from "../model/admin-shell.types";
-import { getMenu } from '../../../shared/api/menu';
+import { menu } from '../../../shared/api/menu';
 import { buildMenuTree } from '../model/build-menu-tree';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
 
@@ -30,7 +30,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         let active = true;
         async function loadMenu() {
             try {
-                const response = await getMenu();
+                const response = await menu.getMenu();
                 const items = buildMenuTree(response.data);
                 if (active) setMenuState({ status: 'ready', items });
             } catch {
@@ -51,7 +51,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         model = defaultAdminShellVariant;
     }
 
-    return <>
+    return <div className="admin-shell-container">
         <model.component menuState={menuState} onRetryMenu={retryMenu}>{children}</model.component>
         <label className="admin-shell-variant-picker">
             <span>Вид меню</span>
@@ -62,7 +62,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
                 {AdminShellVariants.map((variant) => <option key={variant.id} value={variant.id}>{variant.label}</option>)}
             </select>
         </label>
-    </>;
+    </div>;
 };
 
 export default AdminShell;

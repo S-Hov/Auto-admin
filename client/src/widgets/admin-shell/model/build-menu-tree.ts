@@ -1,7 +1,7 @@
-import type { MenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { VisibleMenuItemDto } from '../../../shared/api/menu/menu.types';
 import type { MenuNode } from './admin-shell.types';
 
-export function buildMenuTree(items: readonly MenuItemDto[]): MenuNode[] {
+export function buildMenuTree(items: readonly VisibleMenuItemDto[]): MenuNode[] {
     const nodes = new Map<number, MenuNode>();
     for (const item of items) {
         if (nodes.has(item.id)) throw new Error('Повторяющийся идентификатор пункта меню');

@@ -1,11 +1,11 @@
-import type { MenuItemDto } from "./menu.types";
+import type { VisibleMenuItemDto } from "./menu.types";
 
-function mockItem(id: number, parentId: number | null, name: string, slug: string, icon: string, sortOrder: number): MenuItemDto {
+function mockItem(id: number, parentId: number | null, name: string, slug: string, icon: string, sortOrder: number): VisibleMenuItemDto {
     return { id, parentId, name, slug, icon, sortOrder, iconType: 'icon', isActive: true, canView: true, canCreate: true, canUpdate: true, canDelete: true };
 }
 
 // Плоский список в том же формате, что возвращает GET /api/menu.
-export const mockMenuItems: ReadonlyArray<Readonly<MenuItemDto>> = [
+export const mockMenuItems: ReadonlyArray<Readonly<VisibleMenuItemDto>> = [
     {
         id: 1,
         parentId: null,

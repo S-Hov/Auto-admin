@@ -1,4 +1,5 @@
 import type { z } from 'zod';
-import type { menuItemSchema } from './menu.schema';
+import type { manageableMenuItemDtoSchema, visibleMenuItemDtoSchema } from './menu.schema';
 
-export type MenuItemDto = z.infer<typeof menuItemSchema>;
+export type ManageableMenuItemDto = z.infer<typeof manageableMenuItemDtoSchema>;
+export type VisibleMenuItemDto = z.infer<typeof visibleMenuItemDtoSchema>;

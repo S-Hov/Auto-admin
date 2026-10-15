@@ -95,7 +95,7 @@ export default function TopbarLayout({ children, menuState, onRetryMenu }: Admin
         <header ref={header} className="topbar-header">
             <div className="topbar-brand-row">
                 <NavLink to={appPaths.home(locale)} onClick={navigate} className="topbar-brand"><span className="topbar-brand-symbol">A</span><span>Auto Admin<small>Рабочее пространство</small></span></NavLink>
-                <span className="topbar-brand-note">Управление проектом</span>
+                <UserPanel />
                 <button className="topbar-mobile-toggle" type="button" aria-label={mobileOpen ? 'Скрыть меню' : 'Открыть меню'} aria-expanded={mobileOpen} aria-controls={navigationId} onClick={() => { close(); setMobileOpen((open) => !open); }}><MenuIcon icon="menu-hamburger-classic" /></button>
             </div>
             <nav id={navigationId} className={`topbar-navigation${mobileOpen ? ' is-open' : ''}`} aria-label="Основное меню" aria-busy={menuState.status === 'loading'}>
@@ -109,7 +109,7 @@ export default function TopbarLayout({ children, menuState, onRetryMenu }: Admin
                 ) : <span className="topbar-empty">Нет доступных разделов</span>)}
             </nav>
         </header>
-        <main className="topbar-content"><UserPanel />{children}</main>
+        <main className="topbar-content">{children}</main>
         {popup && selectedNode && createPortal(<div ref={panel} id={`${navigationId}-dropdown`} className="topbar-dropdown" style={popup.position} aria-label={selectedNode.name}>
             <div className="topbar-dropdown-heading"><span>{selectedNode.name}</span><span>{selectedNode.children.length} раздела</span></div>
             <DropdownItems items={selectedNode.children} onNavigate={navigate} />

@@ -3,6 +3,18 @@
     background: var(--primary-color);
     color: var(--text-color-dark);
 }
+.gooey-account {
+    position: absolute;
+    top: 8px;
+    left: 22px;
+    right: 22px;
+    padding: 6px 10px;
+    border-radius: var(--radius-card-4);
+    background: var(--primary-color);
+    & .user-panel { justify-content: space-between; }
+}
+.gooey-dialog .gooey-breadcrumbs { margin-top: 64px; }
+.gooey-dialog.is-compact .gooey-account { position: static; margin: var(--gap-md); }
 .gooey-content {
     padding: 20px;
     padding-bottom: 100px;
@@ -30,7 +42,7 @@
     font-size: 10px;
 }
 .gooey-launcher:hover {
-    color: var(--accent-color-2);
+    color: var(--accent-color-on-dark);
 }
 .gooey-dialog {
     position: fixed;
@@ -176,7 +188,7 @@
 .gooey-item:hover,
 .gooey-item.is-active,
 .gooey-center:hover {
-    color: var(--accent-color-2);
+    color: var(--accent-color-on-dark);
     background: var(--background-color-dark);
 }
 .gooey-item-label {
@@ -201,14 +213,14 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--accent-color-2);
+    background: var(--accent-color-on-dark);
     color: var(--secondary-color);
     font-size: 12px;
 }
 .gooey-dialog button:focus-visible,
 .gooey-dialog a:focus-visible,
 .gooey-launcher:focus-visible {
-    outline: 2px solid var(--accent-color-2);
+    outline: 2px solid var(--accent-color);
     outline-offset: 4px;
 }
 .gooey-pagination {
