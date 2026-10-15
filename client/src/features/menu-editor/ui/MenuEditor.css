@@ -64,6 +64,7 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
+
     & .react-flow__handle {
         top: 38px;
         border: none;
@@ -72,10 +73,40 @@
         height: 5px;
         pointer-events: none;
     }
+
     &:hover .menu-board-node__circle, &.menu-board-node--selected .menu-board-node__circle {
         border-color: var(--accent-color);
         box-shadow: var(--focus-ring);
     }
+
+    
+    & .menu-board-node__add-child-btn{
+        position: absolute;
+        top: 28px;
+        right: 50%;
+        display: flex;
+        opacity: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+        border-radius: 50%;
+        height: min-content;
+        aspect-ratio: 1;
+        cursor: pointer;
+        transition: var(--transition);
+
+        &:hover {
+            background: var(--primary-color);
+            color: var(--accent-color);
+        }
+    }
+
+    &:hover .menu-board-node__add-child-btn {
+        opacity: 1;
+        left: auto;
+        right: -12px;
+    }
+
     &.menu-board-node--selected .menu-board-node__name { color: var(--accent-color); }
     &.menu-board-node--inactive { opacity: 0.55; }
 }
