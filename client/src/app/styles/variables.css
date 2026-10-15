@@ -4,8 +4,9 @@
     --background-color-light: #ececec;
     --border-lite: 1px solid var(--background-color-light);
     --background-color-dark: #333;
-    --accent-color: #4f46e5;
-    --accent-color-hover: #4338ca;
+    --accent-color: #00018b;
+    --accent-color-2: #006f79;
+    --accent-color-hover: #2e21bc;
     --accent-color-on-dark: #a5b4fc;
     --text-color-on-accent: #ffffff;
     --text-color-dark: #333;
