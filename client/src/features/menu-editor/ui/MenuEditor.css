@@ -6,8 +6,12 @@
     gap: var(--gap-md);
     overflow: hidden;
     color: var(--text-color-dark);
-    & > h1 { font-size: clamp(18px, 2vw, 28px); }
-    & > p { font-size: 12px; }
+    & > h1 {
+        font-size: clamp(18px, 2vw, 28px);
+    }
+    & > p {
+        font-size: 12px;
+    }
 }
 .menu-editor {
     display: grid;
@@ -18,10 +22,11 @@
     min-width: 0;
 
     &.menu-editor--selected {
-        grid-template-columns: minmax(0, 1fr) clamp(350px, 20vw,650px);
+        grid-template-columns: minmax(0, 1fr) clamp(350px, 20vw, 650px);
     }
 }
-.menu-editor__structure, .menu-editor__panel {
+.menu-editor__structure,
+.menu-editor__panel {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-card-3);
     min-width: 0;
@@ -32,8 +37,14 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    & > h2, & > p { margin: var(--gap-md) var(--gap-lg); flex-shrink: 0; }
-    & > h2 { font-size: 16px; }
+    & > h2,
+    & > p {
+        margin: var(--gap-md) var(--gap-lg);
+        flex-shrink: 0;
+    }
+    & > h2 {
+        font-size: 16px;
+    }
 }
 .menu-editor__panel {
     padding: var(--gap-lg);
@@ -47,14 +58,29 @@
     width: 100%;
     border-top: 1px solid var(--border-color);
     --xy-minimap-background-color: var(--surface-raised);
-    --xy-minimap-mask-background-color: color-mix(in srgb, var(--secondary-color) 8%, transparent);
+    --xy-minimap-mask-background-color: color-mix(
+        in srgb,
+        var(--secondary-color) 8%,
+        transparent
+    );
     --xy-controls-button-background-color: var(--surface-raised);
     --xy-controls-button-background-color-hover: var(--accent-surface);
     --xy-controls-button-color: var(--text-color-dark);
     --xy-controls-button-border-color: var(--border-color);
-    & .react-flow__edge-path { stroke: var(--border-color); stroke-width: 1.5; }
-    & .react-flow__node:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 5px; }
-    & .react-flow__minimap { width: 140px; height: 100px; border-radius: var(--radius-card-4); overflow: hidden; }
+    & .react-flow__edge-path {
+        stroke: var(--border-color);
+        stroke-width: 1.5;
+    }
+    & .react-flow__node:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 5px;
+    }
+    & .react-flow__minimap {
+        width: 140px;
+        height: 100px;
+        border-radius: var(--radius-card-4);
+        overflow: hidden;
+    }
 }
 .menu-editor__board-hint {
     background: var(--surface-raised);
@@ -83,13 +109,13 @@
         pointer-events: none;
     }
 
-    &:hover .menu-board-node__circle, &.menu-board-node--selected .menu-board-node__circle {
+    &:hover .menu-board-node__circle,
+    &.menu-board-node--selected .menu-board-node__circle {
         border-color: var(--accent-color);
         box-shadow: var(--focus-ring);
     }
 
-    
-    & .menu-board-node__add-child-btn{
+    & .menu-board-node__add-child-btn {
         position: absolute;
         top: 28px;
         right: 50%;
@@ -116,8 +142,12 @@
         right: -12px;
     }
 
-    &.menu-board-node--selected .menu-board-node__name { color: var(--accent-color); }
-    &.menu-board-node--inactive { opacity: 0.55; }
+    &.menu-board-node--selected .menu-board-node__name {
+        color: var(--accent-color);
+    }
+    &.menu-board-node--inactive {
+        opacity: 0.55;
+    }
 }
 .menu-board-node__circle {
     position: relative;
@@ -133,8 +163,15 @@
     color: var(--accent-color);
     transition: var(--transition);
 }
-.menu-board-node__icon { width: 32px; height: 32px; }
-.menu-board-node__media { width: 36px; height: 36px; object-fit: contain; }
+.menu-board-node__icon {
+    width: 32px;
+    height: 32px;
+}
+.menu-board-node__media {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
 .menu-board-node__count {
     position: absolute;
     right: -3px;
@@ -161,10 +198,9 @@
     overflow: hidden;
     overflow-wrap: anywhere;
 }
-.menu-board-node__status { font-size: 10px; color: var(--text-color-subtle); }
-.menu-editor__properties {
-    & dt { font-weight: 600; margin-top: var(--gap-lg); }
-    & dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.menu-board-node__status {
+    font-size: 10px;
+    color: var(--text-color-subtle);
 }
 
 .react-flow__panel.react-flow__attribution.bottom.right {
@@ -172,10 +208,19 @@
 }
 
 @media (max-width: 760px) {
-    .menu-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 160px); }
-    .menu-editor__board-hint { font-size: 10px; }
-    .menu-editor__board .react-flow__minimap { display: none; }
+    .menu-editor {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) minmax(0, 160px);
+    }
+    .menu-editor__board-hint {
+        font-size: 10px;
+    }
+    .menu-editor__board .react-flow__minimap {
+        display: none;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
-    .menu-board-node__circle { transition: none; }
+    .menu-board-node__circle {
+        transition: none;
+    }
 }

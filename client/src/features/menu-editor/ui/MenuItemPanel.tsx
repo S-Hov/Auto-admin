@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
@@ -20,6 +20,9 @@ const MenuItemPanel = ({ selectedId, item }: MenuItemPanelProps) => {
         resolver: zodResolver(menuItemPanelSchema),
         defaultValues: {
             name: item?.name ?? "",
+            icon: item?.icon ?? null,
+            slug: item?.slug ?? "",
+            parentId: item?.parentId != null ? String(item.parentId) : "",
         },
     });
 
@@ -35,33 +38,48 @@ const MenuItemPanel = ({ selectedId, item }: MenuItemPanelProps) => {
                 <form className="menu-editor__properties">
                     <ControlledInput
                         control={control}
-                        key={item.name}
                         name="name"
                         label="Название"
                         placeholder="Название"
                         type="text"
-                        defaultValue={item.name}
                     />
                     <ControlledInput
                         control={control}
-                        key={item.slug}
                         name="slug"
                         label="Slug/URL"
                         placeholder="slug-url"
                         type="text"
-                        defaultValue={item.slug}
                     />
-                    <ControlledInput
+                    {item.parentId === null ? (
+                        <ControlledInput
+                            control={control}
+                            name="parentId"
+                            label="Родительский раздел (меняется на доске)"
+                            placeholder="Корневой раздел"
+                            type="text"
+                            disabled={true}
+                            defaultValue=""
+                        />
+                    ) : (
+                        <ControlledInput
+                            control={control}
+                            name="parentId"
+                            label="Родительский раздел (меняется на доске)"
+                            placeholder="Родительский раздел"
+                            type="text"
+                            disabled={true}
+                        />
+                    )}
+                    <Controller
+                        name="icon"
                         control={control}
-                        key={item.parentId}
-                        name="parentId"
-                        label="Родительский раздел (меняется на доске)"
-                        placeholder="Родительский раздел"
-                        type="text"
-                        defaultValue={item.parentId ?? "Корневой уровень меню"}
-                        disabled={true}
+                        render={({ field }) => (
+                            <ControlledIconPicker
+                                value={field.value}
+                                onChange={field.onChange}
+                            />
+                        )}
                     />
-                    <ControlledIconPicker value={item.icon} />
                     <Button
                         type="button"
                         variant="primary"

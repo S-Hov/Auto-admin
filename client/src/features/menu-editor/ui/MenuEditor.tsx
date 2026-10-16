@@ -34,7 +34,11 @@ export function MenuEditor({
                 />
             </section>
             {selectedId && (
-                <MenuItemPanel selectedId={selectedId} item={selectedItem} />
+                <MenuItemPanel
+                    key={selectedId}
+                    selectedId={selectedId}
+                    item={selectedItem}
+                />
             )}
         </div>
     );

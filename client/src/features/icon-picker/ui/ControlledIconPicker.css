@@ -57,15 +57,15 @@
             z-index: 1;
         }
 
-        & .icon-picker__modal__catalog__header {
-            color: var(--text-color-muted);
-        }
-
         & .icon-picker__modal__catalog__items {
             margin-top: 10px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
             gap: 10px;
+
+            &:has(p) {
+                grid-template-columns: 1fr;
+            }
 
             & .icon-picker__modal__catalog__item {
                 display: flex;
