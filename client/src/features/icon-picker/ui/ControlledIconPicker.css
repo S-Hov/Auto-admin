@@ -1,14 +1,34 @@
 .icon-picker {
-    display: grid;
-    gap: 5px;
-    grid-template-columns: auto auto 1fr;
-    align-items: center;
-    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+
+    & label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-color-dark);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        opacity: 0.7;
+    }
+
+    & .icon-picker__open-modal {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+    }
 
     & .icon-picker__preview {
         aspect-ratio: 1;
         background: var(--primary-color);
         border-radius: var(--radius-card-2);
+        width: 24px;
+        height: 24px;
 
         & .icon-picker__icon {
             width: 24px;
@@ -17,17 +37,6 @@
 
         & .icon-picker__name {
             border-bottom: 1px solid var(--accent-color);
-        }
-    }
-
-    & .field-group {
-        margin-bottom: 0;
-
-        & input {
-            border: none;
-            width: fit-content;
-            border-bottom: 1px solid var(--accent-color);
-            border-radius: 0;
         }
     }
 }

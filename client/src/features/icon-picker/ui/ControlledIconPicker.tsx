@@ -22,19 +22,22 @@ const ControlledIconPicker = ({
 
     return (
         <div className="icon-picker">
-            <div className="icon-picker__preview">
-                {icon?.id ? <Icon icon={icon.id} className="icon-picker__icon" /> : "-"}
-            </div>
-            <span className="icon-picker__name">
-                {icon?.name || "Не выбрано"}
-            </span>
+            <label>
+                Иконка
+            </label>
             <Button
                 variant="secondary"
                 onClick={() => setIsModalOpen(true)}
                 disabled={disabled}
                 type="button"
+                className="icon-picker__open-modal"
             >
-                Выбрать иконку
+                <span className="icon-picker__preview">
+                    {icon?.id ? <Icon icon={icon.id} className="icon-picker__icon" /> : "-"}
+                </span>
+                <span className="icon-picker__name">
+                    {icon?.name || "Не выбрано"}
+                </span>
             </Button>
             <Modal
                 open={isModalOpen}

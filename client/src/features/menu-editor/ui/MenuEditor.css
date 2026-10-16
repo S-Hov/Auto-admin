@@ -35,7 +35,12 @@
     & > h2, & > p { margin: var(--gap-md) var(--gap-lg); flex-shrink: 0; }
     & > h2 { font-size: 16px; }
 }
-.menu-editor__panel { padding: var(--gap-lg); overflow-y: auto; }
+.menu-editor__panel {
+    padding: var(--gap-lg);
+    overflow-y: auto;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
 .menu-editor__board {
     flex: 1;
     min-height: 0;
