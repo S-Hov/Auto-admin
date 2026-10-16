@@ -1,10 +1,18 @@
-import { expect, it } from 'vitest';
-import { getMenu } from '../src/shared/api/menu';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { menu } from '../src/shared/api/menu';
 import { mockMenuItems } from '../src/shared/api/menu/menu.mock';
-import { menuResponseSchema } from '../src/shared/api/menu/menu.schema';
+import { visibleMenuResponseSchema as menuResponseSchema } from '../src/shared/api/menu/menu.schema';
 import { ApiContractError } from '../src/shared/api/apiClient';
 
-it('keeps the mock envelope and returns independently validated menu items', async () => {
+const getMenu = () => menu.getMenu();
+beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+        success: true, code: 'COMMON.OK', data: mockMenuItems,
+    }))));
+});
+afterEach(() => vi.unstubAllGlobals());
+
+it('validates the server envelope and returns independent menu items', async () => {
     const response = await getMenu();
     expect(response).toEqual({ success: true, code: 'COMMON.OK', data: mockMenuItems });
     expect(response.data[0]).not.toBe(mockMenuItems[0]);

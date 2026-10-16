@@ -1,3 +1,9 @@
+.menu-editor__fields {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
 .menu-editor-page {
     display: flex;
     flex-direction: column;
@@ -113,6 +119,10 @@
     &.menu-board-node--selected .menu-board-node__circle {
         border-color: var(--accent-color);
         box-shadow: var(--focus-ring);
+
+        & .ui-icon {
+            background: var(--accent-color);
+        }
     }
 
     & .menu-board-node__add-child-btn {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ManageableMenuItemDto } from "../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "../../shared/api/menu/menu.types";
 import { menu } from "../../shared/api/menu";
 import { toast } from "sonner";
 import { apiMessage } from "../../shared/i18n/api-message";
@@ -11,10 +11,7 @@ import { Button } from "../../shared/ui/Button/Button";
 import { PageLoader } from "../../shared/ui/Loader";
 import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
 import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
-import { mockMenuItems } from "../../shared/api/menu/menu.mock";
-
-// Temporary demo mode for developing the editor; production uses the API.
-const useDemoMenu = import.meta.env.DEV;
+import { useMenuRefresh } from '../../app/providers/menu/MenuRefreshContext';
 
 interface StatusLoading {
     status: "loading";
@@ -43,6 +40,7 @@ const MenuEditorPage = () => {
 };
 
 const MenuEditorContent = () => {
+    const refreshNavigation = useMenuRefresh();
     const [status, setStatus] = useState<LoadingStatus>({
         status: "loading",
     });
@@ -53,9 +51,7 @@ const MenuEditorContent = () => {
 
         const loadMenu = async () => {
             try {
-                const response = useDemoMenu
-                    ? await Promise.resolve({ data: mockMenuItems.map((item) => ({ ...item })) })
-                    : await menu.getManageableMenu();
+                const response = await menu.getManageableMenu();
                 if (!active) return;
                 buildEditorTree(response.data);
                 setStatus({
@@ -81,6 +77,17 @@ const MenuEditorContent = () => {
         setRequestVersion((version) => version + 1);
     };
 
+    const saveItem = async (data: MenuSaveData) => {
+        await menu.saveMenu(data);
+        // Endpoint сохраняет полную переданную запись. Обновляем доску без
+        // размонтирования редактора и потери выбранного пункта/положения камеры.
+        setStatus((current) => current.status !== 'ready' ? current : {
+            status: 'ready',
+            items: current.items.map((item) => item.id === data.id ? { ...item, ...data } : item),
+        });
+        refreshNavigation();
+    };
+
     return (
         <div className="menu-editor-page">
             {status.status === "loading" && (
@@ -93,7 +100,7 @@ const MenuEditorContent = () => {
                 </div>
             )}
             {status.status === "ready" && (
-                <MenuEditor items={status.items} />
+                <MenuEditor items={status.items} onSave={saveItem} />
             )}
         </div>
     );

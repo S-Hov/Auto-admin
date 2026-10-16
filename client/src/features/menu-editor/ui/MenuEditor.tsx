@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
 import { buildEditorTree } from "../model/build-editor-tree";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
 import { MenuEditorBoard } from "./MenuEditorBoard";
@@ -8,12 +8,21 @@ import "./MenuEditor.css";
 
 export function MenuEditor({
     items,
+    onSave,
 }: {
     items: readonly ManageableMenuItemDto[];
+    onSave: (data: MenuSaveData) => Promise<void>;
 }) {
     const [selectedId, setSelectedId] = useState<MenuEditorSelection>(null);
+    const [isSaving, setIsSaving] = useState(false);
     const root = useMemo(() => buildEditorTree(items), [items]);
     const selectedItem = items.find((item) => item.id === selectedId) ?? null;
+
+    const saveItem = async (data: MenuSaveData) => {
+        setIsSaving(true);
+        try { await onSave(data); }
+        finally { setIsSaving(false); }
+    };
 
     return (
         <div
@@ -30,7 +39,7 @@ export function MenuEditor({
                 <MenuEditorBoard
                     root={root}
                     selectedId={selectedId}
-                    onSelect={setSelectedId}
+                    onSelect={(id) => { if (!isSaving) setSelectedId(id); }}
                 />
             </section>
             {selectedId && (
@@ -38,6 +47,7 @@ export function MenuEditor({
                     key={selectedId}
                     selectedId={selectedId}
                     item={selectedItem}
+                    onSave={saveItem}
                 />
             )}
         </div>
