@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { positiveIdSchema } from "../../../core/access-control/schema/permission.schema";
 import { PERMISSION_SUBJECT_TYPES } from "../../../core/access-control/contracts/permission.constants";
-import { badRequest } from "../../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
 
 export const menuSaveSchema = z
     .strictObject({
@@ -56,16 +54,10 @@ export const menuPermissionSchema = z.strictObject({
         .nullable(),
 });
 
-export function parseMenuSave(input: unknown) {
-    const parsed = menuSaveSchema.safeParse(input);
-    if (!parsed.success)
-        throw badRequest(ERROR_CODES.MENU_INVALID, { cause: parsed.error });
-    return parsed.data;
-}
+export const menuDeleteParamsSchema = z.strictObject({
+    id: z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(positiveIdSchema),
+});
 
-export function parseMenuPermissions(input: unknown) {
-    const parsed = menuPermissionSchema.safeParse(input);
-    if (!parsed.success)
-        throw badRequest(ERROR_CODES.MENU_INVALID, { cause: parsed.error });
-    return parsed.data;
-}
+export type MenuSaveData = z.infer<typeof menuSaveSchema>;
+export type MenuPermissionData = z.infer<typeof menuPermissionSchema>;
+export type MenuDeleteParams = z.infer<typeof menuDeleteParamsSchema>;

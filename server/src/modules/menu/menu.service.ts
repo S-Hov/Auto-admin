@@ -9,12 +9,10 @@ import { getActiveAccessControlProvider } from "../../core/access-control/runtim
 import { createMenuRepository } from "./repository/menu-repository.factory";
 import type { MenuRepository } from "./repository/menu-repository.interface";
 import type { MenuVisibilityRow } from "./menu.types";
-import { parseMenuSave, parseMenuPermissions } from "./schema/menu.schema";
-import { positiveIdSchema } from "../../core/access-control/schema/permission.schema";
+import type { MenuSaveData, MenuPermissionData } from "./schema/menu.schema";
 import {
     badRequest,
     forbidden,
-    unauthorized,
 } from "../../shared/api/errors/error-helpers";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 
@@ -61,7 +59,6 @@ export class MenuService {
     }
 
     async getMenu(principal: AccessPrincipal): Promise<MenuVisibilityRow[]> {
-        if (!principal) throw unauthorized();
         const repository = this.repository(this.database());
         const rows = isSystemAdmin(principal)
             ? (await repository.readAll()).map((item) => ({
@@ -93,12 +90,11 @@ export class MenuService {
     }
 
     async save(
-        input: unknown,
+        input: MenuSaveData,
         principal: AccessPrincipal,
         requestId: string | null = null,
     ) {
-        requireSystemAdmin(principal);
-        const { id, ...data } = parseMenuSave(input);
+        const { id, ...data } = input;
         return this.manage(principal, async (repository) => {
             const rows = await repository.readAll(true);
             if (rows.length >= 500 && id === undefined)
@@ -133,21 +129,18 @@ export class MenuService {
     }
 
     async delete(
-        input: unknown,
+        id: number,
         principal: AccessPrincipal,
         requestId: string | null = null,
     ) {
-        requireSystemAdmin(principal);
-        const id = positiveIdSchema.safeParse(input);
-        if (!id.success) throw badRequest(ERROR_CODES.MENU_INVALID);
         return this.manage(principal, async (repository) => {
             const rows = await repository.readAll(true);
-            const previous = rows.find((item) => item.id === id.data);
-            if (!previous || rows.some((item) => item.parentId === id.data))
+            const previous = rows.find((item) => item.id === id);
+            if (!previous || rows.some((item) => item.parentId === id))
                 throw badRequest(ERROR_CODES.MENU_INVALID);
-            await repository.delete(id.data);
+            await repository.delete(id);
             await repository.appendAudit(
-                id.data,
+                id,
                 "delete",
                 principal.userId,
                 previous,
@@ -159,12 +152,10 @@ export class MenuService {
     }
 
     async changePermissions(
-        input: unknown,
+        change: MenuPermissionData,
         principal: AccessPrincipal,
         requestId: string | null = null,
     ) {
-        requireSystemAdmin(principal);
-        const change = parseMenuPermissions(input);
         return this.manage(principal, async (repository, executor) => {
             const rows = await repository.readAll(true);
             if (!rows.some((item) => item.id === change.menuId))
