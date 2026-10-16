@@ -13,14 +13,17 @@ interface MenuEditorBoardProps {
     root: EditableVirtualMenuItem;
     selectedId: MenuEditorSelection;
     onSelect: (id: EditableMenuNode["id"] | null) => void;
+    onAddChild: (id: EditableMenuNode['id']) => void;
+    isSaving: boolean;
 }
 
-export function MenuEditorBoard({ root, selectedId, onSelect }: MenuEditorBoardProps) {
+export function MenuEditorBoard({ root, selectedId, onSelect, onAddChild, isSaving }: MenuEditorBoardProps) {
     const graph = useMemo(() => buildEditorGraph(root), [root]);
     const nodes = useMemo(() => graph.nodes.map((node) => ({
         ...node,
         selected: node.data.menuId === selectedId,
-    })), [graph.nodes, selectedId]);
+        data: { ...node.data, onAddChild, isSaving },
+    })), [graph.nodes, selectedId, onAddChild, isSaving]);
 
     return (
         <div className="menu-editor__board" aria-label="Доска структуры меню">

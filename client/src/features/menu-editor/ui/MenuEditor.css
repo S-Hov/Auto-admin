@@ -1,3 +1,19 @@
+.menu-board-node:focus-within .menu-board-node__add-child-btn {
+    opacity: 1;
+    left: auto;
+    right: -12px;
+}
+.menu-editor__fields > .button + .button {
+    margin-top: var(--gap-md);
+    width: 100%;
+}
+@media (hover: none) {
+    .menu-board-node .menu-board-node__add-child-btn {
+        opacity: 1;
+        left: auto;
+        right: -12px;
+    }
+}
 .menu-editor__fields {
     min-width: 0;
     margin: 0;

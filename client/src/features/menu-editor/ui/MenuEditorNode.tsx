@@ -21,7 +21,12 @@ export function MenuEditorNode({ data, selected }: NodeProps<MenuBoardNode>) {
             {!data.isActive && <span className="menu-board-node__status">Отключён</span>}
             <Handle type="source" position={Position.Right} isConnectable={false} />
 
-            <Button type="button" className="menu-board-node__add-child-btn" aria-label="Добавить дочерний раздел">
+            <Button type="button" className="menu-board-node__add-child-btn nodrag nopan" disabled={data.isSaving} aria-label={data.isRoot ? 'Добавить основной раздел' : `Добавить подраздел: ${data.name}`} title={data.isRoot ? 'Добавить основной раздел' : 'Добавить подраздел'} onClick={(event) => {
+                event.stopPropagation();
+                data.onAddChild?.(data.menuId);
+            }} onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+            }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>

@@ -12,6 +12,7 @@ import { PageLoader } from "../../shared/ui/Loader";
 import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
 import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
 import { useMenuRefresh } from '../../app/providers/menu/MenuRefreshContext';
+import { upsertSavedMenuItem } from '../../features/menu-editor/model/build-menu-save-data';
 
 interface StatusLoading {
     status: "loading";
@@ -78,14 +79,15 @@ const MenuEditorContent = () => {
     };
 
     const saveItem = async (data: MenuSaveData) => {
-        await menu.saveMenu(data);
+        const response = await menu.saveMenu(data);
         // Endpoint сохраняет полную переданную запись. Обновляем доску без
         // размонтирования редактора и потери выбранного пункта/положения камеры.
         setStatus((current) => current.status !== 'ready' ? current : {
             status: 'ready',
-            items: current.items.map((item) => item.id === data.id ? { ...item, ...data } : item),
+            items: upsertSavedMenuItem(current.items, data, response.data.id),
         });
         refreshNavigation();
+        return response.data.id;
     };
 
     return (

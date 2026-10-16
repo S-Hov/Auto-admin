@@ -9,6 +9,8 @@ export type MenuBoardNode = Node<{
     isActive: boolean;
     isRoot: boolean;
     childCount: number;
+    onAddChild?: (id: EditableMenuNode['id']) => void;
+    isSaving?: boolean;
 }, "menuItem">;
 
 export interface MenuEditorGraph {

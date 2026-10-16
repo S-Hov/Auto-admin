@@ -4,7 +4,7 @@ import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/me
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
 import { menuItemPanelSchema, type MenuItemPanelFormValues } from "../model/MenuItemPanel.schema";
-import { buildMenuSaveData } from "../model/build-menu-save-data";
+import { buildMenuSaveData, buildNewMenuSaveData, type NewMenuItemContext } from "../model/build-menu-save-data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../../shared/ui/Button/Button";
 import { Input } from "../../../shared/ui/Input/Input";
@@ -17,9 +17,11 @@ interface MenuItemPanelProps {
     selectedId: MenuEditorSelection;
     item: ManageableMenuItemDto | null;
     onSave: (data: MenuSaveData) => Promise<void>;
+    draft?: NewMenuItemContext | null;
+    onCancelCreate?: () => void;
 }
 
-const MenuItemPanel = ({ selectedId, item, onSave }: MenuItemPanelProps) => {
+const MenuItemPanel = ({ selectedId, item, onSave, draft = null, onCancelCreate }: MenuItemPanelProps) => {
     const parentFieldId = useId();
     const saveInFlight = useRef(false);
     const {
@@ -28,21 +30,21 @@ const MenuItemPanel = ({ selectedId, item, onSave }: MenuItemPanelProps) => {
     } = useForm<MenuItemPanelFormValues>({
         resolver: zodResolver(menuItemPanelSchema),
         defaultValues: {
-            name: item?.name ?? "",
-            icon: item?.icon ?? null,
-            slug: item?.slug ?? "",
+            name: draft ? '' : item?.name ?? "",
+            icon: draft ? null : item?.icon ?? null,
+            slug: draft ? '' : item?.slug ?? "",
         },
     });
 
     const submit = async (values: MenuItemPanelFormValues) => {
-        if (!item || saveInFlight.current) return;
+        if ((!item && !draft) || saveInFlight.current) return;
         saveInFlight.current = true;
         clearErrors('root.server');
         try {
-            const payload = buildMenuSaveData(item, values);
+            const payload = draft ? buildNewMenuSaveData(draft, values) : buildMenuSaveData(item!, values);
             await toast.promise(onSave(payload), {
-                loading: 'Сохраняем пункт меню...',
-                success: 'Изменения сохранены',
+                loading: draft ? 'Создаём пункт меню...' : 'Сохраняем пункт меню...',
+                success: draft ? 'Пункт меню создан' : 'Изменения сохранены',
                 error: (error) => apiMessage(error),
             }).unwrap();
             reset(values);
@@ -57,17 +59,17 @@ const MenuItemPanel = ({ selectedId, item, onSave }: MenuItemPanelProps) => {
 
     return (
         <aside className="menu-editor__panel" aria-label="Свойства пункта">
-            <h2>Свойства пункта{item?.name ? `: ${item.name}` : ""}</h2>
-            {selectedId === "virtual-root" ? (
-                <p>Корневой уровень меню. Здесь будут создаваться основные разделы.</p>
-            ) : item ? (
+            <h2>{draft ? 'Новый пункт меню' : `Свойства пункта${item?.name ? `: ${item.name}` : ''}`}</h2>
+            {selectedId === "virtual-root" && !draft ? (
+                <p>Нажмите «+» у корневого узла, чтобы создать основной раздел.</p>
+            ) : item || draft ? (
                 <form className="menu-editor__properties" onSubmit={(event) => { void handleSubmit(submit)(event); }} noValidate aria-busy={isSubmitting}>
                     <fieldset className="menu-editor__fields" disabled={isSubmitting}>
                         <ControlledInput control={control} name="name" label="Название" placeholder="Название" type="text" />
                         <ControlledInput control={control} name="slug" label="Slug/URL" placeholder="slug-url" type="text" />
                         <div className="field-group">
                             <label htmlFor={parentFieldId}>Родительский раздел</label>
-                            <Input id={parentFieldId} value={item.parentId ?? ""} placeholder="Корневой раздел" readOnly disabled />
+                            <Input id={parentFieldId} value={draft ? draft.parentName : item?.parentId ?? ""} placeholder="Корневой раздел" readOnly disabled />
                         </div>
                         <Controller
                             name="icon"
@@ -81,8 +83,9 @@ const MenuItemPanel = ({ selectedId, item, onSave }: MenuItemPanelProps) => {
                         />
                         {errors.root?.server && <p className="error-message" role="alert">{errors.root.server.message}</p>}
                         <Button type="submit" variant="primary" className="check-button w-100__percent" disabled={!isDirty || isSubmitting} isLoading={isSubmitting}>
-                            Сохранить изменения
+                            {draft ? 'Создать пункт' : 'Сохранить изменения'}
                         </Button>
+                        {draft && <Button type="button" variant="secondary" disabled={isSubmitting} onClick={onCancelCreate}>Отмена</Button>}
                     </fieldset>
                 </form>
             ) : <p>Выберите пункт меню</p>}
