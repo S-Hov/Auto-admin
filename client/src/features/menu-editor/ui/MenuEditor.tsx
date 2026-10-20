@@ -15,7 +15,6 @@ export function MenuEditor({
     onSave: (data: MenuSaveData) => Promise<number>;
 }) {
     const [selectedId, setSelectedId] = useState<MenuEditorSelection>(null);
-    console.log(selectedId)
     const [isSaving, setIsSaving] = useState(false);
     const [draft, setDraft] = useState<NewMenuItemContext | null>(null);
     const root = useMemo(() => buildEditorTree(items), [items]);
