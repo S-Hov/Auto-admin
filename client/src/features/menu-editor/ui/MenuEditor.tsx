@@ -50,6 +50,7 @@ export function MenuEditor({
                     <p>Меню пока не настроено. Нажмите «+» у корневого узла, чтобы добавить первый раздел.</p>
                 )}
                 <MenuEditorBoard
+                    items={items}
                     root={root}
                     selectedId={selectedId}
                     onSelect={(id) => { if (!isSaving) { setDraft(null); setSelectedId(id); } }}
