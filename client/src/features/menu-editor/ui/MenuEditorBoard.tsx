@@ -67,7 +67,10 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
         return {
             ...node,
             position,
-            className: node.data.menuId === targetId ? 'menu-board-drop-target' : undefined,
+            className: [
+                    isDragged && 'menu-board-node--dragging',
+                    node.data.menuId === targetId && 'menu-board-drop-target',
+                ].filter(Boolean).join(' '),
             // Сохраняем измерения при создании объектов для превью переноса, иначе React Flow сбрасывает вычисленные границы Handle.
             measured: measuredById[node.id] ?? node.measured,
             selected: node.data.menuId === selectedId,
@@ -130,7 +133,7 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
     }
 
     return (
-        <div className="menu-editor__board" aria-label="Доска структуры меню">
+        <div className={`menu-editor__board ${drag ? 'drag' : ''}`} aria-label="Доска структуры меню">
             <ReactFlow<MenuBoardNode>
                 onInit={(instance) => { flow.current = instance; }}
                 nodes={nodes}

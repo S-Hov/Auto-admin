@@ -103,6 +103,10 @@
         border-radius: var(--radius-card-4);
         overflow: hidden;
     }
+
+    &.drag .react-flow__node:not(.menu-board-node--dragging) .react-flow__handle-right {
+        background: red;
+    }
 }
 .menu-editor__board-hint {
     background: var(--surface-raised);
@@ -243,6 +247,10 @@
 
 .react-flow__node.draggable {
     will-change: transform;
+}
+
+.menu-board-node--dragging .menu-board-node__circle {
+    border-style: dashed;
 }
 
 @media (max-width: 760px) {
