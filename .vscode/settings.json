@@ -20,6 +20,8 @@
         "marginy",
         "mycompany",
         "nodesep",
+        "nodrag",
+        "nopan",
         "pannable",
         "rankdir",
         "ranksep",

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import React, { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button } from "../Button/Button";
 import "./Modal.css";
 
@@ -25,7 +25,10 @@ const Modal = ({ open, onClose, title, children, hideHeader = false }: ModalProp
         }
     }, [open]);
 
-    const onclick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    const onClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+        event.stopPropagation();
+        if (event.target !== event.currentTarget) return;
+
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX;
         const y = event.clientY;
@@ -41,10 +44,12 @@ const Modal = ({ open, onClose, title, children, hideHeader = false }: ModalProp
             aria-labelledby={hideHeader ? undefined : titleId}
             aria-label={hideHeader ? title : undefined}
             onCancel={(event) => {
+                event.stopPropagation();
+                if (event.target !== event.currentTarget) return;
                 event.preventDefault();
                 onClose();
             }}
-            onClick={onclick}
+            onClick={onClick}
         >
             {!hideHeader && <header className="modal__header">
                 <h2 id={titleId} className="modal__title">{title}</h2>

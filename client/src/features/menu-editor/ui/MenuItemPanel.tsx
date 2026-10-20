@@ -1,4 +1,4 @@
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
@@ -12,6 +12,8 @@ import ControlledIconPicker from "../../icon-picker/ui/ControlledIconPicker";
 import { toast } from "sonner";
 import { apiMessage } from "../../../shared/i18n/api-message";
 import { applyFieldErrors } from "../../../shared/api/apply-field-errors";
+import Modal from "../../../shared/ui/Modal/Modal";
+import { fa } from "zod/locales";
 
 interface MenuItemPanelProps {
     selectedId: MenuEditorSelection;
@@ -21,7 +23,29 @@ interface MenuItemPanelProps {
     onCancelCreate?: () => void;
 }
 
-const MenuItemPanel = ({ selectedId, item, onSave, draft = null, onCancelCreate }: MenuItemPanelProps) => {
+const MenuItemPanel = (props: MenuItemPanelProps) => {
+    const { item, draft = null, onCancelCreate } = props;
+    const closeModal = () => {
+        onCancelCreate();
+    }
+    return (
+        <> {draft ? 
+            <Modal
+                open={true}
+                title="Новый пункт меню"
+                onClose={closeModal}
+            >
+                <MenuItem {...props}></MenuItem>
+            </Modal>
+            : <aside className="menu-editor__panel" aria-label="Свойства пункта">
+                <h2>{`Свойства пункта${item?.name ? `: ${item.name}` : ''}`}</h2>
+                <MenuItem {...props}></MenuItem>
+            </aside>}
+        </>
+    )
+}
+
+const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: MenuItemPanelProps) => {
     const parentFieldId = useId();
     const saveInFlight = useRef(false);
     const {
@@ -59,7 +83,6 @@ const MenuItemPanel = ({ selectedId, item, onSave, draft = null, onCancelCreate 
 
     return (
         <aside className="menu-editor__panel" aria-label="Свойства пункта">
-            <h2>{draft ? 'Новый пункт меню' : `Свойства пункта${item?.name ? `: ${item.name}` : ''}`}</h2>
             {selectedId === "virtual-root" && !draft ? (
                 <p>Нажмите «+» у корневого узла, чтобы создать основной раздел.</p>
             ) : item || draft ? (
