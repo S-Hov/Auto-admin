@@ -189,6 +189,14 @@
     color: var(--accent-color);
     transition: var(--transition);
 }
+.menu-board-drop-target .menu-board-node__circle {
+    border-color: var(--accent-color);
+    background: var(--accent-surface);
+    box-shadow: var(--focus-ring);
+}
+.menu-board-drop-target .menu-board-node__name {
+    color: var(--accent-color);
+}
 .menu-board-node__icon {
     width: 32px;
     height: 32px;
@@ -231,6 +239,10 @@
 
 .react-flow__panel.react-flow__attribution.bottom.right {
     display: none;
+}
+
+.react-flow__node.draggable {
+    will-change: transform;
 }
 
 @media (max-width: 760px) {

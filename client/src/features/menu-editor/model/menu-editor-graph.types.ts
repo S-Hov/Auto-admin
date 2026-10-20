@@ -26,4 +26,7 @@ export interface MenuDragState {
     subtreeIds: ReadonlySet<number>;
     startPosition: XYPosition;
     currentPosition: XYPosition;
+    pointerOffset: XYPosition;
+    targetId: number | 'virtual-root' | null;
+    targetPosition: XYPosition | null;
 }
