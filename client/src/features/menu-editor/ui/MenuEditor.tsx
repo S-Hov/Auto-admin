@@ -6,6 +6,7 @@ import { MenuEditorBoard } from "./MenuEditorBoard";
 import { buildNewMenuItemContext, type NewMenuItemContext } from '../model/build-menu-save-data';
 import MenuItemPanel from "./MenuItemPanel";
 import "./MenuEditor.css";
+import { buildMenuMoveData } from "../model/build-menu-move-data";
 
 export function MenuEditor({
     items,
@@ -37,6 +38,14 @@ export function MenuEditor({
         setSelectedId(id);
     };
 
+    const handleMove = async (rootId: number, targetId: number | 'virtual-root') => {
+        if (isSaving) return;
+        const data = buildMenuMoveData(items, rootId, targetId);
+        if (data) {
+            await saveItem(data);
+        }
+    };
+
     return (
         <div
             className={`menu-editor ${selectedId && !draft ? "menu-editor--selected" : ""}`}
@@ -51,6 +60,7 @@ export function MenuEditor({
                 )}
                 <MenuEditorBoard
                     items={items}
+                    onMove={handleMove}
                     root={root}
                     selectedId={selectedId}
                     onSelect={(id) => { if (!isSaving) { setDraft(null); setSelectedId(id); } }}

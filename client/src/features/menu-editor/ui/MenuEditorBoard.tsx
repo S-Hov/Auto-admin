@@ -20,9 +20,10 @@ interface MenuEditorBoardProps {
     onSelect: (id: EditableMenuNode["id"] | null) => void;
     onAddChild: (id: EditableMenuNode['id']) => void;
     isSaving: boolean;
+    onMove: (rootId: number, targetId: number | "virtual-root") => void;
 }
 
-export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild, isSaving }: MenuEditorBoardProps) {
+export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild, isSaving, onMove }: MenuEditorBoardProps) {
     const [drag, setDrag] = useState<MenuDragState | null>(null);
     const flow = useRef<ReactFlowInstance<MenuBoardNode> | null>(null);
     const graph = useMemo(() => buildEditorGraph(root), [root]);
@@ -129,8 +130,14 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
     }
 
     const onNodeDragStop = () => {
+        if (!drag || drag.targetId === null) {
+            setDrag(null);
+            return;
+        }
+
+        onMove(drag.rootId, drag.targetId);
         setDrag(null);
-    }
+    };
 
     return (
         <div className={`menu-editor__board ${drag ? 'drag' : ''}`} aria-label="Доска структуры меню">
