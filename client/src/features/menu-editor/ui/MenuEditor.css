@@ -105,7 +105,7 @@
     }
 
     &.drag .react-flow__node:not(.menu-board-node--dragging) .react-flow__handle-right {
-        background: red;
+        background: var(--accent-color);
     }
 }
 .menu-editor__board-hint {
