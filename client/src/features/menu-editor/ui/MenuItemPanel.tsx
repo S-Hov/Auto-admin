@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../../shared/ui/Button/Button";
 import { Input } from "../../../shared/ui/Input/Input";
 import ControlledIconPicker from "../../icon-picker/ui/ControlledIconPicker";
-import { toast } from "sonner";
 import { apiMessage } from "../../../shared/i18n/api-message";
 import { applyFieldErrors } from "../../../shared/api/apply-field-errors";
 import Modal from "../../../shared/ui/Modal/Modal";
@@ -63,11 +62,7 @@ const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: Me
         clearErrors('root.server');
         try {
             const payload = draft ? buildNewMenuSaveData(draft, values) : buildMenuSaveData(item!, values);
-            await toast.promise(onSave(payload), {
-                loading: draft ? 'Создаём пункт меню...' : 'Сохраняем пункт меню...',
-                success: draft ? 'Пункт меню создан' : 'Изменения сохранены',
-                error: (error) => apiMessage(error),
-            }).unwrap();
+            await onSave(payload);
             reset(values);
         } catch (error) {
             if (!applyFieldErrors(error, setError, ['name', 'slug', 'icon'])) {

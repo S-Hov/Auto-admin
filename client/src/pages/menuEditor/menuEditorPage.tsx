@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import type { ManageableMenuItemDto, MenuSaveData } from "../../shared/api/menu/menu.types";
+import type {
+    ManageableMenuItemDto,
+    MenuSaveData,
+} from "../../shared/api/menu/menu.types";
 import { menu } from "../../shared/api/menu";
 import { toast } from "sonner";
 import { apiMessage } from "../../shared/i18n/api-message";
@@ -11,8 +14,8 @@ import { Button } from "../../shared/ui/Button/Button";
 import { PageLoader } from "../../shared/ui/Loader";
 import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
 import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
-import { useMenuRefresh } from '../../app/providers/menu/MenuRefreshContext';
-import { upsertSavedMenuItem } from '../../features/menu-editor/model/build-menu-save-data';
+import { useMenuRefresh } from "../../app/providers/menu/MenuRefreshContext";
+import { upsertSavedMenuItem } from "../../features/menu-editor/model/build-menu-save-data";
 
 interface StatusLoading {
     status: "loading";
@@ -78,15 +81,31 @@ const MenuEditorContent = () => {
         setRequestVersion((version) => version + 1);
     };
 
-    const saveItem = async (data: MenuSaveData) => {
-        const response = await menu.saveMenu(data);
-        // Endpoint сохраняет полную переданную запись. Обновляем доску без
-        // размонтирования редактора и потери выбранного пункта/положения камеры.
-        setStatus((current) => current.status !== 'ready' ? current : {
-            status: 'ready',
-            items: upsertSavedMenuItem(current.items, data, response.data.id),
-        });
+    const saveItem = async (data: MenuSaveData): Promise<number> => {
+        const responsePromise = menu.saveMenu(data);
+
+        const response = await toast
+            .promise(responsePromise, {
+                loading: "Идёт сохранение",
+                success: "Изменения сохранены",
+                error: (err) => apiMessage(err),
+            }).unwrap();
+
+        setStatus((current) =>
+            current.status !== "ready"
+                ? current
+                : {
+                      status: "ready",
+                      items: upsertSavedMenuItem(
+                          current.items,
+                          data,
+                          response.data.id,
+                      ),
+                  },
+        );
+
         refreshNavigation();
+
         return response.data.id;
     };
 

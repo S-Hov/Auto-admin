@@ -7,6 +7,7 @@ import { buildNewMenuItemContext, type NewMenuItemContext } from '../model/build
 import MenuItemPanel from "./MenuItemPanel";
 import "./MenuEditor.css";
 import { buildMenuMoveData } from "../model/build-menu-move-data";
+import { toast } from "sonner";
 
 export function MenuEditor({
     items,
@@ -40,9 +41,23 @@ export function MenuEditor({
 
     const handleMove = async (rootId: number, targetId: number | 'virtual-root') => {
         if (isSaving) return;
-        const data = buildMenuMoveData(items, rootId, targetId);
+        let data;
+        try {
+            data = buildMenuMoveData(items, rootId, targetId);
+        }
+        catch (error){
+            if (error instanceof Error) {
+                toast.error(error.message);
+            }
+            return;
+        }
         if (data) {
-            await saveItem(data);
+            try {
+                await saveItem(data);
+            }
+            catch {
+                /// Ошибка уже отображена через toast в главном saveItem
+            }
         }
     };
 
