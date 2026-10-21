@@ -20,7 +20,7 @@ interface MenuEditorBoardProps {
     onSelect: (id: EditableMenuNode["id"] | null) => void;
     onAddChild: (id: EditableMenuNode['id']) => void;
     isSaving: boolean;
-    onMove: (rootId: number, targetId: number | "virtual-root") => void;
+    onMove: (rootId: number, targetId: number | "virtual-root") => Promise<void>;
 }
 
 export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild, isSaving, onMove }: MenuEditorBoardProps) {
@@ -39,11 +39,12 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
     useEffect(() => {
         if (!drag) return;
         const cancel = (event: KeyboardEvent) => {
+            if (isSaving) return;
             if (event.key === 'Escape') setDrag(null);
         };
         window.addEventListener('keydown', cancel);
         return () => window.removeEventListener('keydown', cancel);
-    }, [drag]);
+    }, [drag, isSaving]);
 
     const nodes = useMemo(() => preview.nodes.map((node) => {
 
@@ -93,10 +94,12 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
     };
 
     const onNodeDragStart: OnNodeDrag<MenuBoardNode> = (event, node) => {
+        if(isSaving) return;
         const id = node.data.menuId;
-        if (typeof id !== "number" || isSaving ) return;
+        if (typeof id !== "number") return;
         const pointer = getPointerPosition(event);
         if (!pointer) return;
+        onSelect(null);
 
         setDrag({
             rootId: id,
@@ -110,6 +113,7 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
     }
 
     const onNodeDrag: OnNodeDrag<MenuBoardNode> = (event) => {
+        if (isSaving) return;
         const pointer = getPointerPosition(event);
         if (!pointer) return;
         setDrag((previous) => {
@@ -129,15 +133,23 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
         });
     }
 
-    const onNodeDragStop = () => {
+    const onNodeDragStop = async () => {
         if (!drag || drag.targetId === null) {
             setDrag(null);
             return;
         }
-
-        onMove(drag.rootId, drag.targetId);
-        setDrag(null);
+        try{
+            await onMove(drag.rootId, drag.targetId);
+        }
+        finally{
+            setDrag(null);
+        }
     };
+
+    const handleNodeClick = (node: MenuBoardNode) => {
+        if(drag) return;
+        onSelect(node.data.menuId);
+    }
 
     return (
         <div className={`menu-editor__board ${drag ? 'drag' : ''}`} aria-label="Доска структуры меню">
@@ -146,7 +158,7 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
                 nodes={nodes}
                 edges={preview.edges}
                 nodeTypes={nodeTypes}
-                onNodeClick={(_, node) => onSelect(node.data.menuId)}
+                onNodeClick={(_, node) => handleNodeClick(node)}
                 onNodesChange={(changes) => {
                     if (changes.some((change) => change.type === 'dimensions' && change.dimensions)) {
                         setMeasuredById((previous) => updateNodeMeasurements(previous, changes));
@@ -177,7 +189,9 @@ export function MenuEditorBoard({ items, root, selectedId, onSelect, onAddChild,
                 <Panel position="top-left" className="menu-editor__board-hint">
                     {drag
                         ? targetId !== null
-                            ? 'Предпросмотр нового родителя · Esc — отменить · Изменения пока не сохраняются'
+                            ? isSaving 
+                                ? 'Сохранение…'
+                                : 'Предпросмотр нового родителя · Esc — отменить · Изменения пока не сохраняются'
                             : 'Наведите курсор на нового родителя · Esc — отменить'
                         : 'Перетаскивайте фон · Колесо — масштаб · Нажмите пункт для просмотра'}
                 </Panel>
