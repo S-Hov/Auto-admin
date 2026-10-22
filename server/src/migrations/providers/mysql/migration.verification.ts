@@ -235,6 +235,24 @@ const tableSpecs: Readonly<Record<string, TableVerificationSpec>> = {
         indexes: ['idx_menu_audit_item_created'],
         constraints: ['fk_menu_audit_actor'],
     },
+    '0024': {
+        table: 'Auto_Admin__pages',
+        columns: ['id', 'name', 'description', 'config', 'revision', 'created_at', 'updated_at', 'created_by', 'updated_by'],
+        indexes: ['idx_pages_created_by', 'idx_pages_updated_by'],
+        constraints: ['chk_pages_revision', 'chk_pages_config_object', 'fk_pages_created_by', 'fk_pages_updated_by'],
+    },
+    '0025': {
+        table: 'Auto_Admin__menu',
+        columns: ['page_id'],
+        indexes: ['idx_menu_page'],
+        constraints: ['fk_menu_page'],
+    },
+    '0026': {
+        table: 'Auto_Admin__page_audit_events',
+        columns: ['id', 'page_id', 'action', 'actor_user_id', 'previous_value', 'new_value', 'request_id', 'created_at'],
+        indexes: ['idx_page_audit_item_created'],
+        constraints: ['fk_page_audit_actor'],
+    },
 };
 
 const containsAll = (actual: readonly string[], expected: readonly string[]): boolean => {
