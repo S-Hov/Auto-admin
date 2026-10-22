@@ -5,6 +5,7 @@ export interface NewMenuItemContext {
     parentId: number | null;
     parentName: string;
     sortOrder: number;
+    isActive: boolean,
 }
 
 export function buildNewMenuItemContext(items: readonly ManageableMenuItemDto[], parentId: number | null): NewMenuItemContext {
@@ -12,7 +13,7 @@ export function buildNewMenuItemContext(items: readonly ManageableMenuItemDto[],
     if (parentId !== null && !parent) throw new Error('Родительский пункт не найден');
     const siblings = items.filter((item) => item.parentId === parentId);
     const maxOrder = siblings.reduce((max, item) => Math.max(max, item.sortOrder), 0);
-    return { parentId, parentName: parent?.name ?? 'Корневой уровень меню', sortOrder: Math.min(1_000_000, maxOrder + 10) };
+    return { parentId, parentName: parent?.name ?? 'Корневой уровень меню', sortOrder: Math.min(1_000_000, maxOrder + 10), isActive: true };
 }
 
 export function buildNewMenuSaveData(context: NewMenuItemContext, values: MenuItemPanelFormValues): MenuSaveData {
@@ -22,8 +23,8 @@ export function buildNewMenuSaveData(context: NewMenuItemContext, values: MenuIt
         slug: values.slug,
         icon: values.icon,
         iconType: 'icon',
-        sortOrder: context.sortOrder,
-        isActive: true,
+        sortOrder: values.sortOrder,
+        isActive: values.isActive,
     };
 }
 
@@ -43,7 +44,7 @@ export function buildMenuSaveData(item: ManageableMenuItemDto, values: MenuItemP
         icon: values.icon,
         // Старое изображение/видео не превращается в ключ иконки при смене названия.
         iconType: values.icon === item.icon ? item.iconType : 'icon',
-        sortOrder: item.sortOrder,
-        isActive: item.isActive,
+        sortOrder: values.sortOrder,
+        isActive: values.isActive,
     };
 }

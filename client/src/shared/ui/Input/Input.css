@@ -33,3 +33,31 @@
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-color-error) 30%, transparent);
     }
 }
+
+/* Чекбокс сохраняет нативную галочку, управление с клавиатуры и системный high contrast. */
+.input[type='checkbox'] {
+    appearance: auto;
+    accent-color: var(--accent-color);
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: none;
+
+    &:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 3px;
+        box-shadow: var(--focus-ring);
+    }
+
+    &.input-error {
+        outline: 2px solid var(--text-color-error);
+        outline-offset: 3px;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}

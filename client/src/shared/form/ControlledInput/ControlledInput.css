@@ -21,3 +21,26 @@
         margin-top: 4px;
     }
 }
+
+.field-group--checkbox .field-group__checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 32px;
+    padding-block: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 1;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.field-group__checkbox-label:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.55;
+}

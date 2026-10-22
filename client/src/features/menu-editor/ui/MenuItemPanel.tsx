@@ -53,6 +53,8 @@ const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: Me
             name: draft ? '' : item?.name ?? "",
             icon: draft ? null : item?.icon ?? null,
             slug: draft ? '' : item?.slug ?? "",
+            sortOrder: draft ? draft.sortOrder : item?.sortOrder ?? 0,
+            isActive: draft ? true : item?.isActive ?? true,
         },
     });
 
@@ -96,6 +98,8 @@ const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: Me
                                 </div>
                             )}
                         />
+                        <ControlledInput control={control} name="sortOrder" label="Сортировка" placeholder="Сортировка" type="number" />
+                        <ControlledInput control={control} name="isActive" label="Активность" placeholder="Активность" type="checkbox" />
                         {errors.root?.server && <p className="error-message" role="alert">{errors.root.server.message}</p>}
                         <Button type="submit" variant="primary" className="check-button w-100__percent" disabled={!isDirty || isSubmitting} isLoading={isSubmitting}>
                             {draft ? 'Создать пункт' : 'Сохранить изменения'}
