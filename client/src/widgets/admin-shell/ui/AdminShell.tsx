@@ -7,6 +7,7 @@ import type { AdminShellVariantId, MenuState } from "../model/admin-shell.types"
 import { menu } from '../../../shared/api/menu';
 import { buildMenuTree } from '../model/build-menu-tree';
 import { useAuth } from '../../../app/providers/auth/AuthContext';
+import { MenuRefreshContext } from '../../../app/providers/menu/MenuRefreshContext';
 
 import "./AdminShell.css";
 
@@ -51,7 +52,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
         model = defaultAdminShellVariant;
     }
 
-    return <div className="admin-shell-container">
+    return <MenuRefreshContext.Provider value={retryMenu}><div className="admin-shell-container">
         <model.component menuState={menuState} onRetryMenu={retryMenu}>{children}</model.component>
         <label className="admin-shell-variant-picker">
             <span>Вид меню</span>
@@ -62,7 +63,7 @@ const AuthenticatedShell = ({ children }: AdminShellProps) => {
                 {AdminShellVariants.map((variant) => <option key={variant.id} value={variant.id}>{variant.label}</option>)}
             </select>
         </label>
-    </div>;
+    </div></MenuRefreshContext.Provider>;
 };
 
 export default AdminShell;

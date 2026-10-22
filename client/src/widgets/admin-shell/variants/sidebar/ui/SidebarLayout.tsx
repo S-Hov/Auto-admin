@@ -6,7 +6,7 @@ import UserPanel from "../../../../user-panel/ui/UserPanel";
 import type { AdminShellVariantProps, MenuNode } from "../../../model/admin-shell.types";
 import { TextLoader } from '../../../../../shared/ui/Loader';
 import { Button } from '../../../../../shared/ui/Button/Button';
-import { MenuIcon } from '../../../ui/MenuIcon';
+import { Icon } from '../../../../../shared/ui/Icon';
 import './SidebarLayout.css';
 
 const itemPath = (locale: string, slug: string) => `/${locale}/pages/${encodeURIComponent(slug)}`;
@@ -39,7 +39,7 @@ function MenuItems({ items, onNavigate, collapsed = false, expandedGroup, onExpa
                                     onExpandGroup?.(item.id);
                                 }
                             }}>
-                                <MenuIcon icon={item.icon} />
+                                <Icon icon={item.icon} />
                                 <span className="sidebar-label">{item.name}</span>
                                 <span className="sidebar-count">{item.children.length}</span>
                                 <span className="sidebar-chevron" aria-hidden="true" />
@@ -56,7 +56,7 @@ function MenuItems({ items, onNavigate, collapsed = false, expandedGroup, onExpa
                             className={({ isActive }) => `sidebar-row sidebar-link${isActive ? ' is-active' : ''}`}
                             onClick={onNavigate}
                         >
-                            <MenuIcon icon={item.icon} />
+                            <Icon icon={item.icon} />
                             <span className="sidebar-label">{item.name}</span>
                         </NavLink>
                     )}
@@ -82,7 +82,7 @@ const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantPr
                     <span className="sidebar-brand-mark" aria-hidden="true">A<span /></span>
                     <div className="sidebar-brand-text"><strong>Auto Admin</strong><span className="sidebar-brand-caption">Рабочее пространство</span></div>
                     <button className="sidebar-mobile-toggle" type="button" aria-expanded={mobileOpen} aria-controls="sidebar-navigation" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? 'Скрыть меню' : 'Открыть меню'}>
-                        <MenuIcon icon="menu-hamburger-classic" />
+                        <Icon icon="menu-hamburger-classic" />
                     </button>
                 </div>
                 <nav id="sidebar-navigation" className={`sidebar-navigation${mobileOpen ? ' is-open' : ''}`} aria-label="Основное меню" aria-busy={menuState.status === 'loading'}>
@@ -95,7 +95,7 @@ const SideBarLayout = ({ children, menuState, onRetryMenu }: AdminShellVariantPr
                         className={({ isActive }) => `sidebar-row sidebar-link${isActive ? ' is-active' : ''}`}
                         onClick={() => setMobileOpen(false)}
                     >
-                        <MenuIcon icon="menu-grid-2x2-rounded" />
+                        <Icon icon="menu-grid-2x2-rounded" />
                         <span className="sidebar-label">Панель управления</span>
                     </NavLink>
                     <p className="sidebar-section-label">Разделы</p>

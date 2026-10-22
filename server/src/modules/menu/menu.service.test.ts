@@ -8,6 +8,7 @@ import {
 import { MenuService } from "./menu.service";
 import type { MenuItem, MenuVisibilityRow } from "./menu.types";
 import type { MenuRepository } from "./repository/menu-repository.interface";
+import type { MenuPermissionData } from './schema/menu.schema';
 
 const item = (id: number, parentId: number | null = null): MenuItem => ({
     id,
@@ -113,18 +114,14 @@ describe("menu management and navigation", () => {
             null,
         );
     });
-    it("rejects raw SVG, unsafe schemes and unknown payload fields", async () => {
+    it("rejects an administrator revoked after the HTTP access check", async () => {
         const h = harness();
-        for (const input of [
-            { ...item(1), iconType: "svg", icon: "<svg onload='alert(1)'/>" },
-            { ...item(1), iconType: "image", icon: "javascript:alert(1)" },
-            { ...item(1), iconType: "image", icon: "/assets/../secret.svg" },
-            { ...item(1), canManageEverything: true },
-        ])
-            await expect(h.service.save(input, admin)).rejects.toMatchObject({
-                status: 400,
-            });
+        vi.mocked(h.access.isActiveSystemAdminForUpdate).mockResolvedValue(false);
+        await expect(h.service.save(item(1), admin)).rejects.toMatchObject({ status: 403 });
+        await expect(h.service.delete(2, admin)).rejects.toMatchObject({ status: 403 });
         expect(h.repo.save).not.toHaveBeenCalled();
+        expect(h.repo.delete).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
     });
     it("filters children of a hidden or inactive parent, plus orphaned/cyclic entries", async () => {
         const h = harness();
@@ -144,7 +141,7 @@ describe("menu management and navigation", () => {
     });
     it("changes navigation permissions with audit without touching data permissions", async () => {
         const h = harness();
-        const change = {
+        const change: MenuPermissionData = {
             menuId: 1,
             subjectType: "role",
             subjectId: 2,

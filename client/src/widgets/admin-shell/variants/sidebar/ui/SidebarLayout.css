@@ -147,17 +147,17 @@
     min-width: 0;
     overflow-wrap: anywhere;
 }
-.sidebar-layout .menu-icon {
+.sidebar-layout .ui-icon {
     display: inline-block;
     width: 19px;
     height: 19px;
     flex: 0 0 19px;
     background: currentColor;
-    mask: var(--menu-icon) center / contain no-repeat;
-    -webkit-mask: var(--menu-icon) center / contain no-repeat;
+    mask: var(--ui-icon) center / contain no-repeat;
+    -webkit-mask: var(--ui-icon) center / contain no-repeat;
     opacity: 0.85;
 }
-.sidebar-row.is-active .menu-icon {
+.sidebar-row.is-active .ui-icon {
     opacity: 1;
 }
 .sidebar-count {
@@ -197,7 +197,7 @@
     padding: 8px 10px;
     font-size: 12px;
 }
-.sidebar-children .menu-icon {
+.sidebar-children .ui-icon {
     width: 16px;
     height: 16px;
     flex-basis: 16px;
