@@ -38,6 +38,7 @@
     &.is-disabled:disabled {
         position: relative;
         cursor: not-allowed;
+        opacity: 0.5;
 
         &::after {
             content: '';

@@ -12,6 +12,7 @@ import ControlledIconPicker from "../../icon-picker/ui/ControlledIconPicker";
 import { apiMessage } from "../../../shared/i18n/api-message";
 import { applyFieldErrors } from "../../../shared/api/apply-field-errors";
 import Modal from "../../../shared/ui/Modal/Modal";
+import { DeleteMenuItemButton } from './DeleteMenuItemButton';
 
 interface MenuItemPanelProps {
     selectedId: MenuEditorSelection;
@@ -19,6 +20,9 @@ interface MenuItemPanelProps {
     onSave: (data: MenuSaveData) => Promise<void>;
     draft?: NewMenuItemContext | null;
     onCancelCreate: () => void;
+    onDelete: (id: number) => Promise<void>;
+    hasChildren: boolean;
+    isSaving: boolean;
 }
 
 const MenuItemPanel = (props: MenuItemPanelProps) => {
@@ -36,12 +40,13 @@ const MenuItemPanel = (props: MenuItemPanelProps) => {
             : <aside className="menu-editor__panel" aria-label="Свойства пункта">
                 <h2>{`Свойства пункта${item?.name ? `: ${item.name}` : ''}`}</h2>
                 <MenuItem {...props}></MenuItem>
+                {item && <DeleteMenuItemButton item={item} hasChildren={props.hasChildren} disabled={props.isSaving} onDelete={props.onDelete} />}
             </aside>}
         </>
     )
 }
 
-const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: MenuItemPanelProps) => {
+const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate, isSaving }: MenuItemPanelProps) => {
     const parentFieldId = useId();
     const saveInFlight = useRef(false);
     const {
@@ -81,7 +86,7 @@ const MenuItem = ({ selectedId, item, onSave, draft = null, onCancelCreate }: Me
                 <p>Нажмите «+» у корневого узла, чтобы создать основной раздел.</p>
             ) : item || draft ? (
                 <form className="menu-editor__properties" onSubmit={(event) => { void handleSubmit(submit)(event); }} noValidate aria-busy={isSubmitting}>
-                    <fieldset className="menu-editor__fields" disabled={isSubmitting}>
+                    <fieldset className="menu-editor__fields" disabled={isSubmitting || isSaving}>
                         <ControlledInput control={control} name="name" label="Название" placeholder="Название" type="text" />
                         <ControlledInput control={control} name="slug" label="Slug/URL" placeholder="slug-url" type="text" />
                         <div className="field-group">

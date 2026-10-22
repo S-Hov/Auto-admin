@@ -35,3 +35,6 @@ export const menuSaveDataSchema = z.strictObject({
 export const menuSaveResponseSchema = apiResponseSchema(z.strictObject({
     id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
 }));
+
+export const menuDeleteIdSchema = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
+export const menuDeleteResponseSchema = apiResponseSchema(z.strictObject({ deleted: z.literal(true) }));

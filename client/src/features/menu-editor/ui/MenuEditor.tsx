@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
 import { buildEditorTree } from "../model/build-editor-tree";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
@@ -12,24 +12,43 @@ import { toast } from "sonner";
 export function MenuEditor({
     items,
     onSave,
+    onDelete,
 }: {
     items: readonly ManageableMenuItemDto[];
     onSave: (data: MenuSaveData) => Promise<number>;
+    onDelete: (id: number) => Promise<void>;
 }) {
     const [selectedId, setSelectedId] = useState<MenuEditorSelection>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const mutationInFlight = useRef(false);
     const [draft, setDraft] = useState<NewMenuItemContext | null>(null);
     const root = useMemo(() => buildEditorTree(items), [items]);
     const selectedItem = items.find((item) => item.id === selectedId) ?? null;
 
     const saveItem = async (data: MenuSaveData) => {
+        if (mutationInFlight.current) throw new Error('Дождитесь завершения текущей операции');
+        mutationInFlight.current = true;
         setIsSaving(true);
         try {
             const id = await onSave(data);
             setDraft(null);
             setSelectedId(id);
         }
-        finally { setIsSaving(false); }
+        finally { mutationInFlight.current = false; setIsSaving(false); }
+    };
+
+    const deleteItem = async (id: number) => {
+        if (mutationInFlight.current) throw new Error('Дождитесь завершения текущей операции');
+        mutationInFlight.current = true;
+        setIsSaving(true);
+        try {
+            await onDelete(id);
+            setDraft(null);
+            setSelectedId(null);
+        } finally {
+            mutationInFlight.current = false;
+            setIsSaving(false);
+        }
     };
 
     const addChild = (id: Exclude<MenuEditorSelection, null>) => {
@@ -89,6 +108,9 @@ export function MenuEditor({
                     selectedId={selectedId}
                     item={selectedItem}
                     onSave={saveItem}
+                    onDelete={deleteItem}
+                    hasChildren={items.some((item) => item.parentId === selectedId)}
+                    isSaving={isSaving}
                     draft={draft}
                     onCancelCreate={() => setDraft(null)}
                 />

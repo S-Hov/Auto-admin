@@ -11,6 +11,31 @@ beforeEach(() => {
     vi.stubGlobal('fetch', fetchMock);
     fetchMock.mockReset();
 });
+
+describe('menu delete API', () => {
+    it('deletes the selected item with session credentials and no request body', async () => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data: { deleted: true } })));
+        await expect(menu.deleteMenu(5)).resolves.toMatchObject({ data: { deleted: true } });
+        const [url, options] = fetchMock.mock.calls[0];
+        expect(url).toBe('http://localhost:5180/api/menu/5');
+        expect(options?.method).toBe('DELETE');
+        expect(options?.credentials).toBe('include');
+        expect(options?.body).toBeUndefined();
+        expect(fetchMock).toHaveBeenCalledOnce();
+    });
+    it.each([0, -1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 1])('rejects an invalid ID: %s', async (id) => {
+        await expect(menu.deleteMenu(id)).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+    it.each([{}, { deleted: false }, { deleted: 'true' }])('rejects an invalid deletion confirmation: %j', async (data) => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data })));
+        await expect(menu.deleteMenu(5)).rejects.toBeInstanceOf(ApiContractError);
+    });
+    it('propagates server refusal without reporting successful deletion', async () => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: false, code: 'MENU.INVALID' }), { status: 400 }));
+        await expect(menu.deleteMenu(5)).rejects.toBeInstanceOf(ApiClientError);
+    });
+});
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe('menu save API', () => {
@@ -27,6 +52,7 @@ describe('menu save API', () => {
     it('allows creation without an ID through the existing create method', async () => {
         fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data: { id: 8 } })));
         const { id: _id, ...create } = data;
+        expect(_id).toBe(5);
         await expect(menu.createMenu(create)).resolves.toMatchObject({ data: { id: 8 } });
     });
     it('preserves server validation details', async () => {

@@ -109,6 +109,20 @@ const MenuEditorContent = () => {
         return response.data.id;
     };
 
+    const deleteItem = async (id: number): Promise<void> => {
+        await toast.promise(menu.deleteMenu(id), {
+            loading: 'Удаляем пункт меню…',
+            success: 'Пункт меню удалён',
+            error: (error) => apiMessage(error),
+        }).unwrap();
+
+        setStatus((current) => current.status !== 'ready' ? current : {
+            ...current,
+            items: current.items.filter((item) => item.id !== id),
+        });
+        refreshNavigation();
+    };
+
     return (
         <div className="menu-editor-page">
             {status.status === "loading" && (
@@ -121,7 +135,7 @@ const MenuEditorContent = () => {
                 </div>
             )}
             {status.status === "ready" && (
-                <MenuEditor items={status.items} onSave={saveItem} />
+                <MenuEditor items={status.items} onSave={saveItem} onDelete={deleteItem} />
             )}
         </div>
     );

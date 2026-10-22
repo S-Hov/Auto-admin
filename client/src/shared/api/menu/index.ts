@@ -1,5 +1,5 @@
 import { apiClient, ApiContractError } from '../apiClient';
-import { visibleMenuResponseSchema, manageableMenuResponseSchema, menuSaveDataSchema, menuSaveResponseSchema } from './menu.schema';
+import { visibleMenuResponseSchema, manageableMenuResponseSchema, menuSaveDataSchema, menuSaveResponseSchema, menuDeleteIdSchema, menuDeleteResponseSchema } from './menu.schema';
 import type { MenuSaveData } from './menu.types';
 
 async function saveMenu(data: MenuSaveData) {
@@ -24,6 +24,10 @@ export const menu = {
         });
     },
     saveMenu,
+    async deleteMenu(id: number) {
+        const validId = menuDeleteIdSchema.parse(id);
+        return apiClient(`/menu/${validId}`, menuDeleteResponseSchema, { method: 'DELETE' });
+    },
     // Endpoint создаёт пункт без id и обновляет существующий при наличии id.
     createMenu: saveMenu,
 };
