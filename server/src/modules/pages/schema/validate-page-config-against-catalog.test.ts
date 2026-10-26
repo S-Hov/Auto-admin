@@ -67,11 +67,12 @@ describe('validatePageConfigAgainstCatalog', () => {
         expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
     });
 
-    it.each(['missing resource', 'service resource', 'deleted resource', 'missing field', 'foreign field', 'deleted field'])(
+    it.each(['missing resource', 'foreign schema', 'service resource', 'deleted resource', 'missing field', 'foreign field', 'deleted field'])(
         'rejects %s with a client error', (scenario) => {
             const { config, catalog } = fixture();
             config.source.recordKey = null;
             if (scenario === 'missing resource') catalog.resources = [];
+            if (scenario === 'foreign schema') catalog.resources[0].schemaName = 'another_database';
             if (scenario === 'service resource') catalog.resources[0].isServiceTable = true;
             if (scenario === 'deleted resource') catalog.resources[0].state = 'missing';
             if (scenario === 'missing field') config.fields[0].fieldId = 999;
@@ -119,9 +120,32 @@ describe('validatePageConfigAgainstCatalog', () => {
         expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
     });
 
+    it.each(['extra field', 'different fields', 'separate indexes', 'prefix index', 'repeated index part'])(
+        'rejects a record key that does not match one complete supported unique index: %s', (scenario) => {
+            const { config, catalog } = fixture();
+            if (scenario === 'extra field') config.source.recordKey = [101, 103];
+            if (scenario === 'different fields') config.source.recordKey = [103];
+            if (scenario === 'separate indexes') {
+                config.source.recordKey = [101, 103];
+                catalog.indexes.push(index([103], { id: 2, name: 'another_unique_key' }));
+            }
+            if (scenario === 'prefix index') catalog.indexes[0].parts[0].prefixLength = 10;
+            if (scenario === 'repeated index part') {
+                config.source.recordKey = [101, 103];
+                catalog.indexes = [index([101, 101])];
+            }
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrow(ApiError);
+        },
+    );
+
+    it('accepts an invisible unique index because visibility does not remove uniqueness', () => {
+        const { config, catalog } = fixture();
+        catalog.indexes[0].isVisible = false;
+        expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
+    });
+
     it('does not mutate either the configuration or a readonly cached catalog', () => {
         const { config, catalog } = fixture();
-        config.source.recordKey = null;
         const before = structuredClone(config);
         const cached = createReadonlyCatalog(catalog);
         expect(() => validatePageConfigAgainstCatalog(config, cached)).not.toThrow();
