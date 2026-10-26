@@ -37,3 +37,28 @@ describe('MySqlPageRepository.create', () => {
         await expect(h.repository.create(pageData(), 7)).rejects.toBe(error);
     });
 });
+
+describe('MySqlPageRepository.appendAudit', () => {
+    it.each(['create', 'update', 'delete'] as const)('writes a parameterized %s audit with JSON snapshots', async (action) => {
+        const h = harness();
+        const previous = action === 'create' ? null : { ...pageData(), pageId: 42, revision: 1 };
+        const next = action === 'delete' ? null : { ...pageData(), pageId: 42, revision: 2 };
+        await expect(h.repository.appendAudit(42, action, 7, previous, next, 'request-1')).resolves.toBeUndefined();
+        const [sql, params] = h.execute.mock.calls[0];
+        expect(sql.replace(/\s+/g, ' ')).toContain('INSERT INTO Auto_Admin__page_audit_events (page_id, action, actor_user_id, previous_value, new_value, request_id) VALUES (?, ?, ?, ?, ?, ?)');
+        expect(params).toEqual([42, action, 7, JSON.stringify(previous), JSON.stringify(next), 'request-1']);
+    });
+
+    it('stores a missing request ID as SQL null', async () => {
+        const h = harness();
+        await h.repository.appendAudit(42, 'create', 7, null, pageData(), null);
+        expect(h.execute.mock.calls[0][1]?.[5]).toBeNull();
+    });
+
+    it('propagates audit insert errors to the transaction owner', async () => {
+        const h = harness();
+        const error = new Error('Audit table unavailable');
+        h.execute.mockRejectedValue(error);
+        await expect(h.repository.appendAudit(42, 'create', 7, null, pageData(), null)).rejects.toBe(error);
+    });
+});

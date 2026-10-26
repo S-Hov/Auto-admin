@@ -35,7 +35,7 @@ export class PageService {
         data: CreatePageData,
         principal: AccessPrincipal,
         requestId: string | null = null,
-    ): Promise<{pageId: number, revision: number}> {
+    ): Promise<{ pageId: number; revision: number }> {
         requireSystemAdmin(principal);
         const catalog = await schemaCatalogService.getAuthorizationCatalog();
         validatePageConfigAgainstCatalog(data.config, catalog);
@@ -45,26 +45,27 @@ export class PageService {
                 this.configuredAccessProvider ??
                 getActiveAccessControlProvider()
             ).createRepository(executor);
+
             if (!(await access.isActiveSystemAdminForUpdate(principal.userId)))
                 throw forbidden(ERROR_CODES.ACCESS_ADMIN_REQUIRED);
-            const pageId = await this.repository(executor).create(
-                data,
-                principal.userId,
-            );
 
-            this.repository(executor).appendAudit(
+            const repository = this.repository(executor);
+
+            const pageId = await repository.create(data, principal.userId);
+
+            await repository.appendAudit(
                 pageId,
                 "create",
                 principal.userId,
                 null,
-                data.config,
+                { ...data, pageId, revision: 1 },
                 requestId,
             );
 
             return {
                 pageId,
-                revision: 1
-            }
+                revision: 1,
+            };
         });
     }
 }

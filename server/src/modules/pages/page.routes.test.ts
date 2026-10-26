@@ -35,7 +35,7 @@ beforeAll(async () => {
 beforeEach(() => {
     vi.restoreAllMocks();
     readAuthSession.mockReset().mockResolvedValue(session);
-    vi.spyOn(pageService, 'create').mockResolvedValue(42);
+    vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
 });
 
 afterAll(async () => {
@@ -76,8 +76,7 @@ describe('page creation HTTP boundary', () => {
         expect(response.status).toBe(200);
         expect(response.headers.get('x-request-id')).toBe('page-test-request');
         expect(pageService.create).toHaveBeenCalledWith(data, session, 'page-test-request');
-        // Контракт ответа пока возвращает ID; pageId/revision добавим вместе с аудитом.
-        expect(await response.json()).toMatchObject({ data: 42 });
+        expect(await response.json()).toMatchObject({ data: { pageId: 42, revision: 1 } });
     });
 
     it('does not return success when the service fails', async () => {
