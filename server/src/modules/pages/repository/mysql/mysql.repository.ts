@@ -24,8 +24,32 @@ export class MySqlPageRepository implements PageRepository {
         if (!Number.isSafeInteger(id) || id <= 0) {
             throw new Error("Database did not return a created menu id");
         }
-        else {}
 
         return id;
+    }
+
+    async appendAudit(
+        pageId: number,
+        action: "create" | "update" | "delete",
+        actorUserId: number,
+        previous: unknown,
+        newValue: unknown,
+        requestId: string | null,
+    ): Promise<void> {
+        await this.executor.execute(
+            `
+                INSERT INTO Auto_Admin__page_audit_events
+                    (page_id, action, actor_user_id, previous_value, new_value, request_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `,
+            [
+                pageId,
+                action,
+                actorUserId,
+                JSON.stringify(previous),
+                JSON.stringify(newValue),
+                requestId,
+            ],
+        );
     }
 }
