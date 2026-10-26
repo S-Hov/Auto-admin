@@ -231,7 +231,7 @@ HTTP status остаётся в настоящем HTTP response.
 server/src/modules/auth/auth.controller.ts
 server/src/modules/bootstrap/bootstrap.controller.ts
 server/src/modules/install/install.controller.ts
-server/src/modules/install/registerNewAdmin/register.controller.ts
+server/src/modules/install/register-admin/register.controller.ts
 ```
 
 Контроллер передаёт success code и data, а не русскую строку.

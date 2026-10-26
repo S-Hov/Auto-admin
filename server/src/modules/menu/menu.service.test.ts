@@ -7,7 +7,7 @@ import {
 } from "../../../tests/fixtures/access.fixture";
 import { MenuService } from "./menu.service";
 import type { MenuItem, MenuVisibilityRow } from "./menu.types";
-import type { MenuRepository } from "./repository/menu-repository.interface";
+import type { MenuRepository } from "./repository/repository.interface";
 import type { MenuPermissionData } from './schema/menu.schema';
 
 const item = (id: number, parentId: number | null = null): MenuItem => ({

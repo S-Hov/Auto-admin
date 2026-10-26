@@ -18,12 +18,12 @@ import type {
     SystemConfigurationOptionsResponse
 } from './install.types';
 import { ok } from '../../shared/api/success';
-import type { ApplyNextMigrationData } from './schema/applyNextMigration.schema';
+import type { ApplyNextMigrationData } from './schema/apply-next-migration.schema';
 import { SUCCESS_CODES } from '../../shared/api/codes/success-codes';
 import { RecoveryData } from './schema/recovery.schema';
 import { getRequestMeta } from '../../utils/getRequestMeta';
-import { CheckConnectionData } from './schema/checkConnection.schema';
-import { CheckDatabaseType } from './schema/checkDatabaseType.schema';
+import { CheckConnectionData } from './schema/check-connection.schema';
+import { CheckDatabaseType } from './schema/check-database-type.schema';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: CheckConnectionData = req.body;

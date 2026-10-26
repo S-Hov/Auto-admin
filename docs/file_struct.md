@@ -134,12 +134,29 @@ modules/<name>/
 ├── <name>.routes.ts        # Описание URL-маршрутов
 ├── <name>.controller.ts    # Транспорт (Request / Response)
 ├── <name>.service.ts       # Бизнес-сценарии и транзакции
-├── <name>.repository.ts    # Низкоуровневый SQL
 ├── <name>.queries.ts       # Публичные функции чтения для внешнего мира
 ├── <name>.types.ts         # Типы данных модуля
+├── repository/
+│   ├── repository.interface.ts # Операции предметной области без SQL
+│   ├── repository.factory.ts   # Выбор реализации по DatabaseType
+│   ├── mysql/mysql.repository.ts # SQL конкретной СУБД
+│   └── runtime/<name>-repository.runtime.ts # Только если нужен доступ вне транзакции
 ├── schema/                 # Zod-схемы валидации
 └── index.ts                # Единственный публичный фасад (Public API)
 ```
+
+Имена каталогов и составные части имён файлов пишем в `kebab-case`: `register-admin/`,
+`check-connection.schema.ts`. В корне модуля используем доменное имя и роль файла:
+`auth.service.ts`, `menu.controller.ts`, `page.routes.ts`. Внутри `repository/`
+имя модуля не повторяется: `repository.interface.ts`, `repository.factory.ts`,
+`mysql/mysql.repository.ts`; будущие адаптеры — `postgresql/postgresql.repository.ts`
+и `sqlite/sqlite.repository.ts`. Схемы находятся в `schema/`, тесты — рядом с
+проверяемым файлом с суффиксом `.test.ts`. Специальные файлы вроде `auth.cookies.ts`
+добавляются по необходимости; пустые слои ради одинакового дерева не нужны.
+
+Репозиторий для транзакции создаётся фабрикой с транзакционным `DatabaseExecutor`.
+Runtime-обёртка с общим провайдером не заменяет его: иначе запросы уйдут за пределы
+транзакции. Для домена страниц используем `page.*`, хотя каталог называется `pages/`.
 
 ### Главный контракт границ (Module Boundary Contract):
 * **Внутри модуля:** Компоненты взаимодействуют напрямую (`routes` ➔ `controller` ➔ `service` ➔ `repository`).

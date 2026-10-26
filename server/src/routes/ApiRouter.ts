@@ -6,6 +6,7 @@ import bootstrapRouter from "../modules/bootstrap/bootstrap.routes";
 import queryRouter from "../modules/query/query.routes";
 import accessRouter from "../modules/access-control/access-control.routes";
 import menuRouter from "../modules/menu/menu.routes";
+import pageRouter from "../modules/pages/page.routes";
 
 const ApiRouter = express.Router();
 
@@ -15,5 +16,6 @@ ApiRouter.use("/bootstrap", bootstrapRouter);
 ApiRouter.use("/query", statusReady, queryRouter);
 ApiRouter.use("/access", statusReady, accessRouter);
 ApiRouter.use("/menu", statusReady, menuRouter);
+ApiRouter.use("/pages", statusReady, pageRouter);
 
 export default ApiRouter;

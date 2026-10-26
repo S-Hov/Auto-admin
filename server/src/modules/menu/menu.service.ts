@@ -6,8 +6,8 @@ import type { AccessPrincipal } from "../../core/access-control";
 import { isSystemAdmin } from "../../core/access-control";
 import { requireSystemAdmin } from "../../core/access-control/policy/require-system-admin";
 import { getActiveAccessControlProvider } from "../../core/access-control/runtime/access-control.runtime";
-import { createMenuRepository } from "./repository/menu-repository.factory";
-import type { MenuRepository } from "./repository/menu-repository.interface";
+import { createMenuRepository } from "./repository/repository.factory";
+import type { MenuRepository } from "./repository/repository.interface";
 import type { MenuVisibilityRow } from "./menu.types";
 import type { MenuSaveData, MenuPermissionData } from "./schema/menu.schema";
 import {

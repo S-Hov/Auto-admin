@@ -67,7 +67,7 @@ server/src/modules/install/install.routes.ts
 server/src/modules/install/install.controller.ts
 server/src/modules/install/install.service.ts
 server/src/modules/install/install.types.ts
-server/src/modules/install/schema/checkDatabaseType.schema.ts
+server/src/modules/install/schema/check-database-type.schema.ts
 server/src/db/catalog/database.catalog.ts
 ```
 

@@ -26,7 +26,7 @@ import {
 import { getActiveMigrationProvider } from "../../migrations/runtime/migration.runtime";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
-import type { CheckConnectionData } from "./schema/checkConnection.schema";
+import type { CheckConnectionData } from "./schema/check-connection.schema";
 import { getDatabaseProvider } from "../../db/providers/provider.registry";
 import { getActiveInstallRepository } from "./repository/runtime/install-repository.runtime";
 import { getSupportedDatabases } from "../../db/catalog/database.catalog";

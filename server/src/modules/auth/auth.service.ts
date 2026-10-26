@@ -3,7 +3,7 @@ import { ERROR_CODES } from "../../shared/api/codes/error-codes";
 import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-helpers"
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
+import type { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { envConfig } from '../../config/env';
