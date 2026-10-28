@@ -14,7 +14,7 @@ import { pageService } from './page.service';
 import { errorHandler } from '../../shared/middleware/errorHandler';
 import { httpLogger } from '../../shared/middleware/logger';
 import { COOKIE_NAMES } from '../../constants/cookies';
-import { notFound } from '../../shared/api/errors/error-helpers';
+import { conflict, notFound } from '../../shared/api/errors/error-helpers';
 
 let server: Server;
 let url: string;
@@ -38,6 +38,55 @@ beforeEach(() => {
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'update').mockResolvedValue({ pageId: 42, revision: 4 });
+});
+
+describe('page update HTTP boundary', () => {
+    function update(body: unknown = { ...pageData(), revision: 3 }, id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json', 'x-request-id': 'page-update-request',
+                ...(authenticated ? { Cookie: cookie } : {}),
+            },
+            body: JSON.stringify(body),
+        });
+    }
+
+    it('passes the numeric URL ID, validated body, principal and request ID', async () => {
+        const data = { ...pageData(), revision: 3 };
+        const response = await update({ ...data, name: ' Заказы ' });
+        expect(response.status).toBe(200);
+        expect(pageService.update).toHaveBeenCalledWith(42, data, session, 'page-update-request');
+        expect(await response.json()).toMatchObject({ data: { pageId: 42, revision: 4 } });
+    });
+
+    it('requires a session', async () => {
+        expect((await update(undefined, '42', false)).status).toBe(401);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await update()).status).toBe(403);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('validates both URL params and the body before invoking the service', async () => {
+        expect((await update({ ...pageData(), revision: 3 }, '1e2')).status).toBe(400);
+        expect((await update(pageData())).status).toBe(400);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('preserves a revision conflict from the service', async () => {
+        vi.mocked(pageService.update).mockRejectedValue(conflict());
+        expect((await update()).status).toBe(409);
+    });
+
+    it('preserves a missing-page response from the service', async () => {
+        vi.mocked(pageService.update).mockRejectedValue(notFound());
+        expect((await update()).status).toBe(404);
+    });
 });
 
 describe('page reading HTTP boundary', () => {

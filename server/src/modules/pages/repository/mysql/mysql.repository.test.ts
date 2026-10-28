@@ -39,6 +39,40 @@ describe('MySqlPageRepository.create', () => {
     });
 });
 
+describe('MySqlPageRepository.update', () => {
+    it('uses expected revision in the SQL condition, serializes config and increments revision in the database', async () => {
+        const h = harness(0);
+        const data = { ...pageData(), name: "Заказы ' ?", revision: 3 };
+        const before = structuredClone(data);
+        Object.freeze(data);
+        await expect(h.repository.update(42, data, 7)).resolves.toBe(true);
+        const [sql, params] = h.execute.mock.calls[0];
+        expect(sql).toMatch(/revision\s*=\s*revision\s*\+\s*1/i);
+        expect(sql).toMatch(/WHERE\s+id\s*=\s*\?\s+AND\s+revision\s*=\s*\?/i);
+        expect(sql).not.toContain(data.name);
+        expect(params).toEqual([data.name, data.description, JSON.stringify(data.config), 7, 42, 3]);
+        expect(data).toEqual(before);
+    });
+
+    it('returns false when the conditional UPDATE matched no rows', async () => {
+        const h = harness();
+        h.execute.mockResolvedValue({ affectedRows: 0, insertId: 0 });
+        await expect(h.repository.update(42, { ...pageData(), revision: 3 }, 7)).resolves.toBe(false);
+    });
+
+    it('does not use insertId to determine whether UPDATE succeeded', async () => {
+        const h = harness(null);
+        await expect(h.repository.update(42, { ...pageData(), revision: 3 }, 7)).resolves.toBe(true);
+    });
+
+    it('propagates execution failures', async () => {
+        const h = harness();
+        const error = new Error('Update unavailable');
+        h.execute.mockRejectedValue(error);
+        await expect(h.repository.update(42, { ...pageData(), revision: 3 }, 7)).rejects.toBe(error);
+    });
+});
+
 describe('MySqlPageRepository.get', () => {
     it('reads a page by a bound ID with the API field name pageId', async () => {
         const h = harness();

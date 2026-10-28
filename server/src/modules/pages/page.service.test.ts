@@ -13,6 +13,7 @@ function harness() {
         create: vi.fn<PageRepository['create']>(async () => 42),
         appendAudit: vi.fn<PageRepository['appendAudit']>(async () => {}),
         get: vi.fn<PageRepository['get']>(async () => ({ ...pageData(), pageId: 42, revision: 1 })),
+        update: vi.fn<PageRepository['update']>(async () => true),
     };
     const createRepository = vi.fn(() => repo);
     const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository);
@@ -78,6 +79,130 @@ describe('PageService.create: catalog and transactional access checks', () => {
         h.repo.create.mockRejectedValue(error);
         await expect(h.service.create(pageData(), admin)).rejects.toBe(error);
         expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageService.update', () => {
+    beforeEach(() => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+    });
+
+    it('updates with the expected revision and audits complete snapshots in the write transaction', async () => {
+        const h = harness();
+        const previous = { ...pageData(), pageId: 42, revision: 1 };
+        const data = { ...pageData(), name: 'Новые заказы', description: 'Обновлено', revision: 1 };
+        h.repo.get.mockResolvedValue(previous);
+        const before = structuredClone(data);
+        Object.freeze(data);
+        await expect(h.service.update(42, data, admin, 'request-update')).resolves.toEqual({ pageId: 42, revision: 2 });
+        expect(h.createAccess).toHaveBeenCalledWith(h.executor);
+        expect(h.createRepository).toHaveBeenCalledWith(h.executor);
+        expect(h.repo.update).toHaveBeenCalledWith(42, before, admin.userId);
+        expect(h.repo.appendAudit).toHaveBeenCalledWith(
+            42, 'update', admin.userId, previous,
+            { ...before, pageId: 42, revision: 2 }, 'request-update',
+        );
+        expect(data).toEqual(before);
+        expect(previous.revision).toBe(1);
+        expect(h.repo.update.mock.invocationCallOrder[0]).toBeLessThan(h.repo.appendAudit.mock.invocationCallOrder[0]);
+    });
+
+    it('loads the catalog before opening a write transaction that already holds a connection', async () => {
+        const h = harness();
+        await h.service.update(42, { ...pageData(), revision: 1 }, admin);
+        const load = vi.mocked(schemaCatalogService.getAuthorizationCatalog);
+        expect(load.mock.invocationCallOrder[0]).toBeLessThan(h.transaction.mock.invocationCallOrder[0]);
+    });
+
+    it('rejects a non-admin before accessing the catalog or database', async () => {
+        const h = harness();
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, manager)).rejects.toMatchObject({ status: 403 });
+        expect(schemaCatalogService.getAuthorizationCatalog).not.toHaveBeenCalled();
+        expect(h.transaction).not.toHaveBeenCalled();
+        expect(h.repo.update).not.toHaveBeenCalled();
+    });
+
+    it('awaits the current administrator check before reading or writing the page', async () => {
+        const h = harness();
+        vi.mocked(h.access.isActiveSystemAdminForUpdate).mockResolvedValue(false);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toMatchObject({ status: 403 });
+        expect(h.repo.get).not.toHaveBeenCalled();
+        expect(h.repo.update).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('reports a missing page without updating or auditing', async () => {
+        const h = harness();
+        h.repo.get.mockResolvedValue(null);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toMatchObject({ status: 404 });
+        expect(h.repo.update).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('rejects a stale revision discovered when reading the page', async () => {
+        const h = harness();
+        h.repo.get.mockResolvedValue({ ...pageData(), pageId: 42, revision: 2 });
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toMatchObject({ status: 409 });
+        expect(h.repo.update).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('rejects a conflict discovered by the conditional UPDATE after the initial read', async () => {
+        const h = harness();
+        h.repo.update.mockResolvedValue(false);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toMatchObject({ status: 409 });
+        expect(h.repo.update).toHaveBeenCalledOnce();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('validates replacement config against the catalog before updating', async () => {
+        const h = harness();
+        const data = { ...pageData(), revision: 1 };
+        data.config.fields[0].fieldId = 999;
+        await expect(h.service.update(42, data, admin)).rejects.toMatchObject({ status: 400 });
+        expect(h.repo.update).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('preserves catalog failures without writing', async () => {
+        const h = harness();
+        const error = new SchemaCatalogNotReadyError();
+        vi.mocked(schemaCatalogService.getAuthorizationCatalog).mockRejectedValue(error);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toBe(error);
+        expect(h.repo.update).not.toHaveBeenCalled();
+    });
+
+    it('does not audit a failed UPDATE', async () => {
+        const h = harness();
+        const error = new Error('Update failed');
+        h.repo.update.mockRejectedValue(error);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toBe(error);
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('keeps the transaction pending until update audit is complete', async () => {
+        const h = harness();
+        let finishAudit!: () => void;
+        h.repo.appendAudit.mockReturnValue(new Promise<void>(resolve => { finishAudit = resolve; }));
+        let finished = false;
+        const update = h.service.update(42, { ...pageData(), revision: 1 }, admin).then(result => {
+            finished = true;
+            return result;
+        });
+        try {
+            await vi.waitFor(() => expect(h.repo.appendAudit).toHaveBeenCalledOnce());
+            expect(finished).toBe(false);
+        } finally {
+            finishAudit();
+            await update;
+        }
+    });
+
+    it('propagates an audit failure through the transaction callback', async () => {
+        const h = harness();
+        const error = new Error('Update audit failed');
+        h.repo.appendAudit.mockRejectedValue(error);
+        await expect(h.service.update(42, { ...pageData(), revision: 1 }, admin)).rejects.toBe(error);
     });
 });
 

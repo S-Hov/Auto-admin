@@ -7,11 +7,16 @@ import type { DatabaseExecutor } from "../../db/contracts/executor.interface";
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
 import { databaseRuntime } from "../../db/runtime/database.runtime";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
-import { forbidden, notFound } from "../../shared/api/errors/error-helpers";
-import type { PageData } from "./page.types";
+import {
+    conflict,
+    forbidden,
+    notFound,
+} from "../../shared/api/errors/error-helpers";
+import type { PageData, PageUpdateResponse } from "./page.types";
 import { createPageRepository } from "./repository/repository.factory";
 import type { PageRepository } from "./repository/repository.interface";
 import type { CreatePageData } from "./schema/page-create.schema";
+import type { UpdatePageData } from "./schema/page-update.schema";
 import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-against-catalog";
 
 export class PageService {
@@ -31,6 +36,17 @@ export class PageService {
             createPageRepository(this.database().type, executor)
         );
     }
+    private async checkSystemAdmin(
+        executor: DatabaseExecutor,
+        principal: AccessPrincipal,
+    ): Promise<void> {
+        const access = (
+            this.configuredAccessProvider ?? getActiveAccessControlProvider()
+        ).createRepository(executor);
+
+        if (!(await access.isActiveSystemAdminForUpdate(principal.userId)))
+            throw forbidden(ERROR_CODES.ACCESS_ADMIN_REQUIRED);
+    }
 
     async create(
         data: CreatePageData,
@@ -42,13 +58,7 @@ export class PageService {
         validatePageConfigAgainstCatalog(data.config, catalog);
 
         return await this.database().transaction(async (executor) => {
-            const access = (
-                this.configuredAccessProvider ??
-                getActiveAccessControlProvider()
-            ).createRepository(executor);
-
-            if (!(await access.isActiveSystemAdminForUpdate(principal.userId)))
-                throw forbidden(ERROR_CODES.ACCESS_ADMIN_REQUIRED);
+            await this.checkSystemAdmin(executor, principal);
 
             const repository = this.repository(executor);
 
@@ -70,15 +80,56 @@ export class PageService {
         });
     }
 
-    async get(
-        pageId: number,
-        principal: AccessPrincipal,
-    ): Promise<PageData> {
+    async get(pageId: number, principal: AccessPrincipal): Promise<PageData> {
         requireSystemAdmin(principal);
-        
+
         const page = await this.repository(this.database()).get(pageId);
         if (!page) throw notFound();
         return page;
+    }
+
+    async update(
+        id: number,
+        data: UpdatePageData,
+        principal: AccessPrincipal,
+        requestId: string | null = null,
+    ): Promise<PageUpdateResponse> {
+        requireSystemAdmin(principal);
+        
+        const catalog = await schemaCatalogService.getAuthorizationCatalog();
+        validatePageConfigAgainstCatalog(data.config, catalog);
+
+        return await this.database().transaction(async (executor) => {
+            await this.checkSystemAdmin(executor, principal);
+
+            const repository = this.repository(executor);
+
+            const oldPage = await repository.get(id);
+
+            if (!oldPage) throw notFound();
+
+            if (oldPage.revision !== data.revision) throw conflict();
+
+            const newRevision = data.revision + 1;
+            const update = await repository.update(
+                id,
+                data,
+                principal.userId,
+            );
+
+            if (!update) throw conflict();
+
+            await repository.appendAudit(
+                id,
+                "update",
+                principal.userId,
+                oldPage,
+                { ...data, pageId: id, revision: newRevision },
+                requestId,
+            );
+
+            return { pageId: id, revision: newRevision };
+        });
     }
 }
 

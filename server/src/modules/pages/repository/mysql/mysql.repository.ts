@@ -2,6 +2,7 @@ import type { DatabaseExecutor } from "../../../../db/contracts/executor.interfa
 import type { PageData } from "../../page.types";
 import { pageConfigSchema } from "../../schema/page-config.schema";
 import type { CreatePageData } from "../../schema/page-create.schema";
+import type { UpdatePageData } from "../../schema/page-update.schema";
 import type { PageRepository } from "../repository.interface";
 
 type StoredPageRow = Omit<PageData, "config"> & {
@@ -84,5 +85,27 @@ export class MySqlPageRepository implements PageRepository {
         const config = pageConfigSchema.parse(rawConfig);
 
         return { ...row, config };
+    }
+
+    async update(
+        id: number,
+        data: UpdatePageData,
+        userId: number,
+    ): Promise<boolean> {
+        const row = await this.executor.execute(
+            `
+                UPDATE Auto_Admin__pages
+                SET name = ?,
+                    description = ?,
+                    config = ?,
+                    revision = revision + 1,
+                    updated_by = ?
+                WHERE id = ? AND revision = ?
+            `,
+            [data.name, data.description, JSON.stringify(data.config), userId, id, data.revision],
+        );
+
+        if (row.affectedRows === 1) return true;
+        return false;
     }
 }
