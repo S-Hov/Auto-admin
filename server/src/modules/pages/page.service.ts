@@ -7,7 +7,8 @@ import type { DatabaseExecutor } from "../../db/contracts/executor.interface";
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
 import { databaseRuntime } from "../../db/runtime/database.runtime";
 import { ERROR_CODES } from "../../shared/api/codes/error-codes";
-import { forbidden } from "../../shared/api/errors/error-helpers";
+import { forbidden, notFound } from "../../shared/api/errors/error-helpers";
+import type { PageData } from "./page.types";
 import { createPageRepository } from "./repository/repository.factory";
 import type { PageRepository } from "./repository/repository.interface";
 import type { CreatePageData } from "./schema/page-create.schema";
@@ -67,6 +68,17 @@ export class PageService {
                 revision: 1,
             };
         });
+    }
+
+    async get(
+        pageId: number,
+        principal: AccessPrincipal,
+    ): Promise<PageData> {
+        requireSystemAdmin(principal);
+        
+        const page = await this.repository(this.database()).get(pageId);
+        if (!page) throw notFound();
+        return page;
     }
 }
 

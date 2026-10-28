@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { badRequest } from "../api/errors/error-helpers";
-import { ZodError, ZodType } from "zod";
+import { ZodError, type ZodType } from "zod";
 import { ERROR_CODES } from "../api/codes/error-codes";
 import { mapZodIssue } from "../api/validation/map-zod-issue";
 

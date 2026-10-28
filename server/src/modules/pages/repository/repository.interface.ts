@@ -1,3 +1,4 @@
+import type { PageData } from "../page.types";
 import type { CreatePageData } from "../schema/page-create.schema";
 
 export interface PageRepository {
@@ -11,4 +12,6 @@ export interface PageRepository {
         newValue: unknown,
         requestId: string | null,
     ): Promise<void>;
+
+    get(id: number): Promise<PageData | null>;
 }
