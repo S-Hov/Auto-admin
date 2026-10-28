@@ -5,8 +5,9 @@ import { MySqlPageRepository } from './mysql.repository';
 
 function harness(insertId: number | string | null = 42) {
     const execute = vi.fn<DatabaseExecutor['execute']>(async () => ({ affectedRows: 1, insertId }));
-    const executor: DatabaseExecutor = { queryRows: vi.fn(), execute };
-    return { execute, repository: new MySqlPageRepository(executor) };
+    const queryRows = vi.fn<DatabaseExecutor['queryRows']>();
+    const executor: DatabaseExecutor = { queryRows, execute };
+    return { execute, queryRows, repository: new MySqlPageRepository(executor) };
 }
 
 describe('MySqlPageRepository.create', () => {
@@ -35,6 +36,52 @@ describe('MySqlPageRepository.create', () => {
         const error = new Error('Database unavailable');
         h.execute.mockRejectedValue(error);
         await expect(h.repository.create(pageData(), 7)).rejects.toBe(error);
+    });
+});
+
+describe('MySqlPageRepository.get', () => {
+    it('reads a page by a bound ID with the API field name pageId', async () => {
+        const h = harness();
+        const page = { ...pageData(), pageId: 42, revision: 1 };
+        h.queryRows.mockResolvedValue([page]);
+        await expect(h.repository.get(42)).resolves.toEqual(page);
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql).toMatch(/id\s+as\s+pageId/i);
+        expect(sql).toMatch(/WHERE\s+id\s*=\s*\?/i);
+        expect(params).toEqual([42]);
+        expect(h.execute).not.toHaveBeenCalled();
+    });
+
+    it('returns explicit null when the page does not exist', async () => {
+        const h = harness();
+        h.queryRows.mockResolvedValue([]);
+        await expect(h.repository.get(42)).resolves.toBeNull();
+    });
+
+    it('decodes a JSON string returned by the driver before validating config', async () => {
+        const h = harness();
+        const page = { ...pageData(), pageId: 42, revision: 1 };
+        h.queryRows.mockResolvedValue([{ ...page, config: JSON.stringify(page.config) }]);
+        await expect(h.repository.get(42)).resolves.toEqual(page);
+    });
+
+    it.each([
+        null,
+        { schemaVersion: 2 },
+        { ...pageData().config, source: { resourceId: 0, recordKey: null } },
+        { ...pageData().config, list: { ...pageData().config.list, columns: ['missing'] } },
+        '{broken-json',
+    ])('rejects corrupt or unsupported saved config: %j', async (config) => {
+        const h = harness();
+        h.queryRows.mockResolvedValue([{ ...pageData(), pageId: 42, revision: 1, config }]);
+        await expect(h.repository.get(42)).rejects.toThrow();
+    });
+
+    it('preserves query failures', async () => {
+        const h = harness();
+        const error = new Error('Read unavailable');
+        h.queryRows.mockRejectedValue(error);
+        await expect(h.repository.get(42)).rejects.toBe(error);
     });
 });
 

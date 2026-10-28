@@ -14,6 +14,7 @@ import { pageService } from './page.service';
 import { errorHandler } from '../../shared/middleware/errorHandler';
 import { httpLogger } from '../../shared/middleware/logger';
 import { COOKIE_NAMES } from '../../constants/cookies';
+import { notFound } from '../../shared/api/errors/error-helpers';
 
 let server: Server;
 let url: string;
@@ -36,6 +37,43 @@ beforeEach(() => {
     vi.restoreAllMocks();
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+});
+
+describe('page reading HTTP boundary', () => {
+    function read(id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            headers: authenticated ? { Cookie: cookie } : {},
+        });
+    }
+
+    it('requires a session before reading', async () => {
+        expect((await read('42', false)).status).toBe(401);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-admins before reading', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await read()).status).toBe(403);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it.each(['0', '-1', '1.5', '1e2', '0x10', '01', '9007199254740992'])('rejects invalid ID %s before the service', async (id) => {
+        expect((await read(id)).status).toBe(400);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('passes a numeric ID and the session principal and returns the page', async () => {
+        const response = await read();
+        expect(response.status).toBe(200);
+        expect(pageService.get).toHaveBeenCalledWith(42, session);
+        expect(await response.json()).toMatchObject({ data: { ...pageData(), pageId: 42, revision: 1 } });
+    });
+
+    it('preserves a not-found service response', async () => {
+        vi.mocked(pageService.get).mockRejectedValue(notFound());
+        expect((await read()).status).toBe(404);
+    });
 });
 
 afterAll(async () => {

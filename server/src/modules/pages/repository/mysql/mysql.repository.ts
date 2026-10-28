@@ -1,7 +1,12 @@
 import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import type { PageData } from "../../page.types";
+import { pageConfigSchema } from "../../schema/page-config.schema";
 import type { CreatePageData } from "../../schema/page-create.schema";
 import type { PageRepository } from "../repository.interface";
+
+type StoredPageRow = Omit<PageData, "config"> & {
+    config: unknown;
+};
 
 export class MySqlPageRepository implements PageRepository {
     constructor(private readonly executor: DatabaseExecutor) {}
@@ -55,7 +60,7 @@ export class MySqlPageRepository implements PageRepository {
     }
 
     async get(id: number): Promise<PageData | null> {
-        const [row] = await this.executor.queryRows<PageData>(
+        const [row] = await this.executor.queryRows<StoredPageRow>(
             `
                 SELECT
                     id as pageId,
@@ -65,9 +70,19 @@ export class MySqlPageRepository implements PageRepository {
                     revision
                 FROM Auto_Admin__pages
                     WHERE id = ?
-            `, [id]
+            `,
+            [id],
         );
-        
-        return row;
+
+        if (!row) return null;
+
+        const rawConfig =
+            typeof row.config === "string"
+                ? JSON.parse(row.config)
+                : row.config;
+
+        const config = pageConfigSchema.parse(rawConfig);
+
+        return { ...row, config };
     }
 }

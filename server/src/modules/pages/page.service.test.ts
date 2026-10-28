@@ -12,6 +12,7 @@ function harness() {
     const repo = {
         create: vi.fn<PageRepository['create']>(async () => 42),
         appendAudit: vi.fn<PageRepository['appendAudit']>(async () => {}),
+        get: vi.fn<PageRepository['get']>(async () => ({ ...pageData(), pageId: 42, revision: 1 })),
     };
     const createRepository = vi.fn(() => repo);
     const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository);
@@ -77,6 +78,38 @@ describe('PageService.create: catalog and transactional access checks', () => {
         h.repo.create.mockRejectedValue(error);
         await expect(h.service.create(pageData(), admin)).rejects.toBe(error);
         expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageService.get', () => {
+    it('reads an existing page using the ordinary provider as executor', async () => {
+        const h = harness();
+        await expect(h.service.get(42, admin)).resolves.toEqual({ ...pageData(), pageId: 42, revision: 1 });
+        expect(h.createRepository).toHaveBeenCalledWith(h.provider);
+        expect(h.repo.get).toHaveBeenCalledWith(42);
+        expect(h.transaction).not.toHaveBeenCalled();
+        expect(h.repo.create).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-admin before reading a page', async () => {
+        const h = harness();
+        await expect(h.service.get(42, manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.createRepository).not.toHaveBeenCalled();
+        expect(h.repo.get).not.toHaveBeenCalled();
+    });
+
+    it('returns a not-found error when the repository returns null', async () => {
+        const h = harness();
+        h.repo.get.mockResolvedValue(null);
+        await expect(h.service.get(42, admin)).rejects.toMatchObject({ status: 404 });
+    });
+
+    it('preserves database errors instead of reporting them as a missing page', async () => {
+        const h = harness();
+        const error = new Error('Read failed');
+        h.repo.get.mockRejectedValue(error);
+        await expect(h.service.get(42, admin)).rejects.toBe(error);
     });
 });
 
