@@ -12,3 +12,13 @@ export interface PageUpdateResponse {
 
 // Аудит удаления должен сохранять и старые конфиги, не поддерживаемые текущей схемой.
 export type PageAuditSnapshot = Omit<PageData, "config"> & { config: unknown };
+
+export interface PageListItem {
+    pageId: number;
+    name: string;
+}
+
+export interface PageListResult {
+    items: PageListItem[];
+    pagination: { limit: number; offset: number; hasMore: boolean };
+}

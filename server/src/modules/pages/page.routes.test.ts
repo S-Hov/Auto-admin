@@ -40,6 +40,55 @@ beforeEach(() => {
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'update').mockResolvedValue({ pageId: 42, revision: 4 });
     vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
+    vi.spyOn(pageService, 'list').mockResolvedValue({
+        items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+});
+
+describe('page selector HTTP boundary', () => {
+    function list(query = '', authenticated = true) {
+        return fetch(`${url}${query}`, { headers: authenticated ? { Cookie: cookie } : {} });
+    }
+
+    it('requires a session', async () => {
+        expect((await list('', false)).status).toBe(401);
+        expect(pageService.list).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await list()).status).toBe(403);
+        expect(pageService.list).not.toHaveBeenCalled();
+    });
+
+    it('uses validated defaults and the standard envelope', async () => {
+        const response = await list();
+        expect(response.status).toBe(200);
+        expect(pageService.list).toHaveBeenCalledWith({ q: '', limit: 25, offset: 0 }, session);
+        expect(await response.json()).toMatchObject({
+            data: { items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false } },
+        });
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('normalizes search and pagination without overwriting Express query properties', async () => {
+        expect((await list(`?q=${encodeURIComponent(' Заказы ')}&limit=10&offset=20`)).status).toBe(200);
+        expect(pageService.list).toHaveBeenCalledWith({ q: 'Заказы', limit: 10, offset: 20 }, session);
+    });
+
+    it.each(['?limit=0', '?limit=101', '?limit=1e2', '?offset=-1', '?offset=100001', '?limit=10&limit=20', '?q=a&q=b', '?unknown=1'])(
+        'rejects invalid query %s before the service', async (query) => {
+            const response = await list(query);
+            expect(response.status).toBe(400);
+            expect(await response.json()).toMatchObject({ code: 'COMMON.VALIDATION_FAILED' });
+            expect(pageService.list).not.toHaveBeenCalled();
+        },
+    );
+
+    it('does not hide a database failure as an empty list', async () => {
+        vi.mocked(pageService.list).mockRejectedValue(new Error('Database unavailable'));
+        expect((await list()).status).toBe(500);
+    });
 });
 
 describe('page deletion HTTP boundary', () => {

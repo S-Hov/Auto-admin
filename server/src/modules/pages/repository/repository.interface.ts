@@ -1,8 +1,11 @@
-import type { PageAuditSnapshot, PageData } from "../page.types";
+import type { PageAuditSnapshot, PageData, PageListItem } from "../page.types";
+import type { PageListQuery } from "../schema/page-list.schema";
 import type { CreatePageData } from "../schema/page-create.schema";
 import type { UpdatePageData } from "../schema/page-update.schema";
 
 export interface PageRepository {
+    /** Возвращает не более limit + 1 строк для определения hasMore без COUNT. */
+    list(query: PageListQuery): Promise<PageListItem[]>;
     create(config: CreatePageData, userId: number): Promise<number>;
 
     appendAudit(

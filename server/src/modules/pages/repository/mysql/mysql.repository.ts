@@ -1,5 +1,6 @@
 import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
-import type { PageAuditSnapshot, PageData } from "../../page.types";
+import type { PageAuditSnapshot, PageData, PageListItem } from "../../page.types";
+import type { PageListQuery } from "../../schema/page-list.schema";
 import { PageReferencedByMenuError } from "../../page.errors";
 import { pageConfigSchema } from "../../schema/page-config.schema";
 import type { CreatePageData } from "../../schema/page-create.schema";
@@ -12,6 +13,23 @@ type StoredPageRow = Omit<PageData, "config"> & {
 
 export class MySqlPageRepository implements PageRepository {
     constructor(private readonly executor: DatabaseExecutor) {}
+
+    async list({ q, limit, offset }: PageListQuery): Promise<PageListItem[]> {
+        const params: unknown[] = [];
+        let where = "";
+        if (q !== "") {
+            // Пользователь ищет буквальное название, а не LIKE-шаблон.
+            const escaped = q.replace(/[!%_]/g, (character) => `!${character}`);
+            where = "WHERE name LIKE ? ESCAPE '!'";
+            params.push(`%${escaped}%`);
+        }
+        params.push(limit + 1, offset);
+        return this.executor.queryRows<PageListItem>(
+            `SELECT id AS pageId, name FROM Auto_Admin__pages
+             ${where} ORDER BY name ASC, id ASC LIMIT ? OFFSET ?`,
+            params,
+        );
+    }
     async create(config: CreatePageData, userId: number): Promise<number> {
         const result = await this.executor.execute(
             `

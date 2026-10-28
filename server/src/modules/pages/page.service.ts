@@ -12,7 +12,8 @@ import {
     forbidden,
     notFound,
 } from "../../shared/api/errors/error-helpers";
-import type { PageData, PageUpdateResponse } from "./page.types";
+import type { PageData, PageListResult, PageUpdateResponse } from "./page.types";
+import type { PageListQuery } from "./schema/page-list.schema";
 import { PageReferencedByMenuError } from "./page.errors";
 import { createPageRepository } from "./repository/repository.factory";
 import type { PageRepository } from "./repository/repository.interface";
@@ -87,6 +88,19 @@ export class PageService {
         const page = await this.repository(this.database()).get(pageId);
         if (!page) throw notFound();
         return page;
+    }
+
+    async list(query: PageListQuery, principal: AccessPrincipal): Promise<PageListResult> {
+        requireSystemAdmin(principal);
+        const rows = await this.repository(this.database()).list(query);
+        return {
+            items: rows.slice(0, query.limit).map(({ pageId, name }) => ({ pageId, name })),
+            pagination: {
+                limit: query.limit,
+                offset: query.offset,
+                hasMore: rows.length > query.limit,
+            },
+        };
     }
 
     async update(

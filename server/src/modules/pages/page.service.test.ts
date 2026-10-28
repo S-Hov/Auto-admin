@@ -11,6 +11,7 @@ function harness() {
     const access = repository();
     const createAccess = vi.fn(() => access);
     const repo = {
+        list: vi.fn<PageRepository['list']>(async () => [{ pageId: 42, name: 'Заказы' }]),
         create: vi.fn<PageRepository['create']>(async () => 42),
         appendAudit: vi.fn<PageRepository['appendAudit']>(async () => {}),
         get: vi.fn<PageRepository['get']>(async () => ({ ...pageData(), pageId: 42, revision: 1 })),
@@ -83,6 +84,57 @@ describe('PageService.create: catalog and transactional access checks', () => {
         h.repo.create.mockRejectedValue(error);
         await expect(h.service.create(pageData(), admin)).rejects.toBe(error);
         expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageService.list', () => {
+    it('returns only selector metadata using the ordinary executor', async () => {
+        const h = harness();
+        const row = { pageId: 42, name: 'Заказы', config: { private: true }, description: 'Internal' };
+        h.repo.list.mockResolvedValue([row]);
+        const query = { q: 'Заказы', limit: 25, offset: 0 };
+        await expect(h.service.list(query, admin)).resolves.toEqual({
+            items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+        });
+        expect(h.repo.list).toHaveBeenCalledWith(query);
+        expect(h.createRepository).toHaveBeenCalledWith(h.provider);
+        expect(h.transaction).not.toHaveBeenCalled();
+    });
+
+    it('removes the lookahead row and reports more results', async () => {
+        const h = harness();
+        h.repo.list.mockResolvedValue([{ pageId: 1, name: 'A' }, { pageId: 2, name: 'B' }, { pageId: 3, name: 'C' }]);
+        await expect(h.service.list({ q: '', limit: 2, offset: 4 }, admin)).resolves.toEqual({
+            items: [{ pageId: 1, name: 'A' }, { pageId: 2, name: 'B' }],
+            pagination: { limit: 2, offset: 4, hasMore: true },
+        });
+    });
+
+    it('treats exactly limit rows as the last page', async () => {
+        const h = harness();
+        expect((await h.service.list({ q: '', limit: 1, offset: 0 }, admin)).pagination.hasMore).toBe(false);
+    });
+
+    it('returns an empty successful result for no matches', async () => {
+        const h = harness();
+        h.repo.list.mockResolvedValue([]);
+        await expect(h.service.list({ q: 'Нет совпадений', limit: 25, offset: 0 }, admin)).resolves.toEqual({
+            items: [], pagination: { limit: 25, offset: 0, hasMore: false },
+        });
+    });
+
+    it('rejects non-admins before constructing or calling the repository', async () => {
+        const h = harness();
+        await expect(h.service.list({ q: '', limit: 25, offset: 0 }, manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.createRepository).not.toHaveBeenCalled();
+        expect(h.repo.list).not.toHaveBeenCalled();
+    });
+
+    it('preserves database failures instead of returning an empty selector', async () => {
+        const h = harness();
+        const error = new Error('List failed');
+        h.repo.list.mockRejectedValue(error);
+        await expect(h.service.list({ q: '', limit: 25, offset: 0 }, admin)).rejects.toBe(error);
     });
 });
 

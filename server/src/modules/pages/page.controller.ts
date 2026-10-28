@@ -5,6 +5,12 @@ import { pageService } from "./page.service";
 import { ok } from "../../shared/api/success";
 import type { GetPageReqData } from "./schema/page-get.schema";
 import type { UpdatePageData } from "./schema/page-update.schema";
+import type { PageListQuery } from "./schema/page-list.schema";
+
+export const listPagesController = asyncHandler(async (req, res) => {
+    const query = res.locals.validatedQuery as PageListQuery;
+    return ok(res, undefined, await pageService.list(query, req.auth!));
+});
 
 export const createPageController = asyncHandler(
     async (req: Request, res: Response) => {

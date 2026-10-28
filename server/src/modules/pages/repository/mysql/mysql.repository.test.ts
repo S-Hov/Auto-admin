@@ -40,6 +40,46 @@ describe('MySqlPageRepository.create', () => {
     });
 });
 
+describe('MySqlPageRepository.list', () => {
+    it('selects only page IDs and names in stable order with one lookahead row', async () => {
+        const h = harness();
+        const rows = [{ pageId: 42, name: 'Заказы' }];
+        h.queryRows.mockResolvedValue(rows);
+        await expect(h.repository.list({ q: '', limit: 25, offset: 50 })).resolves.toEqual(rows);
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql.replace(/\s+/g, ' ')).toContain('SELECT id AS pageId, name FROM Auto_Admin__pages');
+        expect(sql).toMatch(/ORDER BY name ASC, id ASC LIMIT \? OFFSET \?/);
+        expect(sql).not.toMatch(/\bconfig\b|\bdescription\b|\bWHERE\b|\bCOUNT\b/i);
+        expect(params).toEqual([26, 50]);
+    });
+
+    it('escapes wildcard characters and the escape character in a literal search', async () => {
+        const h = harness();
+        h.queryRows.mockResolvedValue([]);
+        await h.repository.list({ q: '50%_!', limit: 10, offset: 0 });
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql).toContain("WHERE name LIKE ? ESCAPE '!'");
+        expect(params).toEqual(['%50!%!_!!%', 11, 0]);
+    });
+
+    it('binds search text instead of interpolating it into SQL', async () => {
+        const h = harness();
+        h.queryRows.mockResolvedValue([]);
+        const q = "' OR 1=1 --";
+        await h.repository.list({ q, limit: 10, offset: 0 });
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql).not.toContain(q);
+        expect(params).toEqual([`%${q}%`, 11, 0]);
+    });
+
+    it('preserves SQL errors', async () => {
+        const h = harness();
+        const error = new Error('Read failed');
+        h.queryRows.mockRejectedValue(error);
+        await expect(h.repository.list({ q: '', limit: 25, offset: 0 })).rejects.toBe(error);
+    });
+});
+
 describe('MySqlPageRepository deletion', () => {
     it('locks the page for deletion and accepts an obsolete serialized config', async () => {
         const h = harness();
