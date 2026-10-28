@@ -9,6 +9,7 @@ import type {
 export interface MenuRepository {
     readAll(forUpdate?: boolean): Promise<MenuItem[]>;
     readForUser(userId: number, roleId: number): Promise<MenuVisibilityRow[]>;
+    pageExistsForUpdate(pageId: number): Promise<boolean>;
     save(data: MenuData, actorUserId: number, id?: number): Promise<number>;
     delete(id: number): Promise<void>;
     getPermissions(

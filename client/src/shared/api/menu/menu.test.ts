@@ -39,6 +39,22 @@ describe('menu delete API', () => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe('menu save API', () => {
+    it.each([42, null])('sends a page binding or explicit unlink: %s', async (pageId) => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data: { id: 5 } })));
+        await menu.saveMenu({ ...data, pageId });
+        expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string).pageId).toBe(pageId);
+    });
+
+    it('keeps omitted pageId absent from legacy requests', async () => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data: { id: 5 } })));
+        await menu.saveMenu(data);
+        expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).not.toHaveProperty('pageId');
+    });
+
+    it.each([0, -1, 1.5, '42', Number.MAX_SAFE_INTEGER + 1])('rejects an invalid page binding: %s', async (pageId) => {
+        await expect(menu.saveMenu({ ...data, pageId } as MenuSaveData)).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
     it('sends JSON and includes session credentials', async () => {
         fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true, code: 'COMMON.OK', data: { id: 5 } })));
         await expect(menu.saveMenu(data)).resolves.toMatchObject({ data: { id: 5 } });

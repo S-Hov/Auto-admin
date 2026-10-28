@@ -4,6 +4,8 @@ import { apiResponseSchema } from '../schema';
 export const manageableMenuItemDtoSchema = z.looseObject({
     id: z.number().int(),
     parentId: z.number().int().nullable(),
+    // Старые ответы могут не содержать привязку; при наличии она валидируется.
+    pageId: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable().optional(),
     name: z.string(),
     slug: z.string(),
     icon: z.string().nullable(),
@@ -25,6 +27,7 @@ export const manageableMenuResponseSchema = apiResponseSchema(z.array(manageable
 export const menuSaveDataSchema = z.strictObject({
     id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),
     parentId: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable(),
+    pageId: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable().optional(),
     name: z.string().trim().min(1).max(100),
     slug: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,149}$/),
     icon: z.string().max(255).nullable(),

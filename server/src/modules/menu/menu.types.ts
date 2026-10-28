@@ -2,6 +2,7 @@ import type { PermissionSubjectType } from "../../core/access-control/contracts/
 
 export interface MenuData {
     parentId: number | null;
+    pageId: number | null;
     name: string;
     slug: string;
     icon: string | null;

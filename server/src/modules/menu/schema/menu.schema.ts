@@ -6,6 +6,8 @@ export const menuSaveSchema = z
     .strictObject({
         id: positiveIdSchema.optional(),
         parentId: positiveIdSchema.nullable(),
+        // Отсутствие поля при обновлении сохраняет существующую привязку.
+        pageId: positiveIdSchema.nullable().optional(),
         name: z.string().trim().min(1).max(100),
         slug: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,149}$/),
         icon: z.string().max(255).nullable(),

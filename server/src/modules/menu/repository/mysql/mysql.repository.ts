@@ -8,7 +8,7 @@ import type {
     MenuVisibilityRow,
 } from "../../menu.types";
 
-const projection = `m.id, m.parent_id AS parentId, m.name, m.slug, m.icon,
+const projection = `m.id, m.parent_id AS parentId, m.page_id AS pageId, m.name, m.slug, m.icon,
     m.icon_type AS iconType, m.sort_order AS sortOrder, m.is_active AS isActive`;
 const normalizeItem = <T extends MenuItem>(row: T): T => ({
     ...row,
@@ -57,6 +57,7 @@ export class MySqlMenuRepository implements MenuRepository {
     ): Promise<number> {
         const values = [
             data.parentId,
+            data.pageId,
             data.name,
             data.slug,
             data.icon,
@@ -67,7 +68,7 @@ export class MySqlMenuRepository implements MenuRepository {
         ];
         if (id !== undefined) {
             await this.executor.execute(
-                `UPDATE Auto_Admin__menu SET parent_id = ?, name = ?, slug = ?, icon = ?,
+                `UPDATE Auto_Admin__menu SET parent_id = ?, page_id = ?, name = ?, slug = ?, icon = ?,
                 icon_type = ?, sort_order = ?, is_active = ?, updated_by = ? WHERE id = ?`,
                 [...values, id],
             );
@@ -75,13 +76,21 @@ export class MySqlMenuRepository implements MenuRepository {
         }
         const result = await this.executor.execute(
             `INSERT INTO Auto_Admin__menu
-            (parent_id, name, slug, icon, icon_type, sort_order, is_active, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            (parent_id, page_id, name, slug, icon, icon_type, sort_order, is_active, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             values,
         );
         const inserted = Number(result.insertId);
         if (!Number.isSafeInteger(inserted) || inserted <= 0)
             throw new Error("Menu insert did not return a safe ID");
         return inserted;
+    }
+
+    async pageExistsForUpdate(pageId: number): Promise<boolean> {
+        const rows = await this.executor.queryRows<{ id: number }>(
+            "SELECT id FROM Auto_Admin__pages WHERE id = ? FOR UPDATE",
+            [pageId],
+        );
+        return rows.length > 0;
     }
 
     async delete(id: number): Promise<void> {

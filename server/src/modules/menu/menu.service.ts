@@ -96,6 +96,12 @@ export class MenuService {
     ) {
         const { id, ...data } = input;
         return this.manage(principal, async (repository) => {
+            // Как и удаление страницы, блокируем страницу до пунктов меню.
+            // Блокировка не даёт удалить выбранную страницу до сохранения ссылки.
+            if (data.pageId !== undefined && data.pageId !== null &&
+                !(await repository.pageExistsForUpdate(data.pageId))) {
+                throw badRequest(ERROR_CODES.MENU_INVALID);
+            }
             const rows = await repository.readAll(true);
             if (rows.length >= 500 && id === undefined)
                 throw badRequest(ERROR_CODES.MENU_INVALID);
@@ -115,13 +121,17 @@ export class MenuService {
                 if (!parent) throw badRequest(ERROR_CODES.MENU_INVALID);
                 parentId = parent.parentId;
             }
-            const menuId = await repository.save(data, principal.userId, id);
+            const savedData = {
+                ...data,
+                pageId: data.pageId === undefined ? previous?.pageId ?? null : data.pageId,
+            };
+            const menuId = await repository.save(savedData, principal.userId, id);
             await repository.appendAudit(
                 menuId,
                 id === undefined ? "create" : "update",
                 principal.userId,
                 previous ?? null,
-                { id: menuId, ...data },
+                { id: menuId, ...savedData },
                 requestId,
             );
             return { id: menuId };
