@@ -4,6 +4,7 @@ import { pageData, pageCatalog } from '../../../tests/fixtures/page.fixture';
 import { schemaCatalogService, SchemaCatalogNotReadyError } from '../../core/schema-catalog';
 import { PageService } from './page.service';
 import type { PageRepository } from './repository/repository.interface';
+import { PageReferencedByMenuError } from './page.errors';
 
 function harness() {
     const db = database();
@@ -14,6 +15,9 @@ function harness() {
         appendAudit: vi.fn<PageRepository['appendAudit']>(async () => {}),
         get: vi.fn<PageRepository['get']>(async () => ({ ...pageData(), pageId: 42, revision: 1 })),
         update: vi.fn<PageRepository['update']>(async () => true),
+        getForDeletion: vi.fn<PageRepository['getForDeletion']>(async () => ({ ...pageData(), pageId: 42, revision: 1 })),
+        hasMenuReferences: vi.fn<PageRepository['hasMenuReferences']>(async () => false),
+        delete: vi.fn<PageRepository['delete']>(async () => true),
     };
     const createRepository = vi.fn(() => repo);
     const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository);
@@ -79,6 +83,114 @@ describe('PageService.create: catalog and transactional access checks', () => {
         h.repo.create.mockRejectedValue(error);
         await expect(h.service.create(pageData(), admin)).rejects.toBe(error);
         expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+});
+
+describe('PageService.delete', () => {
+    it('deletes and audits the locked snapshot using one transactional executor without loading the catalog', async () => {
+        const load = vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog');
+        const h = harness();
+        await expect(h.service.delete(42, admin, 'delete-request')).resolves.toEqual({ deleted: true });
+        expect(h.transaction).toHaveBeenCalledOnce();
+        expect(h.createAccess).toHaveBeenCalledWith(h.executor);
+        expect(h.createRepository).toHaveBeenCalledWith(h.executor);
+        expect(h.createRepository).toHaveBeenCalledOnce();
+        expect(h.repo.getForDeletion).toHaveBeenCalledWith(42);
+        expect(h.repo.hasMenuReferences).toHaveBeenCalledWith(42);
+        expect(h.repo.delete).toHaveBeenCalledWith(42);
+        expect(h.repo.appendAudit).toHaveBeenCalledWith(
+            42, 'delete', admin.userId, { ...pageData(), pageId: 42, revision: 1 }, null, 'delete-request',
+        );
+        expect(h.repo.delete.mock.invocationCallOrder[0]).toBeLessThan(h.repo.appendAudit.mock.invocationCallOrder[0]);
+        expect(load).not.toHaveBeenCalled();
+        expect(h.repo.get).not.toHaveBeenCalled();
+        expect(h.repo.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-admins before opening a transaction', async () => {
+        const h = harness();
+        await expect(h.service.delete(42, manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.transaction).not.toHaveBeenCalled();
+        expect(h.repo.delete).not.toHaveBeenCalled();
+    });
+
+    it('awaits administrator revalidation before reading or deleting', async () => {
+        const h = harness();
+        vi.mocked(h.access.isActiveSystemAdminForUpdate).mockResolvedValue(false);
+        await expect(h.service.delete(42, admin)).rejects.toMatchObject({ status: 403 });
+        expect(h.repo.getForDeletion).not.toHaveBeenCalled();
+        expect(h.repo.delete).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for a missing page without deleting or auditing', async () => {
+        const h = harness();
+        h.repo.getForDeletion.mockResolvedValue(null);
+        await expect(h.service.delete(42, admin)).rejects.toMatchObject({ status: 404 });
+        expect(h.repo.hasMenuReferences).not.toHaveBeenCalled();
+        expect(h.repo.delete).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('returns 409 when any menu item references the page', async () => {
+        const h = harness();
+        h.repo.hasMenuReferences.mockResolvedValue(true);
+        await expect(h.service.delete(42, admin)).rejects.toMatchObject({ status: 409 });
+        expect(h.repo.delete).not.toHaveBeenCalled();
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('maps the adapter menu-reference error to a conflict without auditing', async () => {
+        const h = harness();
+        h.repo.delete.mockRejectedValue(new PageReferencedByMenuError(new Error('FK conflict')));
+        await expect(h.service.delete(42, admin)).rejects.toMatchObject({ status: 409 });
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('does not report success or audit when DELETE removes no row', async () => {
+        const h = harness();
+        h.repo.delete.mockResolvedValue(false);
+        await expect(h.service.delete(42, admin)).rejects.toMatchObject({ status: 404 });
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('can delete an obsolete config while preserving it exactly in audit', async () => {
+        const h = harness();
+        const previous = { ...pageData(), pageId: 42, revision: 9, config: { schemaVersion: 999, legacy: true } };
+        h.repo.getForDeletion.mockResolvedValue(previous);
+        await h.service.delete(42, admin);
+        expect(h.repo.appendAudit).toHaveBeenCalledWith(42, 'delete', admin.userId, previous, null, null);
+    });
+
+    it.each(['getForDeletion', 'hasMenuReferences', 'delete'] as const)('preserves %s failures without writing audit', async (operation) => {
+        const h = harness();
+        const error = new Error('Database failed');
+        h.repo[operation].mockRejectedValue(error);
+        await expect(h.service.delete(42, admin)).rejects.toBe(error);
+        expect(h.repo.appendAudit).not.toHaveBeenCalled();
+    });
+
+    it('keeps the transaction pending until deletion audit is complete', async () => {
+        const h = harness();
+        let finishAudit!: () => void;
+        h.repo.appendAudit.mockReturnValue(new Promise<void>(resolve => { finishAudit = resolve; }));
+        let finished = false;
+        const deletion = h.service.delete(42, admin).then(result => { finished = true; return result; });
+        try {
+            await vi.waitFor(() => expect(h.repo.appendAudit).toHaveBeenCalledOnce());
+            expect(finished).toBe(false);
+        } finally {
+            finishAudit();
+            await deletion;
+        }
+    });
+
+    it('rejects the transaction callback when deletion audit fails, allowing rollback', async () => {
+        const h = harness();
+        const error = new Error('Delete audit failed');
+        h.repo.appendAudit.mockRejectedValue(error);
+        await expect(h.service.delete(42, admin)).rejects.toBe(error);
+        expect(h.repo.delete).toHaveBeenCalledOnce();
     });
 });
 

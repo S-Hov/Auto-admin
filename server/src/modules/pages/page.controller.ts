@@ -39,3 +39,11 @@ export const updatePageController = asyncHandler(
         ok(res, undefined, result);
     },
 );
+
+export const deletePageController = asyncHandler(async (req, res) => {
+    const params = res.locals.validatedParams as GetPageReqData;
+    const result = await pageService.delete(
+        params.id, req.auth!, req.requestId ?? null,
+    );
+    return ok(res, undefined, result);
+});

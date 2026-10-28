@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { DatabaseExecutor } from '../../../../db/contracts/executor.interface';
 import { pageData } from '../../../../../tests/fixtures/page.fixture';
 import { MySqlPageRepository } from './mysql.repository';
+import { PageReferencedByMenuError } from '../../page.errors';
 
 function harness(insertId: number | string | null = 42) {
     const execute = vi.fn<DatabaseExecutor['execute']>(async () => ({ affectedRows: 1, insertId }));
@@ -36,6 +37,68 @@ describe('MySqlPageRepository.create', () => {
         const error = new Error('Database unavailable');
         h.execute.mockRejectedValue(error);
         await expect(h.repository.create(pageData(), 7)).rejects.toBe(error);
+    });
+});
+
+describe('MySqlPageRepository deletion', () => {
+    it('locks the page for deletion and accepts an obsolete serialized config', async () => {
+        const h = harness();
+        const config = { schemaVersion: 999, legacy: true };
+        const previous = { ...pageData(), pageId: 42, revision: 9, config };
+        h.queryRows.mockResolvedValue([{ ...previous, config: JSON.stringify(config) }]);
+        await expect(h.repository.getForDeletion(42)).resolves.toEqual(previous);
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql).toMatch(/FROM\s+Auto_Admin__pages\s+WHERE\s+id\s*=\s*\?\s+FOR\s+UPDATE/i);
+        expect(params).toEqual([42]);
+    });
+
+    it('returns null for a missing locked page', async () => {
+        const h = harness();
+        h.queryRows.mockResolvedValue([]);
+        await expect(h.repository.getForDeletion(42)).resolves.toBeNull();
+    });
+
+    it.each([[], [{ id: 7 }]])('checks all menu references without filtering inactive items: %j', async (...rows) => {
+        const h = harness();
+        h.queryRows.mockResolvedValue(rows);
+        await expect(h.repository.hasMenuReferences(42)).resolves.toBe(rows.length > 0);
+        const [sql, params] = h.queryRows.mock.calls[0];
+        expect(sql).toMatch(/FROM\s+Auto_Admin__menu\s+WHERE\s+page_id\s*=\s*\?/i);
+        expect(sql).toMatch(/FOR\s+UPDATE/i);
+        expect(sql).not.toMatch(/is_active/i);
+        expect(params).toEqual([42]);
+    });
+
+    it('deletes only the requested page with a bound ID', async () => {
+        const h = harness(null);
+        await expect(h.repository.delete(42)).resolves.toBe(true);
+        expect(h.execute).toHaveBeenCalledWith(expect.stringMatching(/DELETE FROM Auto_Admin__pages WHERE id = \?/), [42]);
+    });
+
+    it('returns false if no page was deleted', async () => {
+        const h = harness();
+        h.execute.mockResolvedValue({ affectedRows: 0, insertId: null });
+        await expect(h.repository.delete(42)).resolves.toBe(false);
+    });
+
+    it('translates only the known menu foreign key error, preserving its cause', async () => {
+        const h = harness();
+        const error = Object.assign(new Error('Foreign key conflict'), {
+            code: 'ER_ROW_IS_REFERENCED_2', sqlMessage: 'CONSTRAINT `fk_menu_page` FOREIGN KEY (`page_id`)',
+        });
+        h.execute.mockRejectedValue(error);
+        await expect(h.repository.delete(42)).rejects.toBeInstanceOf(PageReferencedByMenuError);
+        await expect(h.repository.delete(42)).rejects.toMatchObject({ cause: error });
+    });
+
+    it.each([
+        new Error('Connection lost'),
+        Object.assign(new Error('Other constraint'), { code: 'ER_ROW_IS_REFERENCED_2', sqlMessage: 'CONSTRAINT `another_fk`' }),
+        Object.assign(new Error('fk_menu_page'), { code: 'ER_PARSE_ERROR' }),
+    ])('preserves unrelated database failures: %s', async (error) => {
+        const h = harness();
+        h.execute.mockRejectedValue(error);
+        await expect(h.repository.delete(42)).rejects.toBe(error);
     });
 });
 

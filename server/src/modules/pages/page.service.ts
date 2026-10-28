@@ -13,6 +13,7 @@ import {
     notFound,
 } from "../../shared/api/errors/error-helpers";
 import type { PageData, PageUpdateResponse } from "./page.types";
+import { PageReferencedByMenuError } from "./page.errors";
 import { createPageRepository } from "./repository/repository.factory";
 import type { PageRepository } from "./repository/repository.interface";
 import type { CreatePageData } from "./schema/page-create.schema";
@@ -129,6 +130,35 @@ export class PageService {
             );
 
             return { pageId: id, revision: newRevision };
+        });
+    }
+
+    async delete(
+        pageId: number,
+        principal: AccessPrincipal,
+        requestId: string | null = null,
+    ): Promise<{ deleted: true }> {
+        requireSystemAdmin(principal);
+
+        return this.database().transaction(async (executor) => {
+            await this.checkSystemAdmin(executor, principal);
+            const repository = this.repository(executor);
+            const previous = await repository.getForDeletion(pageId);
+            if (!previous) throw notFound();
+
+            if (await repository.hasMenuReferences(pageId)) throw conflict();
+
+            try {
+                if (!(await repository.delete(pageId))) throw notFound();
+            } catch (error) {
+                if (error instanceof PageReferencedByMenuError) throw conflict();
+                throw error;
+            }
+
+            await repository.appendAudit(
+                pageId, "delete", principal.userId, previous, null, requestId,
+            );
+            return { deleted: true };
         });
     }
 }

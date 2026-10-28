@@ -1,5 +1,6 @@
 import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
-import type { PageData } from "../../page.types";
+import type { PageAuditSnapshot, PageData } from "../../page.types";
+import { PageReferencedByMenuError } from "../../page.errors";
 import { pageConfigSchema } from "../../schema/page-config.schema";
 import type { CreatePageData } from "../../schema/page-create.schema";
 import type { UpdatePageData } from "../../schema/page-update.schema";
@@ -107,5 +108,52 @@ export class MySqlPageRepository implements PageRepository {
 
         if (row.affectedRows === 1) return true;
         return false;
+    }
+
+    async getForDeletion(id: number): Promise<PageAuditSnapshot | null> {
+        const [row] = await this.executor.queryRows<StoredPageRow>(
+            `SELECT id AS pageId, name, description, config, revision
+             FROM Auto_Admin__pages WHERE id = ? FOR UPDATE`,
+            [id],
+        );
+        if (!row) return null;
+
+        // Для удаления не требуем текущую версию PageConfig: старую страницу
+        // можно удалить, сохранив её исходную конфигурацию в аудите.
+        const config: unknown = typeof row.config === "string"
+            ? JSON.parse(row.config)
+            : row.config;
+        return { ...row, config };
+    }
+
+    async hasMenuReferences(id: number): Promise<boolean> {
+        const rows = await this.executor.queryRows<{ id: number }>(
+            `SELECT id FROM Auto_Admin__menu WHERE page_id = ? LIMIT 1 FOR UPDATE`,
+            [id],
+        );
+        return rows.length > 0;
+    }
+
+    async delete(id: number): Promise<boolean> {
+        try {
+            const result = await this.executor.execute(
+                `DELETE FROM Auto_Admin__pages WHERE id = ?`,
+                [id],
+            );
+            return result.affectedRows === 1;
+        } catch (error) {
+            // Переводим только известный отказ FK меню. Другие SQL-ошибки
+            // сохраняют исходный вид и попадают в глобальный обработчик.
+            if (error && typeof error === "object") {
+                const code = "code" in error ? error.code : undefined;
+                const message = "sqlMessage" in error ? error.sqlMessage
+                    : "message" in error ? error.message : undefined;
+                if (code === "ER_ROW_IS_REFERENCED_2" &&
+                    typeof message === "string" && /\bfk_menu_page\b/.test(message)) {
+                    throw new PageReferencedByMenuError(error);
+                }
+            }
+            throw error;
+        }
     }
 }

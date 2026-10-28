@@ -1,4 +1,4 @@
-import type { PageData } from "../page.types";
+import type { PageAuditSnapshot, PageData } from "../page.types";
 import type { CreatePageData } from "../schema/page-create.schema";
 import type { UpdatePageData } from "../schema/page-update.schema";
 
@@ -15,6 +15,11 @@ export interface PageRepository {
     ): Promise<void>;
 
     get(id: number): Promise<PageData | null>;
+
+    /** Вызывается внутри транзакции; блокирует страницу до удаления и аудита. */
+    getForDeletion(id: number): Promise<PageAuditSnapshot | null>;
+    hasMenuReferences(id: number): Promise<boolean>;
+    delete(id: number): Promise<boolean>;
 
     update(
         id: number,

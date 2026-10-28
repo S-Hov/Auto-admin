@@ -39,6 +39,54 @@ beforeEach(() => {
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'update').mockResolvedValue({ pageId: 42, revision: 4 });
+    vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
+});
+
+describe('page deletion HTTP boundary', () => {
+    function remove(id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+            headers: { 'x-request-id': 'page-delete-request', ...(authenticated ? { Cookie: cookie } : {}) },
+        });
+    }
+
+    it('requires a session', async () => {
+        expect((await remove('42', false)).status).toBe(401);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await remove()).status).toBe(403);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it.each(['0', '-1', '1.5', '1e2', '0x10', '01', 'abc', '9007199254740992'])('rejects invalid ID %s before the service', async (id) => {
+        expect((await remove(id)).status).toBe(400);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('passes ID, principal and request ID and returns the deletion result', async () => {
+        const response = await remove();
+        expect(response.status).toBe(200);
+        expect(pageService.delete).toHaveBeenCalledWith(42, session, 'page-delete-request');
+        expect(await response.json()).toMatchObject({ data: { deleted: true } });
+    });
+
+    it('returns 404 for a missing page', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(notFound());
+        expect((await remove()).status).toBe(404);
+    });
+
+    it('returns 409 for a page referenced by menu', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(conflict());
+        expect((await remove()).status).toBe(409);
+    });
+
+    it('does not return success on a transaction failure', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(new Error('Audit failed'));
+        expect((await remove()).status).toBe(500);
+    });
 });
 
 describe('page update HTTP boundary', () => {
