@@ -40,10 +40,61 @@ beforeEach(() => {
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'getRows').mockResolvedValue({
+        pageId: 42, revision: 1, rows: [{ total: 100 }],
+        pagination: { limit: 25, offset: 0, hasMore: false },
+    });
     vi.spyOn(pageService, 'update').mockResolvedValue({ pageId: 42, revision: 4 });
     vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
     vi.spyOn(pageService, 'list').mockResolvedValue({
         items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+});
+
+describe('page rows HTTP boundary', () => {
+    function rows(query = '', id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}/rows${query}`, { headers: authenticated ? { Cookie: cookie } : {} });
+    }
+    it('requires authentication and administrator access', async () => {
+        expect((await rows('', '42', false)).status).toBe(401);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await rows()).status).toBe(403);
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it('passes validated defaults and returns the normal API envelope', async () => {
+        const response = await rows();
+        expect(response.status).toBe(200);
+        expect(pageService.getRows).toHaveBeenCalledWith(42, { offset: 0 }, session);
+        expect(await response.json()).toMatchObject({ success: true, code: 'COMMON.OK', data: {
+            pageId: 42, revision: 1, rows: [{ total: 100 }], pagination: { limit: 25, offset: 0, hasMore: false },
+        } });
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+    it('passes numeric pagination and the selected sort object to the service', async () => {
+        expect((await rows('?limit=50&offset=150&sortField=total&sortDirection=desc')).status).toBe(200);
+        expect(pageService.getRows).toHaveBeenCalledWith(42, { limit: 50, offset: 150, sort: { field: 'total', direction: 'desc' } }, session);
+    });
+    it.each(['0', '-1', '1.5', 'invalid', '9007199254740992'])('rejects invalid page ID %s', async (id) => {
+        expect((await rows('', id)).status).toBe(400);
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it.each([
+        '?limit=0', '?limit=101', '?limit=1e2', '?limit=1.5', '?offset=-1', '?offset=100001',
+        '?limit=10&limit=25', '?offset=0&offset=25', '?sortField=total', '?sortDirection=asc',
+        '?sortField=total&sortDirection=up', '?sortField=total&sortField=id&sortDirection=asc', '?unknown=1',
+    ])('rejects invalid query %s before calling the service', async (query) => {
+        const response = await rows(query);
+        expect(response.status).toBe(400);
+        expect(await response.json()).toMatchObject({ code: 'COMMON.VALIDATION_FAILED' });
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it('preserves service errors instead of returning an empty page', async () => {
+        vi.mocked(pageService.getRows).mockRejectedValueOnce(notFound());
+        expect((await rows()).status).toBe(404);
+        vi.mocked(pageService.getRows).mockRejectedValueOnce(new Error('Database failure'));
+        const response = await rows();
+        expect(response.status).toBe(500);
+        expect(await response.json()).toMatchObject({ code: 'COMMON.INTERNAL_ERROR' });
     });
 });
 
