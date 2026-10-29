@@ -1,5 +1,5 @@
+import { apiResponseSchema } from '@auto-admin/contracts/common';
 import { z } from 'zod';
-import { apiResponseSchema } from '../schema';
 
 export const bootstrapStageSchema = z.enum([
     'database_required', 'database_unavailable', 'migrations_required',

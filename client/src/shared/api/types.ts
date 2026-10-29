@@ -1,5 +1,5 @@
+import type { apiErrorSchema, translationParamsSchema } from '@auto-admin/contracts/common';
 import type { z } from 'zod';
-import type { apiErrorSchema, translationParamsSchema } from './schema';
 
 export type TranslationParams = z.infer<typeof translationParamsSchema>;
 export type ApiErrorPayload = z.infer<typeof apiErrorSchema>;

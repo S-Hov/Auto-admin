@@ -1,5 +1,5 @@
+import { apiResponseSchema } from '@auto-admin/contracts/common';
 import { z } from 'zod';
-import { apiResponseSchema } from '../../schema';
 
 export const dbCheckSchema = z.looseObject({
     version: z.string().optional(),

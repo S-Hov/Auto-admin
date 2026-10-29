@@ -17,6 +17,10 @@
         "./pages": {
             "types": "./dist/pages/index.d.ts",
             "default": "./dist/pages/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "default": "./dist/common/index.js"
         }
     },
     "files": ["dist"]

@@ -1,5 +1,5 @@
+import { apiResponseSchema } from '@auto-admin/contracts/common';
 import { z } from 'zod';
-import { apiResponseSchema } from '../schema';
 
 export const loginDataSchema = z.looseObject({ redirectedTo: z.string() });
 export const logoutDataSchema = z.looseObject({ redirectedTo: z.string() });
