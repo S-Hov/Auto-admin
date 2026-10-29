@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { catalog as makeCatalog, field } from '../../../../tests/fixtures/access.fixture';
 import { createReadonlyCatalog } from '../../../core/schema-catalog/cache/schema-catalog.cache';
-import type { PageConfig } from '../schema/page-config.schema';
+import type { PageConfig } from '@auto-admin/contracts/pages';
 import { parseUnifiedQuery } from '../../../core/query-engine/schema/query.schema';
 import { buildPageListQuery } from './build-page-list-query';
 

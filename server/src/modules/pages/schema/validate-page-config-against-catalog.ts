@@ -2,8 +2,8 @@ import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
 import { badRequest } from "../../../shared/api/errors/error-helpers";
 import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
 import type { FieldValidationError } from '../../../shared/api/validation/validation.types';
-import type { PageConfig } from "./page-config.schema";
 import { isPageDisplayCompatible } from './page-display-compatibility';
+import type { PageConfig } from "@auto-admin/contracts/pages";
 
 const invalidConfig = (field: string, code: ErrorCode): never => {
     const details: FieldValidationError[] = [{ field, code }];

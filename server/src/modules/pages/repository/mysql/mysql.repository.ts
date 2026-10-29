@@ -2,10 +2,10 @@ import type { DatabaseExecutor } from "../../../../db/contracts/executor.interfa
 import type { PageAuditSnapshot, PageData, PageListItem } from "../../page.types";
 import type { PageListQuery } from "../../schema/page-list.schema";
 import { PageReferencedByMenuError } from "../../page.errors";
-import { pageConfigSchema } from "../../schema/page-config.schema";
 import type { CreatePageData } from "../../schema/page-create.schema";
 import type { UpdatePageData } from "../../schema/page-update.schema";
 import type { PageRepository } from "../repository.interface";
+import { pageConfigSchema } from "@auto-admin/contracts/pages";
 
 type StoredPageRow = Omit<PageData, "config"> & {
     config: unknown;

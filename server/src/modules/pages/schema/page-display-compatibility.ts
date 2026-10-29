@@ -1,5 +1,5 @@
+import type { PageFieldDisplay } from '@auto-admin/contracts/pages';
 import type { DeepReadonly, StoredField } from '../../../core/schema-catalog';
-import type { PageFieldDisplay } from './page-config.schema';
 
 const numericTypes = new Set([
     'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint',

@@ -1,5 +1,5 @@
+import { PAGE_CONFIG_LIMITS } from "@auto-admin/contracts/pages";
 import z from "zod";
-import { PAGE_CONFIG_LIMITS } from "./page-config.schema";
 
 export const PAGE_ROWS_QUERY_LIMITS = { maxOffset: 100_000 } as const;
 

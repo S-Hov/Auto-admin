@@ -1,10 +1,10 @@
+import type { PageConfig } from "@auto-admin/contracts/pages";
 import type { ReadQuery } from "../../../core/query-engine";
 import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
 import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
 import { badRequest } from '../../../shared/api/errors/error-helpers';
 import { mapZodIssue } from '../../../shared/api/validation/map-zod-issue';
 import { pageRowsQuerySchema } from '../schema/page-rows-query.schema';
-import type { PageConfig } from "../schema/page-config.schema";
 import type { PageRowsQuery } from "../schema/page-rows-query.schema";
 import { validatePageConfigAgainstCatalog } from "../schema/validate-page-config-against-catalog";
 

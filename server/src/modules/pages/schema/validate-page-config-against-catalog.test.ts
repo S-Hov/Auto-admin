@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { SchemaCatalog, StoredField, StoredIndex } from '../../../core/schema-catalog';
 import { createReadonlyCatalog } from '../../../core/schema-catalog/cache/schema-catalog.cache';
 import { ApiError } from '../../../shared/api/errors/ApiError';
-import { pageConfigSchema, type PageConfig } from './page-config.schema';
 import { validatePageConfigAgainstCatalog } from './validate-page-config-against-catalog';
-import type { PageFieldDisplay } from './page-config.schema';
+import { pageConfigSchema, type PageConfig, type PageFieldDisplay } from '@auto-admin/contracts/pages';
 
 function field(id: number, resourceId = 42): StoredField {
     return {

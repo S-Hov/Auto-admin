@@ -1,5 +1,5 @@
+import { PAGE_CONFIG_LIMITS, pageConfigSchema, type PageConfig } from '@auto-admin/contracts/pages';
 import { describe, expect, it } from 'vitest';
-import { pageConfigSchema, PAGE_CONFIG_LIMITS, type PageConfig } from './page-config.schema';
 
 function config(): PageConfig {
     return {
