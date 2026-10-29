@@ -20,10 +20,10 @@ import type { PageRepository } from "./repository/repository.interface";
 import type { CreatePageData } from "./schema/page-create.schema";
 import type { UpdatePageData } from "./schema/page-update.schema";
 import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-against-catalog";
-import type { PageRowsQuery } from "./schema/page-rows-query.schema";
 import { buildPageListQuery } from "./model/build-page-list-query";
 import { queryEngineService } from "../../core/query-engine";
 import { mapPageListRows } from './model/map-page-list-rows';
+import type { PageRowsQuery } from "@auto-admin/contracts/pages";
 
 export class PageService {
     constructor(

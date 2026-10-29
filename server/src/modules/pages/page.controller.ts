@@ -6,7 +6,7 @@ import { ok } from "../../shared/api/success";
 import type { GetPageReqData } from "./schema/page-get.schema";
 import type { UpdatePageData } from "./schema/page-update.schema";
 import type { PageListQuery } from "./schema/page-list.schema";
-import type { PageRowsQuery } from './schema/page-rows-query.schema';
+import type { PageRowsQuery } from "@auto-admin/contracts/pages";
 
 export const getPageRowsController = asyncHandler(async (req, res) => {
     const { id } = res.locals.validatedParams as GetPageReqData;

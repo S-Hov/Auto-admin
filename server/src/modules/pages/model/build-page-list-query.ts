@@ -1,11 +1,9 @@
-import type { PageConfig } from "@auto-admin/contracts/pages";
+import { pageRowsQuerySchema, type PageConfig, type PageRowsQuery } from "@auto-admin/contracts/pages";
 import type { ReadQuery } from "../../../core/query-engine";
 import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
 import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
 import { badRequest } from '../../../shared/api/errors/error-helpers';
 import { mapZodIssue } from '../../../shared/api/validation/map-zod-issue';
-import { pageRowsQuerySchema } from '../schema/page-rows-query.schema';
-import type { PageRowsQuery } from "../schema/page-rows-query.schema";
 import { validatePageConfigAgainstCatalog } from "../schema/validate-page-config-against-catalog";
 
 export const buildPageListQuery = (config: PageConfig, catalog: CachedSchemaCatalog, params: PageRowsQuery): ReadQuery & { limit: number; offset: number } => {

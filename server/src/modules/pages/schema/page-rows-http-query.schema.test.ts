@@ -1,5 +1,5 @@
+import { pageRowsHttpQuerySchema } from '@auto-admin/contracts/pages';
 import { describe, expect, it } from 'vitest';
-import { pageRowsHttpQuerySchema } from './page-rows-http-query.schema';
 
 describe('pageRowsHttpQuerySchema', () => {
     it('keeps page-config defaults available when HTTP parameters are absent', () => {

@@ -1,5 +1,5 @@
+import { PAGE_ROWS_QUERY_LIMITS, pageRowsQuerySchema } from '@auto-admin/contracts/pages';
 import { describe, expect, it } from 'vitest';
-import { pageRowsQuerySchema, PAGE_ROWS_QUERY_LIMITS } from './page-rows-query.schema';
 
 describe('pageRowsQuerySchema', () => {
     it('defaults to the first page without replacing page-config defaults', () => {
