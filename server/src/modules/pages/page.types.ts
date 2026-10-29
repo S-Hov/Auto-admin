@@ -22,3 +22,10 @@ export interface PageListResult {
     items: PageListItem[];
     pagination: { limit: number; offset: number; hasMore: boolean };
 }
+
+export interface PageRowsResult {
+    pageId: number;
+    revision: number;
+    rows: Record<string, unknown>[];
+    pagination: { limit: number; offset: number; hasMore: boolean };
+}

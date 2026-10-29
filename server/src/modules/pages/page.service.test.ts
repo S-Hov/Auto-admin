@@ -5,6 +5,7 @@ import { schemaCatalogService, SchemaCatalogNotReadyError } from '../../core/sch
 import { PageService } from './page.service';
 import type { PageRepository } from './repository/repository.interface';
 import { PageReferencedByMenuError } from './page.errors';
+import { queryEngineService } from '../../core/query-engine';
 
 function harness() {
     const db = database();
@@ -26,6 +27,60 @@ function harness() {
 }
 
 beforeEach(() => vi.restoreAllMocks());
+
+describe('PageService.getRows', () => {
+    it.each([0, 24, 25, 26])('returns a bounded page and correct hasMore for %s fetched rows', async (count) => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const rows = Array.from({ length: count }, (_, total) => ({ total }));
+        const execute = vi.spyOn(queryEngineService, 'execute').mockResolvedValue({
+            rows, affectedRows: 0, insertId: 77, raw: { internal: 'must not leave the service' },
+        });
+        const h = harness();
+        const result = await h.service.getRows(42, { offset: 50 }, admin);
+        expect(execute).toHaveBeenCalledWith(expect.objectContaining({ limit: 26, offset: 50 }), admin);
+        expect(result).toEqual({
+            pageId: 42, revision: 1, rows: rows.slice(0, 25),
+            pagination: { limit: 25, offset: 50, hasMore: count > 25 },
+        });
+        expect(rows).toHaveLength(count);
+        expect(h.transaction).not.toHaveBeenCalled();
+    });
+
+    it('uses the requested allowed size, including the maximum configured size', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const execute = vi.spyOn(queryEngineService, 'execute').mockResolvedValue({ rows: [], affectedRows: 0 });
+        const h = harness();
+        const page = { ...pageData(), pageId: 42, revision: 7 };
+        page.config.list.pagination.pageSizeOptions.push(100);
+        h.repo.get.mockResolvedValue(page);
+        const result = await h.service.getRows(42, { offset: 0, limit: 100 }, admin);
+        expect(execute).toHaveBeenCalledWith(expect.objectContaining({ limit: 101, offset: 0 }), admin);
+        expect(result).toMatchObject({ revision: 7, pagination: { limit: 100, offset: 0, hasMore: false } });
+    });
+
+    it('rejects non-admins before reading a page or executing a query', async () => {
+        const execute = vi.spyOn(queryEngineService, 'execute');
+        const h = harness();
+        await expect(h.service.getRows(42, { offset: 0 }, manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.repo.get).not.toHaveBeenCalled();
+        expect(execute).not.toHaveBeenCalled();
+    });
+
+    it('does not execute a query for a missing page', async () => {
+        const execute = vi.spyOn(queryEngineService, 'execute');
+        const h = harness();
+        h.repo.get.mockResolvedValue(null);
+        await expect(h.service.getRows(42, { offset: 0 }, admin)).rejects.toMatchObject({ status: 404 });
+        expect(execute).not.toHaveBeenCalled();
+    });
+
+    it('does not hide engine failures as an empty successful page', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        vi.spyOn(queryEngineService, 'execute').mockRejectedValue(new Error('Query denied or failed'));
+        const h = harness();
+        await expect(h.service.getRows(42, { offset: 0 }, admin)).rejects.toThrow('Query denied or failed');
+    });
+});
 
 describe('PageService.create: catalog and transactional access checks', () => {
     it('validates the catalog before writing and uses the same transactional executor for both repositories', async () => {

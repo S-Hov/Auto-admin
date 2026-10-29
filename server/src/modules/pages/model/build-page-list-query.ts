@@ -8,7 +8,7 @@ import type { PageConfig } from "../schema/page-config.schema";
 import type { PageRowsQuery } from "../schema/page-rows-query.schema";
 import { validatePageConfigAgainstCatalog } from "../schema/validate-page-config-against-catalog";
 
-export const buildPageListQuery = (config: PageConfig, catalog: CachedSchemaCatalog, params: PageRowsQuery): ReadQuery => {
+export const buildPageListQuery = (config: PageConfig, catalog: CachedSchemaCatalog, params: PageRowsQuery): ReadQuery & { limit: number; offset: number } => {
     validatePageConfigAgainstCatalog(config, catalog);
 
     const fail = (field: string, code: ErrorCode = ERROR_CODES.VALIDATION_INVALID_VALUE): never => {

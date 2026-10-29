@@ -12,7 +12,7 @@ import {
     forbidden,
     notFound,
 } from "../../shared/api/errors/error-helpers";
-import type { PageData, PageListResult, PageUpdateResponse } from "./page.types";
+import type { PageData, PageListResult, PageRowsResult, PageUpdateResponse } from "./page.types";
 import type { PageListQuery } from "./schema/page-list.schema";
 import { PageReferencedByMenuError } from "./page.errors";
 import { createPageRepository } from "./repository/repository.factory";
@@ -20,6 +20,9 @@ import type { PageRepository } from "./repository/repository.interface";
 import type { CreatePageData } from "./schema/page-create.schema";
 import type { UpdatePageData } from "./schema/page-update.schema";
 import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-against-catalog";
+import type { PageRowsQuery } from "./schema/page-rows-query.schema";
+import { buildPageListQuery } from "./model/build-page-list-query";
+import { queryEngineService } from "../../core/query-engine";
 
 export class PageService {
     constructor(
@@ -174,6 +177,30 @@ export class PageService {
             );
             return { deleted: true };
         });
+    }
+
+    async getRows(pageId: number, params: PageRowsQuery, principal: AccessPrincipal): Promise<PageRowsResult> {
+        requireSystemAdmin(principal);
+        const page = await this.repository(this.database()).get(pageId);
+        if (!page) throw notFound();
+
+        const catalog = await schemaCatalogService.getAuthorizationCatalog();
+        const query = buildPageListQuery(page.config, catalog, params);
+
+        const { limit, offset } = query;
+        const result = await queryEngineService.execute<Record<string, unknown>>(
+            { ...query, limit: limit + 1 }, principal,
+        );
+        return {
+            pageId,
+            revision: page.revision,
+            rows: result.rows.slice(0, limit),
+            pagination: {
+                limit,
+                offset,
+                hasMore: result.rows.length > limit,
+            },
+        };
     }
 }
 
