@@ -12,5 +12,12 @@
     },
     "devDependencies": {
         "typescript": "^6.0.3"
-    }
+    },
+    "exports": {
+        "./pages": {
+            "types": "./dist/pages/index.d.ts",
+            "default": "./dist/pages/index.js"
+        }
+    },
+    "files": ["dist"]
 }
