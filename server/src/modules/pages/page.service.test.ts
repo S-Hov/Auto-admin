@@ -29,6 +29,29 @@ function harness() {
 beforeEach(() => vi.restoreAllMocks());
 
 describe('PageService.getRows', () => {
+    it('maps only visible rows to config IDs after trimming the pagination probe', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const h = harness();
+        const page = { ...pageData(), pageId: 42, revision: 1 };
+        page.config.fields[0].id = 'orderTotal';
+        page.config.list.columns = ['orderTotal'];
+        page.config.list.sorting.allowed = ['orderTotal'];
+        h.repo.get.mockResolvedValue(page);
+        const rows = Array.from({ length: 25 }, (_, total) => ({ total, internal_note: 'private' }));
+        // Техническая 26-я строка не попадает ни в ответ, ни в преобразование.
+        vi.spyOn(queryEngineService, 'execute').mockResolvedValue({ rows: [...rows, {}], affectedRows: 0 });
+        const result = await h.service.getRows(42, { offset: 0 }, admin);
+        expect(result.rows).toEqual(rows.map(({ total }) => ({ orderTotal: total })));
+        expect(result.pagination.hasMore).toBe(true);
+    });
+
+    it('rejects an engine result missing a selected column', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        vi.spyOn(queryEngineService, 'execute').mockResolvedValue({ rows: [{}], affectedRows: 0 });
+        const h = harness();
+        await expect(h.service.getRows(42, { offset: 0 }, admin)).rejects.toThrow('missing an expected column');
+    });
+
     it.each([0, 24, 25, 26])('returns a bounded page and correct hasMore for %s fetched rows', async (count) => {
         vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
         const rows = Array.from({ length: count }, (_, total) => ({ total }));

@@ -23,6 +23,7 @@ import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-
 import type { PageRowsQuery } from "./schema/page-rows-query.schema";
 import { buildPageListQuery } from "./model/build-page-list-query";
 import { queryEngineService } from "../../core/query-engine";
+import { mapPageListRows } from './model/map-page-list-rows';
 
 export class PageService {
     constructor(
@@ -194,7 +195,7 @@ export class PageService {
         return {
             pageId,
             revision: page.revision,
-            rows: result.rows.slice(0, limit),
+            rows: mapPageListRows(page.config, catalog, result.rows.slice(0, limit)),
             pagination: {
                 limit,
                 offset,
