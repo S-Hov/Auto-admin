@@ -4,6 +4,7 @@ import { createReadonlyCatalog } from '../../../core/schema-catalog/cache/schema
 import { ApiError } from '../../../shared/api/errors/ApiError';
 import { pageConfigSchema, type PageConfig } from './page-config.schema';
 import { validatePageConfigAgainstCatalog } from './validate-page-config-against-catalog';
+import type { PageFieldDisplay } from './page-config.schema';
 
 function field(id: number, resourceId = 42): StoredField {
     return {
@@ -55,6 +56,80 @@ function fixture(): { config: PageConfig; catalog: SchemaCatalog } {
 // Ключ первой версии — полный PRIMARY/UNIQUE по обычным NOT NULL колонкам.
 // Порядок ID в recordKey не меняет уникальность набора; части ключа недостаточно.
 describe('validatePageConfigAgainstCatalog', () => {
+    it.each([
+        ['number', 'decimal', 'decimal(12,2)'],
+        ['number', 'BIGINT', 'bigint unsigned'],
+        ['number', 'double precision', 'double precision'],
+        ['text', 'int', 'int'],
+        ['text', 'varchar', 'varchar(100)'],
+        ['text', 'datetime', 'datetime(3)'],
+        ['text', 'uuid', 'uuid'],
+        ['boolean', 'boolean', 'boolean'],
+        ['boolean', 'tinyint', 'tinyint(1)'],
+        ['boolean', 'tinyint', 'TINYINT(1) UNSIGNED'],
+        ['date', 'date', 'date'],
+        ['date', 'timestamp', 'timestamp(3)'],
+        ['datetime', 'datetime', 'datetime(3)'],
+        ['datetime', 'timestamptz', 'timestamptz'],
+        ['image', 'varchar', 'varchar(255)'],
+        ['link', 'text', 'text'],
+    ] as const)('accepts %s display for %s (%s)', (type, dataType, columnType) => {
+        const { config, catalog } = fixture();
+        config.fields[0].display = { type } as PageFieldDisplay;
+        Object.assign(catalog.fields[1], { dataType, columnType });
+        expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
+    });
+
+    it.each([
+        ['number', 'varchar', 'varchar(100)'],
+        ['number', 'json', 'json'],
+        ['boolean', 'int', 'int'],
+        ['boolean', 'tinyint', 'tinyint(4)'],
+        ['boolean', 'tinyint', 'tinyint(10)'],
+        ['boolean', 'bit', 'bit(1)'],
+        ['date', 'varchar', 'varchar(100)'],
+        ['date', 'year', 'year'],
+        ['datetime', 'date', 'date'],
+        ['datetime', 'time', 'time'],
+        ['image', 'blob', 'blob'],
+        ['link', 'int', 'int'],
+        ['text', 'blob', 'blob'],
+        ['text', 'geometry', 'geometry'],
+        ['text', 'json', 'json'],
+        ['text', 'unknown_type', 'unknown_type'],
+    ] as const)('rejects %s display for %s (%s) with a precise field error', (type, dataType, columnType) => {
+        const { config, catalog } = fixture();
+        config.fields[0].display = { type } as PageFieldDisplay;
+        Object.assign(catalog.fields[1], { dataType, columnType });
+        expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrowError(expect.objectContaining({
+            status: 400,
+            code: 'COMMON.VALIDATION_FAILED',
+            details: [{ field: 'config.fields.0.display.type', code: 'PAGE.DISPLAY_INCOMPATIBLE' }],
+        }));
+    });
+
+    it.each([
+        ['resource', 'config.source.resourceId', 'PAGE.RESOURCE_UNAVAILABLE'],
+        ['field', 'config.fields.0.fieldId', 'PAGE.FIELD_UNAVAILABLE'],
+        ['foreign field', 'config.fields.0.fieldId', 'PAGE.FIELD_RESOURCE_MISMATCH'],
+        ['key field', 'config.source.recordKey.0', 'PAGE.FIELD_UNAVAILABLE'],
+        ['foreign key field', 'config.source.recordKey.0', 'PAGE.FIELD_RESOURCE_MISMATCH'],
+        ['nullable key', 'config.source.recordKey.0', 'PAGE.RECORD_KEY_NULLABLE'],
+        ['invalid key', 'config.source.recordKey', 'PAGE.RECORD_KEY_INVALID'],
+    ])('reports the code and config path for %s', (scenario, path, code) => {
+        const { config, catalog } = fixture();
+        if (scenario === 'resource') catalog.resources[0].state = 'missing';
+        if (scenario === 'field') catalog.fields[1].state = 'missing';
+        if (scenario === 'foreign field') catalog.fields[1].resourceId = 99;
+        if (scenario === 'key field') catalog.fields[0].state = 'missing';
+        if (scenario === 'foreign key field') catalog.fields[0].resourceId = 99;
+        if (scenario === 'nullable key') catalog.fields[0].nullable = true;
+        if (scenario === 'invalid key') catalog.indexes = [];
+        expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrowError(expect.objectContaining({
+            status: 400, code: 'COMMON.VALIDATION_FAILED', details: [{ field: path, code }],
+        }));
+    });
+
     it('accepts an existing primary key that is not displayed on the page', () => {
         const { config, catalog } = fixture();
         expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();

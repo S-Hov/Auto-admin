@@ -1,6 +1,14 @@
 import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
 import { badRequest } from "../../../shared/api/errors/error-helpers";
+import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
+import type { FieldValidationError } from '../../../shared/api/validation/validation.types';
 import type { PageConfig } from "./page-config.schema";
+import { isPageDisplayCompatible } from './page-display-compatibility';
+
+const invalidConfig = (field: string, code: ErrorCode): never => {
+    const details: FieldValidationError[] = [{ field, code }];
+    throw badRequest(ERROR_CODES.COMMON_VALIDATION_FAILED, { details });
+};
 
 export const validatePageConfigAgainstCatalog = (
     config: PageConfig,
@@ -14,28 +22,31 @@ export const validatePageConfigAgainstCatalog = (
         table.isServiceTable ||
         table.state !== "present"
     ) {
-        throw badRequest();
+        invalidConfig('config.source.resourceId', ERROR_CODES.PAGE_RESOURCE_UNAVAILABLE);
     }
 
     const fields = new Map(catalog.fields.map((field) => [field.id, field]));
-    const requireField = (fieldId: number) => {
+    const requireField = (fieldId: number, path: string) => {
         const field = fields.get(fieldId);
-        if (!field || field.resourceId !== tableId || field.state !== "present") {
-            throw badRequest();
-        }
+        if (!field || field.state !== "present") return invalidConfig(path, ERROR_CODES.PAGE_FIELD_UNAVAILABLE);
+        if (field.resourceId !== tableId) return invalidConfig(path, ERROR_CODES.PAGE_FIELD_RESOURCE_MISMATCH);
         return field;
     };
 
-    for (const pageField of config.fields) {
-        requireField(pageField.fieldId);
-    }
+    config.fields.forEach((pageField, index) => {
+        const field = requireField(pageField.fieldId, `config.fields.${index}.fieldId`);
+        if (!isPageDisplayCompatible(pageField.display, field)) {
+            invalidConfig(`config.fields.${index}.display.type`, ERROR_CODES.PAGE_DISPLAY_INCOMPATIBLE);
+        }
+    });
 
     const recordKey = config.source.recordKey;
     if (recordKey === null) return;
 
-    for (const fieldId of recordKey) {
-        if (requireField(fieldId).nullable) {
-            throw badRequest();
+    for (const [position, fieldId] of recordKey.entries()) {
+        const path = `config.source.recordKey.${position}`;
+        if (requireField(fieldId, path).nullable) {
+            invalidConfig(path, ERROR_CODES.PAGE_RECORD_KEY_NULLABLE);
         }
     }
 
@@ -61,5 +72,5 @@ export const validatePageConfigAgainstCatalog = (
         return keyIds.size > 0 && indexFieldIds.size === keyIds.size;
     });
 
-    if (!hasUniqueKey) throw badRequest();
+    if (!hasUniqueKey) invalidConfig('config.source.recordKey', ERROR_CODES.PAGE_RECORD_KEY_INVALID);
 };

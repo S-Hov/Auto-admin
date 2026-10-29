@@ -17,6 +17,14 @@ export const enApi = {
             "An administrator must scan the database schema first",
     },
     MENU: { INVALID: "Check the menu item settings and permissions" },
+    PAGE: {
+        RESOURCE_UNAVAILABLE: 'The page table is missing or unavailable for configuration',
+        FIELD_UNAVAILABLE: 'The field is missing from the current catalog',
+        FIELD_RESOURCE_MISMATCH: 'The field does not belong to the page table',
+        DISPLAY_INCOMPATIBLE: 'The display format is incompatible with the field type',
+        RECORD_KEY_NULLABLE: 'A record key field must not allow NULL',
+        RECORD_KEY_INVALID: 'The record key must match a complete unique index without prefixes or expressions',
+    },
     COMMON: {
         BAD_REQUEST: "Invalid request",
         UNAUTHORIZED: "Unauthorized",

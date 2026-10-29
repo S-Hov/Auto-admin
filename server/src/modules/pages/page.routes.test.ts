@@ -15,6 +15,8 @@ import { errorHandler } from '../../shared/middleware/errorHandler';
 import { httpLogger } from '../../shared/middleware/logger';
 import { COOKIE_NAMES } from '../../constants/cookies';
 import { conflict, notFound } from '../../shared/api/errors/error-helpers';
+import { validatePageConfigAgainstCatalog } from './schema/validate-page-config-against-catalog';
+import { pageCatalog } from '../../../tests/fixtures/page.fixture';
 
 let server: Server;
 let url: string;
@@ -46,6 +48,28 @@ beforeEach(() => {
 });
 
 describe('page selector HTTP boundary', () => {
+    it('preserves catalog validation codes and paths in the standard HTTP error envelope', async () => {
+        const data = pageData();
+        data.config.fields[0].display = { type: 'datetime' };
+        let validationError: unknown;
+        try {
+            validatePageConfigAgainstCatalog(data.config, pageCatalog());
+        } catch (error) {
+            validationError = error;
+        }
+        expect(validationError).toBeDefined();
+        vi.mocked(pageService.create).mockRejectedValueOnce(validationError);
+        const response = await fetch(url, {
+            method: 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+        });
+        expect(response.status).toBe(400);
+        expect(await response.json()).toMatchObject({
+            success: false,
+            code: 'COMMON.VALIDATION_FAILED',
+            details: [{ field: 'config.fields.0.display.type', code: 'PAGE.DISPLAY_INCOMPATIBLE' }],
+        });
+    });
+
     function list(query = '', authenticated = true) {
         return fetch(`${url}${query}`, { headers: authenticated ? { Cookie: cookie } : {} });
     }
