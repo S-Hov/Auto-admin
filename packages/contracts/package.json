@@ -1,0 +1,16 @@
+{
+    "name": "@auto-admin/contracts",
+    "version": "0.1.0",
+    "private": true,
+    "type": "commonjs",
+    "dependencies": {
+        "zod": "^4.4.3"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "tsc -p tsconfig.json --watch"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    }
+}
