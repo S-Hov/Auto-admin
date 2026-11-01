@@ -31,6 +31,10 @@
     "CSS": {
       "tab_size": 4,
       "formatter": "prettier"
+    },
+    "code_actions_on_format": {
+      "source.organizeImports.biome": true,
+      "source.fixAll.biome": true
     }
   }
 }
