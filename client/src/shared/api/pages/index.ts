@@ -1,6 +1,5 @@
-import { pageDataSchema, pageResponseSchema, pageRowsQuerySchema, pageRowsResponseSchema } from "@auto-admin/contracts/pages";
+import { pageDataSchema, pageResponseSchema, pageRowsQuerySchema, pageRowsResponseSchema, type PageRowsParams } from "@auto-admin/contracts/pages";
 import { apiClient, ApiContractError } from "../apiClient";
-import type { PageRowsParams } from './page.types';
 
 export const pages = {
     async getPage(pageId: number, options?: { signal?: AbortSignal }) {

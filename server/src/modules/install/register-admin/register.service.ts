@@ -1,18 +1,15 @@
 import bcrypt from "bcryptjs";
 import { PagePaths } from "../../../constants/pagePaths";
 import { databaseRuntime } from "../../../db/runtime/database.runtime";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import {
     conflict,
     notFound,
 } from "../../../shared/api/errors/error-helpers";
 import { createInstallRepository } from "../repository/repository.factory";
 import { createRegisterAdminRepository } from "./repository/repository.factory";
-import type {
-    RequestMeta,
-    RegisterData,
-    RegisterResponse,
-} from "./register.types";
+import type { RequestMeta } from "./register.types";
+import type { RegisterData, RegisterResponse } from "@auto-admin/contracts/install";
 
 const adminRoleKey = "admin" as const;
 

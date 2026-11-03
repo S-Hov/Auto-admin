@@ -1,4 +1,4 @@
-import type { PipelineDefinition } from "./pipeline.types";
+import type { PipelineDefinition } from "@auto-admin/contracts/query";
 import { invalidQuery } from "../query-engine.errors";
 
 const reserved = new Set(["__proto__", "prototype", "constructor"]);

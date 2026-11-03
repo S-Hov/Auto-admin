@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ManageableMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 import { buildEditorGraph } from './build-editor-graph';
 import { buildEditorTree } from './build-editor-tree';
 import { buildMenuDragPreview, findMenuDropTarget } from './menu-drag-preview';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageListSchema } from './page-list.schema';
+import { pageListQuerySchema as pageListSchema } from "@auto-admin/contracts/pages";
 
 describe('pageListSchema', () => {
     it('uses bounded defaults for an empty query', () => {

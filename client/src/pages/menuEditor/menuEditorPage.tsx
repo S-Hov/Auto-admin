@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import type {
-    ManageableMenuItemDto,
-    MenuSaveData,
-} from "../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { menu } from "../../shared/api/menu";
 import { toast } from "sonner";
 import { apiMessage } from "../../shared/i18n/api-message";

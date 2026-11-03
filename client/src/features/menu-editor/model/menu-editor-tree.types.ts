@@ -1,4 +1,4 @@
-import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 
 export interface EditableMenuItemDto extends ManageableMenuItemDto {
     kind: "item";

@@ -31,3 +31,5 @@ export const menuSaveResponseSchema = apiResponseSchema(z.strictObject({
 
 export const menuDeleteIdSchema = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 export const menuDeleteResponseSchema = apiResponseSchema(z.strictObject({ deleted: z.literal(true) }));
+export type ManageableMenuItemDto = z.infer<typeof manageableMenuItemDtoSchema>;
+export type VisibleMenuItemDto = z.infer<typeof visibleMenuItemDtoSchema>;

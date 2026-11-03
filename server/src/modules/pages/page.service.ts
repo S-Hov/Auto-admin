@@ -6,24 +6,20 @@ import { schemaCatalogService } from "../../core/schema-catalog";
 import type { DatabaseExecutor } from "../../db/contracts/executor.interface";
 import type { DatabaseProvider } from "../../db/contracts/provider.interface";
 import { databaseRuntime } from "../../db/runtime/database.runtime";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import {
     conflict,
     forbidden,
     notFound,
 } from "../../shared/api/errors/error-helpers";
-import type { PageData, PageListResult, PageRowsResult, PageUpdateResponse } from "./page.types";
-import type { PageListQuery } from "./schema/page-list.schema";
+import type { PageData, PageListResult, PageRowsResult, PageUpdateResponse, PageListQuery, CreatePageData, UpdatePageData, PageRowsQuery } from "@auto-admin/contracts/pages";
 import { PageReferencedByMenuError } from "./page.errors";
 import { createPageRepository } from "./repository/repository.factory";
 import type { PageRepository } from "./repository/repository.interface";
-import type { CreatePageData } from "./schema/page-create.schema";
-import type { UpdatePageData } from "./schema/page-update.schema";
 import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-against-catalog";
 import { buildPageListQuery } from "./model/build-page-list-query";
 import { queryEngineService } from "../../core/query-engine";
 import { mapPageListRows } from './model/map-page-list-rows';
-import type { PageRowsQuery } from "@auto-admin/contracts/pages";
 
 export class PageService {
     constructor(

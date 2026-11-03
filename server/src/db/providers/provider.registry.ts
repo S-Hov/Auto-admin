@@ -1,7 +1,7 @@
 import type { DatabaseProvider } from "../contracts/provider.interface";
 import { assertDatabaseSupported } from "../catalog/database.catalog";
 import { DatabaseProviderNotFoundError } from "../errors/database.errors";
-import type { DatabaseType } from "../contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import { mysqlDatabaseProvider } from "./mysql/mysql.provider";
 
 type DatabaseProviderMap = {

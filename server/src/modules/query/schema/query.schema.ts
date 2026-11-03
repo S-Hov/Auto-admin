@@ -1,6 +1,5 @@
 import { executeRequestSchema, pipelineRequestSchema } from '@auto-admin/contracts/query';
 import { invalidQuery } from '../../../core/query-engine/query-engine.errors';
-export { QUERY_API_VERSION } from '@auto-admin/contracts/query';
 export function parseExecuteRequest(input: unknown) {
     const parsed = executeRequestSchema.safeParse(input);
     if (!parsed.success)

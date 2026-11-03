@@ -1,12 +1,8 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
-import type { CreatePageData } from "./schema/page-create.schema";
+import type { CreatePageData, GetPageReqData, UpdatePageData, PageListQuery, PageRowsQuery } from "@auto-admin/contracts/pages";
 import { pageService } from "./page.service";
 import { ok } from "../../shared/api/success";
-import type { GetPageReqData } from "./schema/page-get.schema";
-import type { UpdatePageData } from "./schema/page-update.schema";
-import type { PageListQuery } from "./schema/page-list.schema";
-import type { PageRowsQuery } from "@auto-admin/contracts/pages";
 
 export const getPageRowsController = asyncHandler(async (req, res) => {
     const { id } = res.locals.validatedParams as GetPageReqData;

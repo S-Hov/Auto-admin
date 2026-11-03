@@ -1,6 +1,6 @@
 import { useId, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
-import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
 import { menuItemPanelSchema, type MenuItemPanelFormValues } from "../model/MenuItemPanel.schema";

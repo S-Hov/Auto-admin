@@ -8,7 +8,7 @@ import { useState } from "react";
 import './runMigrationsForm.css'
 import Loader from "../../../shared/ui/Loader/Loader";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
-import type { MigrationStepResponse } from "../../../shared/api/database/install/install.types";
+import type { MigrationStepResponse } from "@auto-admin/contracts/install";
 import { apiMessage } from "../../../shared/i18n/api-message";
 
 const RunMigrationsForm = () => {

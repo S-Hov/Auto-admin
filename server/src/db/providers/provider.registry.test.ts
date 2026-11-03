@@ -4,7 +4,7 @@ import { mysqlDatabaseProvider } from './mysql/mysql.provider';
 import { UnsupportedDatabaseError, DatabaseProviderNotFoundError } from '../errors/database.errors';
 import * as catalog from '../catalog/database.catalog';
 import { DATABASE_CATALOG } from '../catalog/database.catalog';
-import type { DatabaseType } from '../contracts/database.types';
+import type { DatabaseType } from "@auto-admin/contracts/database";
 
 describe('DatabaseProviderRegistry', () => {
     it('mysql возвращает именно mysqlDatabaseProvider', () => {

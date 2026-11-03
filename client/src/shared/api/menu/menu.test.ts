@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { menu } from './index';
-import type { MenuSaveData } from './menu.types';
+import type { MenuSaveData } from "@auto-admin/contracts/menu";
 import { ApiClientError } from '../ApiClientError';
 import { ApiContractError } from '../apiClient';
 

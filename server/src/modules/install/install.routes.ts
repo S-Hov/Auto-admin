@@ -12,16 +12,13 @@ import {
 import registerRouter from "./register-admin/register.routes";
 import { statusMigrated } from "../../shared/middleware/checkInstallationStatus";
 import { validate } from "../../shared/middleware/validate";
-import { applyNextMigrationSchema } from "./schema/apply-next-migration.schema";
+import { applyNextMigrationRequestSchema as applyNextMigrationSchema, checkConnectionSchema, recoverySchema, checkDatabaseTypeSchema } from "@auto-admin/contracts/install";
 import { requirePendingMigrations } from "../../shared/middleware/requirePendingMigrations";
 import { canConfigureDatabase } from "../../shared/middleware/canConfigureDatabase";
 import { requireInstallToken } from "../../shared/middleware/requireInstallToken";
-import { checkConnectionSchema } from "./schema/check-connection.schema";
-import { recoverySchema } from "./schema/recovery.schema";
 import { createRateLimiter } from "../../shared/middleware/rateLimiter";
 import { envConfig } from "../../config/env";
 import { requireMigrationRecovery } from "../../shared/middleware/requireMigrationRecovery";
-import { checkDatabaseTypeSchema } from "./schema/check-database-type.schema";
 
 const installRouter = express.Router();
 const installRateLimiter = createRateLimiter({

@@ -5,7 +5,7 @@ import { databaseRuntime } from "../../db/runtime/database.runtime";
 import { schemaCatalogService } from "../../core/schema-catalog";
 import { SchemaCatalogScanInProgressError } from "../../core/schema-catalog/schema-catalog.errors";
 import { conflict, forbidden } from "../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export async function scanSchemaForAdmin(principal: AccessPrincipal) {
     requireSystemAdmin(principal);

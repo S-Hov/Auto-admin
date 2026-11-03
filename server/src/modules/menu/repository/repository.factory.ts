@@ -1,7 +1,7 @@
 import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
-import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import { MySqlMenuRepository } from "./mysql/mysql.repository";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { badRequest } from "../../../shared/api/errors/error-helpers";
 
 export function createMenuRepository(

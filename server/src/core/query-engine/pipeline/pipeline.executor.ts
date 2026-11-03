@@ -1,14 +1,9 @@
 import type { DatabaseProvider } from "../../../db/contracts/provider.interface";
 import type { DatabaseDriver } from "../contracts/database-driver.interface";
 import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
-import type { QueryResult } from "../types/query-result.types";
+import type { QueryResult, PipelineDefinition, PipelineResult, PipelineStep } from "@auto-admin/contracts/query";
 import { ContextResolver } from "./context.resolver";
-import type {
-    PipelineDefinition,
-    PipelineExecutionContext,
-    PipelineResult,
-    PipelineStep,
-} from "./pipeline.types";
+import type { PipelineExecutionContext } from "./pipeline.types";
 import type {
     AccessPrincipal,
     PreparedAccessContext,

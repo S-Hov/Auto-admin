@@ -5,7 +5,7 @@ import { buildEditorGraph } from "../model/build-editor-graph";
 import type { EditableMenuNode, EditableVirtualMenuItem, MenuEditorSelection } from "../model/menu-editor-tree.types";
 import type { MenuBoardNode, MenuDragState } from "../model/menu-editor-graph.types";
 import { MenuEditorNode } from "./MenuEditorNode";
-import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 import { getMenuSubtreeIds } from "../model/get-menu-subtree-ids";
 import { updateNodeMeasurements, type NodeMeasurements } from '../model/node-measurements';
 import { buildMenuDragPreview, findMenuDropTarget } from '../model/menu-drag-preview';

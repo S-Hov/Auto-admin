@@ -6,10 +6,8 @@ import { parseQueryBatch } from "./schema/query.schema";
 import { assertQueryResultSize } from "./access/query-result.guard";
 import type { QueryEngineProvider } from "./contracts/query-engine-provider.interface";
 import { PipelineExecutor } from "./pipeline/pipeline.executor";
-import type { PipelineResult } from "./pipeline/pipeline.types";
+import type { PipelineResult, QueryResult, UnifiedQuery } from "@auto-admin/contracts/query";
 import { getActiveQueryEngineProvider } from "./runtime/query-engine.runtime";
-import type { QueryResult } from "./types/query-result.types";
-import type { UnifiedQuery } from "./types/query.types";
 
 export class QueryEngineService {
     constructor(

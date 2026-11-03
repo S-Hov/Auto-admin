@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { menu } from '../src/shared/api/menu';
 import { mockMenuItems } from '../src/shared/api/menu/menu.mock';
-import { visibleMenuResponseSchema as menuResponseSchema } from '../src/shared/api/menu/menu.schema';
+import { visibleMenuResponseSchema as menuResponseSchema } from "@auto-admin/contracts/menu";
 import { ApiContractError } from '../src/shared/api/apiClient';
 
 const getMenu = () => menu.getMenu();

@@ -1,7 +1,7 @@
 import express from "express";
 import { registerController } from "./register.controller";
 import { validate } from "../../../shared/middleware/validate";
-import { registerSchema } from "./schema/register.schema";
+import { registerSchema } from "@auto-admin/contracts/install";
 
 const registerRouter = express.Router();
 

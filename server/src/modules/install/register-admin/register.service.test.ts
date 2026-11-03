@@ -1,14 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PagePaths } from "../../../constants/pagePaths";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { createInstallRepository } from "../repository/repository.factory";
 import { createRegisterAdminRepository } from "./repository/repository.factory";
 import { registerService } from "./register.service";
-import type {
-    RegisterData,
-    RequestMeta,
-    UserRole,
-} from "./register.types";
+import type { RegisterData } from "@auto-admin/contracts/install";
+import type { RequestMeta, UserRole } from "./register.types";
 import type { InstallRepository } from "../repository/repository.interface";
 import type { RegisterAdminRepository } from "./repository/repository.interface";
 import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";

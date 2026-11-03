@@ -1,7 +1,6 @@
 import { permissionChangeSchema, type PermissionChange } from '@auto-admin/contracts/access-control';
 import { badRequest } from '../../../shared/api/errors/error-helpers';
-import { ERROR_CODES } from '../../../shared/api/codes/error-codes';
-export { positiveIdSchema, permissionChangeSchema, permissionSubjectSchema } from '@auto-admin/contracts/access-control';
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 export function parsePermissionChange(input: unknown): PermissionChange {
     const result = permissionChangeSchema.safeParse(input);
     if (!result.success)

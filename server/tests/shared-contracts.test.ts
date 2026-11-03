@@ -1,24 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { readFile, readdir } from 'node:fs/promises';
+import { access as fileAccess, readFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as common from '@auto-admin/contracts/common';
-import * as auth from '@auto-admin/contracts/auth';
 import * as install from '@auto-admin/contracts/install';
-import * as menu from '@auto-admin/contracts/menu';
 import * as pages from '@auto-admin/contracts/pages';
 import * as access from '@auto-admin/contracts/access-control';
 import * as query from '@auto-admin/contracts/query';
-import { menuSaveSchema } from '../src/modules/menu/schema/menu.schema';
-import { loginSchema } from '../src/modules/auth/schema/login.schema';
-import { createPageSchema } from '../src/modules/pages/schema/page-create.schema';
 
 describe('shared API contracts', () => {
-    it('uses the same schema objects through legacy server paths', () => {
-        expect(menuSaveSchema).toBe(menu.menuSaveSchema);
-        expect(loginSchema).toBe(auth.loginSchema);
-        expect(createPageSchema).toBe(pages.createPageSchema);
+    it('does not retain legacy schema bridges in the applications', async () => {
+        for (const path of [
+            '../src/modules/menu/schema/menu.schema.ts',
+            '../src/modules/pages/schema/page-create.schema.ts',
+            '../src/modules/auth/schema/login.schema.ts',
+            '../../client/src/shared/api/menu/menu.schema.ts',
+            '../../client/src/shared/api/auth/auth.schema.ts',
+        ]) {
+            await expect(fileAccess(new URL(path, import.meta.url))).rejects.toMatchObject({ code: 'ENOENT' });
+        }
     });
     it('keeps request and response contracts for similarly named operations separate', () => {
         expect(install.applyNextMigrationRequestSchema.safeParse({ expectedVersion: '0001' }).success).toBe(true);

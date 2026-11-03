@@ -1,4 +1,3 @@
-export type { RegisterData } from '@auto-admin/contracts/install';
 
 export interface RequestMeta {
     ipAddress: string | null;
@@ -12,7 +11,6 @@ export interface UserRole {
     rights: 'full' | 'read_only' | 'manager' | 'none' | 'custom';
 }
 
-export type { RegisterResponse } from '@auto-admin/contracts/install';
 
 export interface AdminLookupRow {
     id: number;

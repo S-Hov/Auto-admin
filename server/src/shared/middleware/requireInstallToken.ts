@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { unauthorized } from "../api/errors/error-helpers";
 import crypto from 'crypto';
-import { ERROR_CODES } from "../api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { envConfig } from "../../config/env";
 
 const clientTokenName = 'x-auto-admin-install-token';

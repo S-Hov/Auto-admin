@@ -9,12 +9,12 @@ import { getActiveAccessControlProvider } from "../../core/access-control/runtim
 import { createMenuRepository } from "./repository/repository.factory";
 import type { MenuRepository } from "./repository/repository.interface";
 import type { MenuVisibilityRow } from "./menu.types";
-import type { MenuSaveData, MenuPermissionData } from "./schema/menu.schema";
+import type { MenuSaveData, MenuPermissionData } from "@auto-admin/contracts/menu";
 import {
     badRequest,
     forbidden,
 } from "../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export class MenuService {
     constructor(

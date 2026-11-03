@@ -1,5 +1,5 @@
 import { assertDatabaseSubsystemSupported } from "../../../db/catalog/database.catalog";
-import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import { UnsupportedDatabaseSubsystemError } from "../../../db/errors/database.errors";
 import { MySqlPageRepository } from "./mysql/mysql.repository";

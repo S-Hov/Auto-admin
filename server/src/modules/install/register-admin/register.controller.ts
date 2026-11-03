@@ -3,7 +3,7 @@ import { created } from "../../../shared/api/success";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { registerService } from "./register.service";
 import { RequestMeta } from "./register.types";
-import { SUCCESS_CODES } from "../../../shared/api/codes/success-codes";
+import { SUCCESS_CODES } from "@auto-admin/contracts/common";
 
 const getRequestMeta = (req: Request) => ({
     ipAddress: req.ip || req.socket?.remoteAddress || null,

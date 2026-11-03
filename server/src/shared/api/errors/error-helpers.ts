@@ -1,5 +1,5 @@
-import { ERROR_CODES, type ErrorCode } from '../codes/error-codes';
-import { ApiError, type TranslationParams } from './ApiError';
+import { ERROR_CODES, type ErrorCode, type TranslationParams } from "@auto-admin/contracts/common";
+import { ApiError } from "./ApiError";
 
 interface HelperOptions<TDetails = unknown> {
     params?: TranslationParams;

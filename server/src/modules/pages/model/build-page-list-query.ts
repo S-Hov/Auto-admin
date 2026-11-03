@@ -1,7 +1,7 @@
 import { pageRowsQuerySchema, type PageConfig, type PageRowsQuery } from "@auto-admin/contracts/pages";
 import type { ReadQuery } from "../../../core/query-engine";
 import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
-import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
+import { ERROR_CODES, type ErrorCode } from "@auto-admin/contracts/common";
 import { badRequest } from '../../../shared/api/errors/error-helpers';
 import { mapZodIssue } from '../../../shared/api/validation/map-zod-issue';
 import { validatePageConfigAgainstCatalog } from "../schema/validate-page-config-against-catalog";

@@ -1,11 +1,6 @@
 import { apiClient } from '../../apiClient';
-import type {
-    ApplyNextMigrationRequest,
-    DbConnectionPayload,
-    MarkMigrationAppliedRequest,
-    RetryMigrationRequest,
-} from './install.types';
-import { dbCheckResponseSchema, migrationPlanResponseSchema, applyNextMigrationResponseSchema, retryMigrationResponseSchema, markMigrationAppliedResponseSchema, recoveryMigrationResponseSchema } from './install.schema';
+import { type ApplyNextMigrationData as ApplyNextMigrationRequest, type RecoveryData as MarkMigrationAppliedRequest, type RecoveryData as RetryMigrationRequest, dbCheckResponseSchema, migrationPlanResponseSchema, applyNextMigrationResponseSchema, retryMigrationResponseSchema, markMigrationAppliedResponseSchema, recoveryMigrationResponseSchema } from "@auto-admin/contracts/install";
+import type { DbConnectionPayload } from "./install.types";
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
 

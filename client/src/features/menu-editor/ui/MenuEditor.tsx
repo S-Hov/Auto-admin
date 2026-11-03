@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { buildEditorTree } from "../model/build-editor-tree";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
 import { MenuEditorBoard } from "./MenuEditorBoard";

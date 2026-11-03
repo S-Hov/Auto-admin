@@ -1,13 +1,6 @@
 import { updateEnvironment } from "../../config/env-file";
 import { badRequest, conflict } from "../../shared/api/errors/error-helpers";
-import type {
-    ApplyNextMigrationResponse,
-    DbCheckResponse,
-    MigrationPlanResponse,
-    MigrationStepResponse,
-    RecoveryMigrationResponse,
-    SystemConfigurationOptionsResponse,
-} from "./install.types";
+import type { ApplyNextMigrationResponse, DbCheckResponse, MigrationPlanResponse, MigrationStepResponse, RecoveryMigrationResponse, SystemConfigurationOptionsResponse, CheckConnectionData } from "@auto-admin/contracts/install";
 import { PagePaths } from "../../constants/pagePaths";
 import {
     applyNextMigration,
@@ -18,7 +11,7 @@ import {
     MigrationVersionConflictError,
 } from "../../migrations/migration.errors";
 import type { MigrationExecutionResult } from "../../migrations/migration.types";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import {
     markMigrationAppliedManually,
     retryMigration,
@@ -26,11 +19,10 @@ import {
 import { getActiveMigrationProvider } from "../../migrations/runtime/migration.runtime";
 import { AsyncMutex } from "../../shared/concurrency/AsyncMutex";
 import type { RequestMeta } from "../../utils/getRequestMeta";
-import type { CheckConnectionData } from "./schema/check-connection.schema";
 import { getDatabaseProvider } from "../../db/providers/provider.registry";
 import { getActiveInstallRepository } from "./repository/runtime/install-repository.runtime";
 import { getSupportedDatabases } from "../../db/catalog/database.catalog";
-import type { DatabaseType } from "../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { DatabaseConnectionConfig } from "../../db/contracts/connection.types";
 import { databaseRuntime } from "../../db/runtime/database.runtime";
 import { UnsupportedDatabaseError } from "../../db/errors/database.errors";

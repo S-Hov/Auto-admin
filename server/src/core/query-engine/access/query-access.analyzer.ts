@@ -11,9 +11,8 @@ import type {
     FieldPermissionAction,
     ResourcePermissionAction,
 } from "../../access-control/contracts/permission.types";
-import type { UnifiedQuery, WhereClause } from "../types/query.types";
+import { type UnifiedQuery, type WhereClause, DEFAULT_READ_ROWS } from "@auto-admin/contracts/query";
 import { invalidQueryReference } from "../query-engine.errors";
-import { DEFAULT_READ_ROWS } from "../schema/query.schema";
 
 type Binding = { resource: Readonly<StoredResource>; qualifier: string };
 

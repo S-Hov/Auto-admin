@@ -1,8 +1,7 @@
 import { HTTP_HEADERS } from '../../../../constants/headers';
 import { STORAGE_KEYS } from '../../../../constants/storage';
-import type { CreateAdminFormValues } from '../../../../features/create-admin/model/CreateAdmin.schema';
+import { type RegisterData as CreateAdminFormValues, createAdminResponseSchema } from "@auto-admin/contracts/install";
 import { apiClient } from '../../apiClient';
-import { createAdminResponseSchema } from './auth.schema';
 
 export const auth = {
     register(data: CreateAdminFormValues){

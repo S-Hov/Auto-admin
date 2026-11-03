@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pageData } from '../../../../tests/fixtures/page.fixture';
-import { updatePageSchema } from './page-update.schema';
+import { updatePageSchema } from "@auto-admin/contracts/pages";
 
 describe('updatePageSchema', () => {
     it('accepts a complete replacement and its expected revision', () => {

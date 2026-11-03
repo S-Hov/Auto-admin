@@ -10,20 +10,10 @@ import {
     retryMigrationService,
     systemConfigurationService,
 } from './install.service';
-import type {
-    DbCheckResponse,
-    MigrationPlanResponse,
-    ApplyNextMigrationResponse,
-    RecoveryMigrationResponse,
-    SystemConfigurationOptionsResponse
-} from './install.types';
+import { type DbCheckResponse, type MigrationPlanResponse, type ApplyNextMigrationResponse, type RecoveryMigrationResponse, type SystemConfigurationOptionsResponse, type ApplyNextMigrationData, RecoveryData, CheckConnectionData, CheckDatabaseType } from "@auto-admin/contracts/install";
 import { ok } from '../../shared/api/success';
-import type { ApplyNextMigrationData } from './schema/apply-next-migration.schema';
-import { SUCCESS_CODES } from '../../shared/api/codes/success-codes';
-import { RecoveryData } from './schema/recovery.schema';
+import { SUCCESS_CODES } from "@auto-admin/contracts/common";
 import { getRequestMeta } from '../../utils/getRequestMeta';
-import { CheckConnectionData } from './schema/check-connection.schema';
-import { CheckDatabaseType } from './schema/check-database-type.schema';
 
 export const checkConnectionController = asyncHandler(async (req: Request, res: Response) => {
     const { host, port, database, user, password }: CheckConnectionData = req.body;

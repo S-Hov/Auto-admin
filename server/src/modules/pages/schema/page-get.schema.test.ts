@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getPageSchema } from './page-get.schema';
+import { getPageSchema } from "@auto-admin/contracts/pages";
 
 describe('getPageSchema', () => {
     it.each(['1', '42', String(Number.MAX_SAFE_INTEGER)])('parses a canonical URL ID: %s', (id) => {

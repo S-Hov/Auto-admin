@@ -7,7 +7,7 @@ import {
 } from "../../../tests/fixtures/access.fixture";
 import { PermissionManagementService } from "./permission-management.service";
 import { MySqlAccessControlRepository } from "./providers/mysql/mysql-access-control.repository";
-import type { PermissionChange } from "./contracts/permission-management.types";
+import type { PermissionChange } from "@auto-admin/contracts/access-control";
 
 const change: PermissionChange = {
     subjectType: "role",

@@ -8,7 +8,7 @@ import {
 import { MenuService } from "./menu.service";
 import type { MenuItem, MenuVisibilityRow } from "./menu.types";
 import type { MenuRepository } from "./repository/repository.interface";
-import type { MenuPermissionData } from './schema/menu.schema';
+import type { MenuPermissionData } from "@auto-admin/contracts/menu";
 
 const item = (id: number, parentId: number | null = null): MenuItem => ({
     id,

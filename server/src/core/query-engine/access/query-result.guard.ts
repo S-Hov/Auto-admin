@@ -1,5 +1,5 @@
 import { ApiError } from "../../../shared/api/errors/ApiError";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export const MAX_QUERY_RESULT_BYTES = 2 * 1024 * 1024;
 

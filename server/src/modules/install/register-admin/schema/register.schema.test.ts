@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { registerSchema } from "./register.schema";
+import { registerSchema } from "@auto-admin/contracts/install";
 
 describe("registerSchema validation", () => {
     const validData = {

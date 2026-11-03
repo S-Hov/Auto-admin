@@ -11,19 +11,13 @@ import {
 import { getActiveAccessControlProvider } from "./runtime/access-control.runtime";
 import type { AccessControlRepository } from "./contracts/access-control-repository.interface";
 import type { CachedSchemaCatalog } from "../schema-catalog";
-import type {
-    AccessibleCatalog,
-    QueryAccessRequirements,
-} from "./contracts/query-access.types";
-import {
-    RESOURCE_PERMISSION_ACTIONS,
-    FIELD_PERMISSION_ACTIONS,
-} from "./contracts/permission.constants";
+import { type AccessibleCatalog, RESOURCE_PERMISSION_ACTIONS, FIELD_PERMISSION_ACTIONS } from "@auto-admin/contracts/access-control";
+import type { QueryAccessRequirements } from "./contracts/query-access.types";
 import { accessDenied } from "./access-control.errors";
 import { conflict, unauthorized } from "../../shared/api/errors/error-helpers";
 import { logger } from "../../shared/logger";
 import { SchemaCatalogNotReadyError } from "../schema-catalog/schema-catalog.errors";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export class AccessControlService {
     constructor(

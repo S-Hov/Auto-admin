@@ -1,5 +1,5 @@
 import { createContext, useContext  } from "react";
-import type { AuthUser } from '../../../shared/api/auth/auth.types';
+import type { AuthUser } from "@auto-admin/contracts/auth";
 
 export type AuthStatus =
     | 'checking'

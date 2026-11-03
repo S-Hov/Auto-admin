@@ -1,4 +1,4 @@
-import type { ManageableMenuItemDto, MenuSaveData } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import type { MenuItemPanelFormValues } from './MenuItemPanel.schema';
 
 export interface NewMenuItemContext {

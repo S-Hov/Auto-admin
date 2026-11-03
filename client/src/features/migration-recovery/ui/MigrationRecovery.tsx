@@ -4,7 +4,7 @@ import { Button } from "../../../shared/ui/Button/Button";
 import { installDatabase } from "../../../shared/api/database/install";
 import { toast } from "sonner";
 import { apiMessage } from "../../../shared/i18n/api-message";
-import type { RecoveryMigrationResponse } from "../../../shared/api/database/install/install.types";
+import type { RecoveryMigrationResponse } from "@auto-admin/contracts/install";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 import { STORAGE_KEYS } from "../../../constants/storage";
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";

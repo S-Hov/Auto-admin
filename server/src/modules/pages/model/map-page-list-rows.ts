@@ -1,6 +1,6 @@
 import type { PageConfig } from '@auto-admin/contracts/pages';
 import type { CachedSchemaCatalog } from '../../../core/schema-catalog';
-import { ERROR_CODES } from '../../../shared/api/codes/error-codes';
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { badRequest } from '../../../shared/api/errors/error-helpers';
 
 export function mapPageListRows(

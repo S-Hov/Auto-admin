@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { tooManyRequests } from "../api/errors/error-helpers";
-import { ERROR_CODES } from "../api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 interface RateLimiterOptions {
     limit: number;

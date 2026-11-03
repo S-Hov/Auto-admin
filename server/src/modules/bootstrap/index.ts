@@ -1,2 +1,2 @@
 export { getBootstrapStatusService as readBootstrapStatus } from "./bootstrap.service";
-export type { BootstrapStage } from "./bootstrap.types";
+export type { BootstrapStage } from "@auto-admin/contracts/bootstrap";

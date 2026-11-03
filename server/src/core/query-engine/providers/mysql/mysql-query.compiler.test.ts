@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MySqlCompiler } from './mysql-query.compiler';
-import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from '../../types/query.types';
+import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from "@auto-admin/contracts/query";
 
 describe('MySqlCompiler', () => {
     const compiler = new MySqlCompiler();

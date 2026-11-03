@@ -17,5 +17,3 @@ export interface QueryAccessRequirements {
         usage: FieldUsage;
     }>[];
 }
-
-export type { AccessibleCatalog } from '@auto-admin/contracts/access-control';

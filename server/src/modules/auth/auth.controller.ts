@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { getRequestMeta } from "../../utils/getRequestMeta";
 import { loginService, logoutService } from "./auth.service";
-import type { GetMeServiceResult, LoginData, LoginResponse, LoginServiceResult, LogoutResponse } from './auth.types'
+import type { GetMeServiceResult, LoginServiceResult } from "./auth.types";
+import type { LoginRequest as LoginData, LoginResponse, LogoutResponse } from "@auto-admin/contracts/auth";
 import { ok } from "../../shared/api/success";
 import { COOKIE_NAMES } from "../../constants/cookies";
-import { SUCCESS_CODES } from "../../shared/api/codes/success-codes";
+import { SUCCESS_CODES } from "@auto-admin/contracts/common";
 import { getAuthCookieOptions } from "./auth.cookies";
 
 export const loginController = asyncHandler(async (req: Request, res: Response) => {

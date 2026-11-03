@@ -13,3 +13,5 @@ export const pageRowsQuerySchema = z.strictObject({
 });
 
 export type PageRowsQuery = z.infer<typeof pageRowsQuerySchema>;
+// Caller input before Zod applies defaults (offset may be omitted).
+export type PageRowsParams = z.input<typeof pageRowsQuerySchema>;

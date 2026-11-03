@@ -1,18 +1,6 @@
 import type { QueryCompiler } from "../../contracts/query-compiler.interface";
 import type { CompiledQuery } from "../../types/compiled-query.types";
-import type {
-    ComparisonOperator,
-    CreateQuery,
-    DeleteQuery,
-    FieldCondition,
-    JoinClause,
-    LogicalOperators,
-    ReadQuery,
-    SortClause,
-    UnifiedQuery,
-    UpdateQuery,
-    WhereClause,
-} from "../../types/query.types";
+import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UnifiedQuery, UpdateQuery, WhereClause } from "@auto-admin/contracts/query";
 
 export type LogicalKey = keyof LogicalOperators;
 

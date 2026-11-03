@@ -1,5 +1,5 @@
 import { envConfig } from "../../config/env";
-import type { DatabaseType } from "../contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { DatabaseProvider } from "../contracts/provider.interface";
 import { DatabaseProviderNotConfiguredError } from "../errors/database.errors";
 import { getDatabaseProvider } from "../providers/provider.registry";

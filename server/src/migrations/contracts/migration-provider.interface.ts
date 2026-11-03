@@ -1,5 +1,5 @@
 import type { DatabaseConnection, DatabaseExecutor } from "../../db/contracts/executor.interface";
-import type { DatabaseType } from "../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { MigrationHistoryRepository } from "./migrations.interface";
 import type { MigrationDescriptor } from "../migration.types";
 

@@ -1,4 +1,3 @@
-export type { LoginRequest as LoginData } from '@auto-admin/contracts/auth';
 
 export interface LoginUserRow {
     id: number;
@@ -43,9 +42,7 @@ export interface LoginServiceResult {
     redirectedTo: string;
 }
 
-export type { LoginResponse } from '@auto-admin/contracts/auth';
 
-export type { LogoutResponse } from '@auto-admin/contracts/auth';
 
 export type GetMeServiceResult =
     Pick<ActiveSessionRow, 'userId'

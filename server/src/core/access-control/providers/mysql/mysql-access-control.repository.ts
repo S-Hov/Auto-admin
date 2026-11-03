@@ -7,7 +7,8 @@ import type { AccessControlRepository } from "../../contracts/access-control-rep
 import type {
     MySqlFieldPermissionRow,
 } from "./mysql-access-control-row.types";
-import type { PermissionChange, PermissionTarget, StoredPermission } from "../../contracts/permission-management.types";
+import type { PermissionChange, StoredPermission } from "@auto-admin/contracts/access-control";
+import type { PermissionTarget } from "../../contracts/permission-management.types";
 import type { PermissionEffect, PermissionSubjectType } from "../../contracts/permission.types";
 
 const tables = {

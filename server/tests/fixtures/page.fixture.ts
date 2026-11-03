@@ -1,5 +1,5 @@
 import { catalog } from './access.fixture';
-import type { CreatePageData } from '../../src/modules/pages/schema/page-create.schema';
+import type { CreatePageData } from "@auto-admin/contracts/pages";
 
 export function pageData(): CreatePageData {
     return {

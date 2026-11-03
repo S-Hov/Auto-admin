@@ -1,9 +1,10 @@
 import { PagePaths } from "../../constants/pagePaths";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { tooManyRequests, unauthorized } from "../../shared/api/errors/error-helpers"
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import type { RequestMeta } from "../../utils/getRequestMeta"
-import type { GetMeServiceResult, LoginData, LoginServiceResult, LogoutResponse } from "./auth.types"
+import type { GetMeServiceResult, LoginServiceResult } from "./auth.types";
+import type { LoginRequest as LoginData, LogoutResponse } from "@auto-admin/contracts/auth";
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { envConfig } from '../../config/env';

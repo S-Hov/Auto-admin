@@ -88,7 +88,6 @@ export interface DBIndexExpressionPart extends DBIndexPartBase {
 }
 
 import type { SchemaScanChangeCounts } from '@auto-admin/contracts/access-control';
-export type { SchemaScanChangeCounts } from '@auto-admin/contracts/access-control';
 
 export interface StoredResource {
     id: number;

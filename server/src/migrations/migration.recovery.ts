@@ -1,5 +1,5 @@
 import { databaseRuntime } from "../db/runtime/database.runtime";
-import { ERROR_CODES } from "../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { badRequest, conflict } from "../shared/api/errors/error-helpers";
 import type { RecoveryAuditMeta } from "./contracts/migrations.types";
 import { loadCurrentMigrationPlan } from "./migration.runner";

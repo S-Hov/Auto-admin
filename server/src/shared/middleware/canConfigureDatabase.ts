@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { readBootstrapStatus } from "../../modules/bootstrap";
 import { conflict } from "../api/errors/error-helpers";
-import { ERROR_CODES } from "../api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export const canConfigureDatabase = async (_req: Request, _res: Response, next: NextFunction) => {
     try {

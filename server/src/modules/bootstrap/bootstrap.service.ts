@@ -1,7 +1,7 @@
 import { MigrationRecoveryRequiredError } from "../../migrations/migration.errors";
 import { getCurrentMigrationPlan } from "../../migrations/migration.runner";
 import { readInstallationStatus, markMigrationsCompleted } from "../install";
-import type { BootstrapStage } from "./bootstrap.types";
+import type { BootstrapStage } from "@auto-admin/contracts/bootstrap";
 import { logger } from "../../shared/logger";
 import { databaseRuntime } from "../../db/runtime/database.runtime";
 

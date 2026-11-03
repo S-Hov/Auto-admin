@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { badRequest } from "../api/errors/error-helpers";
 import { ZodError, type ZodType } from "zod";
-import { ERROR_CODES } from "../api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { mapZodIssue } from "../api/validation/map-zod-issue";
 
 export const validate = (schema: ZodType, target: 'body' | 'params' | 'query' = 'body') => (req: Request, res: Response, next: NextFunction) => {

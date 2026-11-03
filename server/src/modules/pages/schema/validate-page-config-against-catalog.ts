@@ -1,7 +1,6 @@
 import type { CachedSchemaCatalog } from "../../../core/schema-catalog";
 import { badRequest } from "../../../shared/api/errors/error-helpers";
-import { ERROR_CODES, type ErrorCode } from '../../../shared/api/codes/error-codes';
-import type { FieldValidationError } from '../../../shared/api/validation/validation.types';
+import { ERROR_CODES, type ErrorCode, type FieldValidationError } from "@auto-admin/contracts/common";
 import { isPageDisplayCompatible } from './page-display-compatibility';
 import type { PageConfig } from "@auto-admin/contracts/pages";
 

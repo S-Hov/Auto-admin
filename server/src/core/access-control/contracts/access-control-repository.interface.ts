@@ -2,11 +2,8 @@ import type {
     PermissionRuleSet,
     PermissionRuleSubject,
 } from "./access-control-repository.types";
-import type {
-    PermissionChange,
-    PermissionTarget,
-    StoredPermission,
-} from "./permission-management.types";
+import type { PermissionChange, StoredPermission } from "@auto-admin/contracts/access-control";
+import type { PermissionTarget } from "./permission-management.types";
 import type {
     PermissionEffect,
     PermissionSubjectType,

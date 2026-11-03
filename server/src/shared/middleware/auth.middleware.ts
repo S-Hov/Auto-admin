@@ -4,7 +4,7 @@ import { COOKIE_NAMES } from "../../constants/cookies";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { checkAuthToken } from "../../utils/checkAuthToken";
 import { readAuthSession } from "../../modules/auth";
-import { ERROR_CODES } from "../api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { requireSystemAdmin } from '../../core/access-control/policy/require-system-admin';
 
 export const requireAuth = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {

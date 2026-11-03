@@ -1,5 +1,5 @@
 import { assertDatabaseSubsystemSupported } from "../../../db/catalog/database.catalog";
-import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { AccessControlProvider } from "../contracts/access-control-provider.interface";
 import { AccessControlProviderNotFoundError } from "./access-control-provider.errors";
 import { mySqlAccessControlProvider } from "./mysql/mysql-access-control.provider";

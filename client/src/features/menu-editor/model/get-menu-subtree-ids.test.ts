@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ManageableMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 import { getMenuSubtreeIds } from './get-menu-subtree-ids';
 
 function item(id: number, parentId: number | null): ManageableMenuItemDto {

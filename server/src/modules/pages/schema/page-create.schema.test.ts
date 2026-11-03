@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pageData } from '../../../../tests/fixtures/page.fixture';
-import { createPageSchema } from './page-create.schema';
+import { createPageSchema } from "@auto-admin/contracts/pages";
 
 describe('createPageSchema', () => {
     it('accepts a valid page and trims its name without changing the input', () => {

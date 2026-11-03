@@ -1,11 +1,8 @@
 import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
-import type { PageAuditSnapshot, PageData, PageListItem } from "../../page.types";
-import type { PageListQuery } from "../../schema/page-list.schema";
+import type { PageAuditSnapshot } from "../../page.types";
+import { type PageData, type PageListItem, type PageListQuery, type CreatePageData, type UpdatePageData, pageConfigSchema } from "@auto-admin/contracts/pages";
 import { PageReferencedByMenuError } from "../../page.errors";
-import type { CreatePageData } from "../../schema/page-create.schema";
-import type { UpdatePageData } from "../../schema/page-update.schema";
 import type { PageRepository } from "../repository.interface";
-import { pageConfigSchema } from "@auto-admin/contracts/pages";
 
 type StoredPageRow = Omit<PageData, "config"> & {
     config: unknown;

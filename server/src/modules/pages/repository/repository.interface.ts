@@ -1,7 +1,5 @@
-import type { PageAuditSnapshot, PageData, PageListItem } from "../page.types";
-import type { PageListQuery } from "../schema/page-list.schema";
-import type { CreatePageData } from "../schema/page-create.schema";
-import type { UpdatePageData } from "../schema/page-update.schema";
+import type { PageAuditSnapshot } from "../page.types";
+import type { PageData, PageListItem, PageListQuery, CreatePageData, UpdatePageData } from "@auto-admin/contracts/pages";
 
 export interface PageRepository {
     /** Возвращает не более limit + 1 строк для определения hasMore без COUNT. */

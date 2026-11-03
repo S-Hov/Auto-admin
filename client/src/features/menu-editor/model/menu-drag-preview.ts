@@ -1,5 +1,5 @@
 import type { XYPosition } from '@xyflow/react';
-import type { ManageableMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 import { buildEditorGraph } from './build-editor-graph';
 import { buildEditorTree } from './build-editor-tree';
 import { getMenuSubtreeIds } from './get-menu-subtree-ids';
