@@ -87,14 +87,8 @@ export interface DBIndexExpressionPart extends DBIndexPartBase {
     expression: string;
 }
 
-export interface SchemaScanChangeCounts {
-    addedResources: number;
-    changedResources: number;
-    missingResources: number;
-    addedFields: number;
-    changedFields: number;
-    missingFields: number;
-}
+import type { SchemaScanChangeCounts } from '@auto-admin/contracts/access-control';
+export type { SchemaScanChangeCounts } from '@auto-admin/contracts/access-control';
 
 export interface StoredResource {
     id: number;

@@ -1,27 +1,4 @@
-import type { QueryResult } from "../types/query-result.types";
-import type { UnifiedQuery } from "../types/query.types";
-
-// Один шаг пайплайна
-export interface PipelineStep {
-    id: string;             // уникальный идентификатор шага (по нему следующие шаги будут ссылаться на результат)
-    query: UnifiedQuery;    // AST-запрос
-    dependsOn?: string[];   // список id шагов, от которых зависит данный шаг
-}
-
-// Манифест всего пайплайна
-export interface PipelineDefinition {
-    steps: PipelineStep[];      // список всех шагов
-    transactional?: boolean;    // оборачивать ли весь пайплайн в одну общую транзакцию
-}
-
-// Контекст выполнения
-export interface PipelineExecutionContext<T = unknown> {
-    steps: Record<string, QueryResult<T>>   // объект, в который по мере выполнения мы складываем результаты
-}
-
-// Итоговый ответ клиенту
-export interface PipelineResult<T = unknown> {
-    success: boolean;
-    steps: Record<string, QueryResult<T>>;  // результаты каждого выполненного шага.
-    executionTimeMs?: number;               // общее время выполнения в миллисекундах
-}
+import type { QueryResult } from '@auto-admin/contracts/query';
+export type { PipelineStep, PipelineDefinition, PipelineResult } from '@auto-admin/contracts/query';
+// Состояние исполнителя не является публичным API-контрактом.
+export interface PipelineExecutionContext<T = unknown> { steps: Record<string, QueryResult<T>>; }

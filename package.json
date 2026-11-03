@@ -1,5 +1,12 @@
 {
     "name": "auto-admin",
     "private": true,
-    "workspaces": ["client", "server", "packages/contracts"]
+    "workspaces": ["client", "server", "packages/contracts"],
+    "scripts": {
+        "build:contracts": "npm run build --workspace=@auto-admin/contracts",
+        "dev:contracts": "npm run dev --workspace=@auto-admin/contracts",
+        "build": "npm run build --workspace=server && npm run build --workspace=client",
+        "test": "npm run test --workspace=server && npm run test --workspace=client",
+        "typecheck": "npm run build:contracts && tsc --noEmit -p server && tsc -b client"
+    }
 }

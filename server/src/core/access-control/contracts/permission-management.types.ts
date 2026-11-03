@@ -1,25 +1,7 @@
-import type {
-    PermissionAction,
-    PermissionEffect,
-    PermissionSubjectType,
-    PermissionTargetType,
-} from "./permission.types";
 
-export interface PermissionChange {
-    subjectType: PermissionSubjectType;
-    subjectId: number;
-    targetType: PermissionTargetType;
-    targetId: number;
-    action: PermissionAction;
-    effect: PermissionEffect | null;
-}
+export type { PermissionChange } from '@auto-admin/contracts/access-control';
 
-export interface StoredPermission {
-    targetType: PermissionTargetType;
-    targetId: number;
-    action: PermissionAction;
-    effect: PermissionEffect;
-}
+export type { StoredPermission } from '@auto-admin/contracts/access-control';
 
 export interface PermissionTarget {
     resourceId: number;

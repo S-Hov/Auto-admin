@@ -35,6 +35,43 @@ afterEach(() => {
     vi.unstubAllEnvs();
 });
 
+describe('pages.getRows', () => {
+    function rows(overrides = {}) {
+        return { pageId: 42, revision: 3, rows: [{ total: 0 }], pagination: { limit: 25, offset: 0, hasMore: false }, ...overrides };
+    }
+    it('serializes numeric pagination and sorting using the shared contract', async () => {
+        fetchMock.mockResolvedValue(success(rows({ pagination: { limit: 50, offset: 100, hasMore: true } })));
+        const signal = new AbortController().signal;
+        await pages.getRows(42, { limit: 50, offset: 100, sort: { field: 'total', direction: 'desc' } }, { signal });
+        const [url, options] = fetchMock.mock.calls[0];
+        const request = new URL(String(url));
+        expect(request.pathname).toBe('/api/pages/42/rows');
+        expect(Object.fromEntries(request.searchParams)).toEqual({ limit: '50', offset: '100', sortField: 'total', sortDirection: 'desc' });
+        expect(options).toMatchObject({ method: 'GET', credentials: 'include', signal });
+    });
+    it('keeps the page-config limit when no limit is supplied', async () => {
+        fetchMock.mockResolvedValue(success(rows()));
+        expect((await pages.getRows(42)).data.rows).toEqual([{ total: 0 }]);
+        expect(String(fetchMock.mock.calls[0][0])).not.toContain('limit=');
+    });
+    it.each([
+        { pageId: 43 }, { revision: 0 }, { rows: 'invalid' },
+        { pagination: { limit: 25, offset: 1, hasMore: false } },
+    ])('rejects an invalid or mismatched response: %j', async (overrides) => {
+        fetchMock.mockResolvedValue(success(rows(overrides)));
+        await expect(pages.getRows(42)).rejects.toBeInstanceOf(ApiContractError);
+    });
+    it('rejects an unexpected explicit page size', async () => {
+        fetchMock.mockResolvedValue(success(rows()));
+        await expect(pages.getRows(42, { limit: 50 })).rejects.toBeInstanceOf(ApiContractError);
+    });
+    it('does not send invalid parameters', async () => {
+        await expect(pages.getRows(42, { offset: -1 })).rejects.toThrow();
+        await expect(pages.getRows(0)).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+});
+
 describe('pages.getPage', () => {
     it('gets a page with session credentials and returns a validated envelope', async () => {
         fetchMock.mockResolvedValue(success());

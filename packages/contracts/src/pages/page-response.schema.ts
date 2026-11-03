@@ -11,4 +11,5 @@ export const pageDataSchema = z.looseObject({
 })
 
 export const pageResponseSchema = apiResponseSchema(pageDataSchema);
-export type PageData = z.infer<typeof pageDataSchema>;
+// Known public fields without looseObject's index signature (important for Omit in repositories).
+export type PageData = Pick<z.infer<typeof pageDataSchema>, 'pageId' | 'name' | 'description' | 'config' | 'revision'>;

@@ -1,7 +1,1 @@
-export type ValidationParams = Record<string, string | number | boolean>;
-
-export type FieldValidationError = {
-    field: string;
-    code: string;
-    params?: ValidationParams;
-}
+export type { TranslationParams as ValidationParams, FieldValidationError } from '@auto-admin/contracts/common';

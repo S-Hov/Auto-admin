@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "npm run build --workspace=@auto-admin/contracts",
+    "prebuild": "npm run build --workspace=@auto-admin/contracts",
+    "pretest": "npm run build --workspace=@auto-admin/contracts",
+    "pretest:watch": "npm run build --workspace=@auto-admin/contracts",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

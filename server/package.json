@@ -4,6 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predev": "npm run build --workspace=@auto-admin/contracts",
+    "prebuild": "npm run build --workspace=@auto-admin/contracts",
+    "pretest": "npm run build --workspace=@auto-admin/contracts",
+    "pretest:watch": "npm run build --workspace=@auto-admin/contracts",
+    "pretest:integration": "npm run build --workspace=@auto-admin/contracts",
     "dev": "tsx watch src/app.ts",
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && tsc && node -e \"require('fs').cpSync('src/migrations/providers/mysql/sql', 'dist/migrations/providers/mysql/sql', { recursive: true })\"",
     "start": "node dist/app.js",

@@ -1,6 +1,1 @@
-export interface QueryResult<T> {
-    rows: T[];
-    affectedRows: number;
-    insertId?: number | string | null;
-    raw?: unknown;
-}
+export type { QueryResult } from '@auto-admin/contracts/query';

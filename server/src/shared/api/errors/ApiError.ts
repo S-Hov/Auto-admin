@@ -1,6 +1,7 @@
 import type { ErrorCode } from '../codes/error-codes';
 
-export type TranslationParams = Record<string, string | number | boolean>;
+import type { TranslationParams } from '@auto-admin/contracts/common';
+export type { TranslationParams } from '@auto-admin/contracts/common';
 
 export interface ApiErrorOptions<TDetails = unknown> {
     status: number;

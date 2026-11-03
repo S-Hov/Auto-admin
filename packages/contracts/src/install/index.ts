@@ -1,0 +1,18 @@
+export * from "./register.schema";
+export * from "./register-response.schema";
+export * from "./apply-next-migration.schema";
+export * from "./check-connection.schema";
+export * from "./check-database-type.schema";
+export * from "./recovery.schema";
+export * from "./install-response.schema";
+export * from './system-configuration.schema';
+import type { z } from 'zod';
+import type { registerSchema } from './register.schema';
+import type { dbCheckSchema, migrationStepSchema, migrationPlanSchema, applyNextMigrationSchema, recoveryMigrationSchema } from './install-response.schema';
+export type RegisterData = z.infer<typeof registerSchema>;
+export type RegisterResponse = { redirectedTo: string };
+export type DbCheckResponse = z.infer<typeof dbCheckSchema>;
+export type MigrationStepResponse = z.infer<typeof migrationStepSchema>;
+export type MigrationPlanResponse = z.infer<typeof migrationPlanSchema>;
+export type ApplyNextMigrationResponse = z.infer<typeof applyNextMigrationSchema>;
+export type RecoveryMigrationResponse = z.infer<typeof recoveryMigrationSchema>;

@@ -18,20 +18,4 @@ export interface QueryAccessRequirements {
     }>[];
 }
 
-export interface AccessibleCatalog {
-    schemaName: string;
-    fingerprint: string;
-    resources: Array<{
-        id: number;
-        tableName: string;
-        type: "table" | "view";
-        actions: ResourcePermissionAction[];
-        fields: Array<{
-            id: number;
-            name: string;
-            dataType: string;
-            nullable: boolean;
-            actions: FieldPermissionAction[];
-        }>;
-    }>;
-}
+export type { AccessibleCatalog } from '@auto-admin/contracts/access-control';

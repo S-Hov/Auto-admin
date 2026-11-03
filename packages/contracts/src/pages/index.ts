@@ -2,3 +2,8 @@ export * from "./page-config.schema";
 export * from "./page-rows-query.schema";
 export * from "./page-rows-http-query.schema";
 export * from "./page-response.schema";
+export * from "./page-create.schema";
+export * from "./page-update.schema";
+export * from "./page-get.schema";
+export * from "./page-list.schema";
+export * from './page-management-response.schema';
