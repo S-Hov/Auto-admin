@@ -8,4 +8,5 @@ export const appPaths = {
   migrationRecovery: (locale: AppLocale) => `/${locale}/install/migrationRecovery`,
   registerAdmin: (locale: AppLocale) => `/${locale}/install/register`,
   users: (locale: AppLocale) => `/${locale}/users`,
+  page: (locale: AppLocale, dataPageId: string) => `/${locale}/pages/${dataPageId}`,
 } as const;

@@ -9,12 +9,14 @@ import { getActiveAccessControlProvider } from "../../core/access-control/runtim
 import { createMenuRepository } from "./repository/repository.factory";
 import type { MenuRepository } from "./repository/repository.interface";
 import type { MenuVisibilityRow } from "./menu.types";
-import type { MenuSaveData, MenuPermissionData } from "@auto-admin/contracts/menu";
+import type { MenuSaveData, MenuPermissionData, MenuResolveResult } from "@auto-admin/contracts/menu";
 import {
     badRequest,
     forbidden,
+    notFound,
 } from "../../shared/api/errors/error-helpers";
 import { ERROR_CODES } from "@auto-admin/contracts/common";
+import { pageService, type PageService } from '../pages/page.service';
 
 export class MenuService {
     constructor(
@@ -23,6 +25,7 @@ export class MenuService {
         private readonly configuredRepository?: (
             executor: DatabaseExecutor,
         ) => MenuRepository,
+        private readonly pages: Pick<PageService, 'get'> = pageService,
     ) {}
 
     private database() {
@@ -87,6 +90,23 @@ export class MenuService {
             return false;
         };
         return rows.filter(visible);
+    }
+
+    async resolveSlug(slug: string, principal: AccessPrincipal): Promise<MenuResolveResult> {
+        return this.resolvePage((item) => item.slug === slug, principal);
+    }
+
+    async resolveId(id: number, principal: AccessPrincipal): Promise<MenuResolveResult> {
+        return this.resolvePage((item) => item.id === id, principal);
+    }
+
+    private async resolvePage(
+        matches: (item: MenuVisibilityRow) => boolean,
+        principal: AccessPrincipal,
+    ): Promise<MenuResolveResult> {
+        const item = (await this.getMenu(principal)).find(matches);
+        if (!item || item.pageId === null) throw notFound();
+        return this.pages.get(item.pageId, principal);
     }
 
     async save(

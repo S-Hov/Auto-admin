@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { positiveIdSchema } from "../common";
 import { PERMISSION_SUBJECT_TYPES } from "../access-control/permission.constants";
+import { menuSlugSchema } from './menu-resolve.schema';
 
 export const menuSaveSchema = z
     .strictObject({
@@ -9,7 +10,7 @@ export const menuSaveSchema = z
         // Отсутствие поля при обновлении сохраняет существующую привязку.
         pageId: positiveIdSchema.nullable().optional(),
         name: z.string().trim().min(1).max(100),
-        slug: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,149}$/),
+        slug: menuSlugSchema,
         icon: z.string().max(255).nullable(),
         iconType: z.enum(["icon", "svg", "image", "video"]),
         sortOrder: z.number().int().min(-1_000_000).max(1_000_000),
