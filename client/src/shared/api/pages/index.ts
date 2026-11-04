@@ -12,6 +12,14 @@ export const pages = {
         if (response.data.pageId !== pageId) throw new ApiContractError(200);
         return response;
     },
+    async getBySlug(slug: string, options?: { signal?: AbortSignal }) {
+        const response = await apiClient(`/pages/resolve/${slug}`, pageResponseSchema, {
+            method: 'GET',
+            signal: options?.signal,
+        });
+
+        return response;
+    },
     async getRows(pageId: number, params: PageRowsParams = {}, options?: { signal?: AbortSignal }) {
         const validId = pageDataSchema.shape.pageId.parse(pageId);
         const query = pageRowsQuerySchema.parse(params);

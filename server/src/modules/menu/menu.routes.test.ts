@@ -11,11 +11,7 @@ import menuRouter from './menu.routes';
 import { menuService } from './menu.service';
 import { errorHandler } from '../../shared/middleware/errorHandler';
 import { COOKIE_NAMES } from '../../constants/cookies';
-import { menuResolveResponseSchema } from '@auto-admin/contracts/menu';
-import { pageData } from '../../../tests/fixtures/page.fixture';
-import { notFound } from '../../shared/api/errors/error-helpers';
 
-const resolvedPage = { ...pageData(), pageId: 42, revision: 3 };
 let server: Server;
 let url: string;
 const cookie = `${COOKIE_NAMES.AUTH_SESSION}=${'a'.repeat(64)}`;
@@ -44,8 +40,6 @@ beforeEach(() => {
     vi.restoreAllMocks();
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(menuService, 'getMenu').mockResolvedValue([]);
-    vi.spyOn(menuService, 'resolveSlug').mockResolvedValue(resolvedPage);
-    vi.spyOn(menuService, 'resolveId').mockResolvedValue(resolvedPage);
     vi.spyOn(menuService, 'getManageableMenu').mockResolvedValue([]);
     vi.spyOn(menuService, 'save').mockResolvedValue({ id: 1 });
     vi.spyOn(menuService, 'delete').mockResolvedValue({ deleted: true });
@@ -63,48 +57,6 @@ function request(method: string, path = '', body?: unknown, authenticated = true
 }
 
 describe('menu HTTP validation and access boundaries', () => {
-    it('returns identical complete page responses by menu ID and slug', async () => {
-        const byId = await request('GET', '/7');
-        const bySlug = await request('GET', '/resolve/orders');
-        expect(byId.status).toBe(200);
-        expect(bySlug.status).toBe(200);
-        const body = menuResolveResponseSchema.parse(await byId.json());
-        expect(body.data).toEqual(resolvedPage);
-        expect(await bySlug.json()).toEqual(body);
-        expect(menuService.resolveId).toHaveBeenCalledWith(7, session);
-    });
-    it('requires authentication before resolving a menu ID', async () => {
-        expect((await request('GET', '/7', undefined, false)).status).toBe(401);
-        expect(menuService.resolveId).not.toHaveBeenCalled();
-    });
-    it.each(['0', '-1', '01', '1.5', 'abc', '9007199254740992'])('rejects invalid lookup ID %s', async (id) => {
-        expect((await request('GET', `/${id}`)).status).toBe(400);
-        expect(menuService.resolveId).not.toHaveBeenCalled();
-    });
-    it('resolves a slug for an authenticated non-admin using the common response contract', async () => {
-        const principal = { ...session, ...manager };
-        readAuthSession.mockResolvedValue(principal);
-        const response = await request('GET', '/resolve/orders');
-        expect(response.status).toBe(200);
-        expect(menuResolveResponseSchema.parse(await response.json()).data).toEqual(resolvedPage);
-        expect(menuService.resolveSlug).toHaveBeenCalledWith('orders', principal);
-    });
-    it('requires authentication before resolving a slug', async () => {
-        expect((await request('GET', '/resolve/orders', undefined, false)).status).toBe(401);
-        expect(menuService.resolveSlug).not.toHaveBeenCalled();
-    });
-    it.each(['Orders', '-orders', 'orders.test', 'sales/orders', ' ', 'a'.repeat(151)])(
-        'rejects invalid slug %s before resolving', async (slug) => {
-            expect((await request('GET', `/resolve/${encodeURIComponent(slug)}`)).status).toBe(400);
-            expect(menuService.resolveSlug).not.toHaveBeenCalled();
-        },
-    );
-    it('returns the standard 404 envelope for an unavailable destination', async () => {
-        vi.mocked(menuService.resolveSlug).mockRejectedValue(notFound());
-        const response = await request('GET', '/resolve/missing');
-        expect(response.status).toBe(404);
-        expect(await response.json()).toMatchObject({ success: false, code: 'COMMON.NOT_FOUND' });
-    });
     it.each([42, null])('accepts a page binding or explicit unlink: %s', async (pageId) => {
         expect((await request('POST', '', { ...validItem, pageId })).status).toBe(200);
         expect(menuService.save).toHaveBeenCalledWith({ ...validItem, pageId }, session, null);

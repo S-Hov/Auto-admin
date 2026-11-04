@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { positiveIdSchema } from "../common";
 import { PERMISSION_SUBJECT_TYPES } from "../access-control/permission.constants";
-import { menuSlugSchema } from './menu-resolve.schema';
+import { menuSlugSchema } from './menu-slug.schema';
 
 export const menuSaveSchema = z
     .strictObject({

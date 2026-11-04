@@ -17,6 +17,7 @@ import { COOKIE_NAMES } from '../../constants/cookies';
 import { conflict, notFound } from '../../shared/api/errors/error-helpers';
 import { validatePageConfigAgainstCatalog } from './schema/validate-page-config-against-catalog';
 import { pageCatalog } from '../../../tests/fixtures/page.fixture';
+import { pageResponseSchema } from '@auto-admin/contracts/pages';
 
 let server: Server;
 let url: string;
@@ -40,6 +41,7 @@ beforeEach(() => {
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'getBySlug').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'getRows').mockResolvedValue({
         pageId: 42, revision: 1, rows: [{ total: 100 }],
         pagination: { limit: 25, offset: 0, hasMore: false },
@@ -48,6 +50,37 @@ beforeEach(() => {
     vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
     vi.spyOn(pageService, 'list').mockResolvedValue({
         items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+});
+
+describe('page lookup by slug', () => {
+    const resolve = (slug: string, authenticated = true) => fetch(`${url}/resolve/${encodeURIComponent(slug)}`, {
+        headers: authenticated ? { Cookie: cookie } : {},
+    });
+    it('returns the same complete page response as the ID endpoint', async () => {
+        const bySlug = await resolve('orders');
+        const byId = await fetch(`${url}/42`, { headers: { Cookie: cookie } });
+        expect(bySlug.status).toBe(200);
+        const body = pageResponseSchema.parse(await bySlug.json());
+        expect(body.data).toEqual({ ...pageData(), pageId: 42, revision: 1 });
+        expect(await byId.json()).toEqual(body);
+        expect(pageService.getBySlug).toHaveBeenCalledWith('orders', session);
+    });
+    it('requires the same authentication and administrator access as lookup by ID', async () => {
+        expect((await resolve('orders', false)).status).toBe(401);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await resolve('orders')).status).toBe(403);
+        expect(pageService.getBySlug).not.toHaveBeenCalled();
+    });
+    it.each(['Orders', '-orders', 'orders.test', 'sales/orders', ' ', 'a'.repeat(151)])('rejects invalid slug %s', async (slug) => {
+        expect((await resolve(slug)).status).toBe(400);
+        expect(pageService.getBySlug).not.toHaveBeenCalled();
+    });
+    it('preserves a missing destination error', async () => {
+        vi.mocked(pageService.getBySlug).mockRejectedValue(notFound());
+        const response = await resolve('missing');
+        expect(response.status).toBe(404);
+        expect(await response.json()).toMatchObject({ success: false, code: 'COMMON.NOT_FOUND' });
     });
 });
 

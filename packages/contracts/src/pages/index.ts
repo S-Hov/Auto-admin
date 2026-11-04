@@ -7,3 +7,4 @@ export * from "./page-update.schema";
 export * from "./page-get.schema";
 export * from "./page-list.schema";
 export * from './page-management-response.schema';
+export * from './page-resolve.schema';

@@ -3,6 +3,12 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import type { CreatePageData, GetPageReqData, UpdatePageData, PageListQuery, PageRowsQuery } from "@auto-admin/contracts/pages";
 import { pageService } from "./page.service";
 import { ok } from "../../shared/api/success";
+import type { PageResolveParams } from '@auto-admin/contracts/pages';
+
+export const getPageBySlugController = asyncHandler(async (req, res) => {
+    const { slug } = res.locals.validatedParams as PageResolveParams;
+    return ok(res, undefined, await pageService.getBySlug(slug, req.auth!));
+});
 
 export const getPageRowsController = asyncHandler(async (req, res) => {
     const { id } = res.locals.validatedParams as GetPageReqData;

@@ -20,6 +20,7 @@ import { validatePageConfigAgainstCatalog } from "./schema/validate-page-config-
 import { buildPageListQuery } from "./model/build-page-list-query";
 import { queryEngineService } from "../../core/query-engine";
 import { mapPageListRows } from './model/map-page-list-rows';
+import { menuService, type MenuService } from '../menu/menu.service';
 
 export class PageService {
     constructor(
@@ -28,6 +29,7 @@ export class PageService {
         private readonly configuredRepository?: (
             executor: DatabaseExecutor,
         ) => PageRepository,
+        private readonly navigation: Pick<MenuService, 'getMenu'> = menuService,
     ) {}
     private database() {
         return this.configuredDatabaseProvider ?? databaseRuntime.getProvider();
@@ -80,6 +82,15 @@ export class PageService {
                 revision: 1,
             };
         });
+    }
+
+    async getBySlug(slug: string, principal: AccessPrincipal): Promise<PageData> {
+        requireSystemAdmin(principal);
+        // Menu owns the navigation slug and ancestor visibility; pages owns
+        // loading the linked page document and checking page access.
+        const item = (await this.navigation.getMenu(principal)).find((item) => item.slug === slug);
+        if (!item || item.pageId === null) throw notFound();
+        return this.get(item.pageId, principal);
     }
 
     async get(pageId: number, principal: AccessPrincipal): Promise<PageData> {

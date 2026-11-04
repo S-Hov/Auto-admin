@@ -6,6 +6,7 @@ import { PageService } from './page.service';
 import type { PageRepository } from './repository/repository.interface';
 import { PageReferencedByMenuError } from './page.errors';
 import { queryEngineService } from '../../core/query-engine';
+import type { MenuService } from '../menu/menu.service';
 
 function harness() {
     const db = database();
@@ -22,11 +23,52 @@ function harness() {
         delete: vi.fn<PageRepository['delete']>(async () => true),
     };
     const createRepository = vi.fn(() => repo);
-    const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository);
-    return { ...db, access, createAccess, repo, createRepository, service };
+    const getMenu = vi.fn<MenuService['getMenu']>(async () => [{
+        id: 7, parentId: null, pageId: 42, slug: 'orders', name: 'Orders',
+        icon: null, iconType: 'icon', sortOrder: 0, isActive: true,
+        canView: true, canCreate: true, canUpdate: true, canDelete: true,
+    }]);
+    const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository, { getMenu });
+    return { ...db, access, createAccess, repo, createRepository, service, getMenu };
 }
 
 beforeEach(() => vi.restoreAllMocks());
+
+describe('PageService.getBySlug', () => {
+    it('returns the same page as get by page ID, resolving the menu binding', async () => {
+        const h = harness();
+        const bySlug = await h.service.getBySlug('orders', admin);
+        expect(bySlug).toEqual(await h.service.get(42, admin));
+        expect(h.getMenu).toHaveBeenCalledWith(admin);
+        expect(h.repo.get).toHaveBeenCalledWith(42);
+        expect(h.repo.get).not.toHaveBeenCalledWith(7);
+    });
+    it('checks page access before looking up navigation', async () => {
+        const h = harness();
+        await expect(h.service.getBySlug('orders', manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.getMenu).not.toHaveBeenCalled();
+        expect(h.repo.get).not.toHaveBeenCalled();
+    });
+    it.each(['missing', 'unbound'])('returns 404 for %s destinations', async (kind) => {
+        const h = harness();
+        const rows = await h.getMenu(admin);
+        h.getMenu.mockResolvedValue(kind === 'missing' ? [] : rows.map(row => ({ ...row, pageId: null })));
+        await expect(h.service.getBySlug('orders', admin)).rejects.toMatchObject({ status: 404, code: 'COMMON.NOT_FOUND' });
+        expect(h.repo.get).not.toHaveBeenCalled();
+    });
+    it('returns 404 when the linked page no longer exists', async () => {
+        const h = harness();
+        h.repo.get.mockResolvedValue(null);
+        await expect(h.service.getBySlug('orders', admin)).rejects.toMatchObject({ status: 404 });
+    });
+    it.each(['menu', 'page'])('propagates %s loading failures', async (source) => {
+        const h = harness();
+        const error = new Error('Read failed');
+        if (source === 'menu') h.getMenu.mockRejectedValue(error);
+        else h.repo.get.mockRejectedValue(error);
+        await expect(h.service.getBySlug('orders', admin)).rejects.toBe(error);
+    });
+});
 
 describe('PageService.getRows', () => {
     it('maps only visible rows to config IDs after trimming the pagination probe', async () => {
