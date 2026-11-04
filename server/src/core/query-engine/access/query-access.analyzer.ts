@@ -11,7 +11,7 @@ import type {
     FieldPermissionAction,
     ResourcePermissionAction,
 } from "../../access-control/contracts/permission.types";
-import { type UnifiedQuery, type WhereClause, DEFAULT_READ_ROWS } from "@auto-admin/contracts/query";
+import { type UnifiedQuery, type UpdateQuery, type WhereClause, DEFAULT_READ_ROWS } from "@auto-admin/contracts/query";
 import { invalidQueryReference } from "../query-engine.errors";
 
 type Binding = { resource: Readonly<StoredResource>; qualifier: string };
@@ -260,8 +260,8 @@ export function analyzeQueryAccess(
             limit: query.limit ?? DEFAULT_READ_ROWS,
         };
     } else if (query.action === "create" || query.action === "update") {
-        const normalizeRow = (row: Record<string, unknown>) => {
-            const result: Record<string, unknown> = Object.create(null);
+        const normalizeRow = (row: UpdateQuery['data']): UpdateQuery['data'] => {
+            const result: UpdateQuery['data'] = Object.create(null);
             for (const [name, value] of Object.entries(row)) {
                 const resolved = resolveField(name);
                 if (resolved.field.generated.isGenerated)

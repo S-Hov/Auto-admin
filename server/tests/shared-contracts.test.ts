@@ -10,6 +10,33 @@ import * as access from '@auto-admin/contracts/access-control';
 import * as query from '@auto-admin/contracts/query';
 
 describe('shared API contracts', () => {
+    it('accepts typed queries for every supported action', () => {
+        const requests: query.UnifiedQuery[] = [
+            {
+                action: 'read', table: 'orders', select: ['orders.id'],
+                joins: [{ table: 'items', type: 'LEFT', on: { 'orders.id': 'items.order_id' } }],
+                where: { _and: [{ paid: { _eq: true } }, { total: { _gt: 0 } }] },
+            },
+            { action: 'create', table: 'orders', data: [{ total: 42 }, { total: 10 }] },
+            { action: 'update', table: 'orders', data: { note: null }, where: { id: { _eq: 1 } } },
+            { action: 'delete', table: 'orders', where: { id: { _in: [1, 2] } } },
+        ];
+        for (const request of requests) {
+            expect(query.queryEngineSchema.parse(request)).toEqual(request);
+        }
+    });
+    it.each([
+        { action: 'read', table: 'orders' },
+        { action: 'read', table: 'orders', select: ['id'], connection: 'main' },
+        { action: 'read', table: 'orders', select: ['id'], joins: [{ table: 'items', type: 'OUTER', on: { id: 'order_id' } }] },
+        { action: 'create', table: 'orders', data: { id: 1 }, returning: ['id'] },
+        { action: 'update', table: 'orders', data: { id: 1 }, where: { id: { _eq: 1 } }, connection: 'main' },
+        { action: 'delete', table: 'orders', where: { id: { _eq: 1 } }, returning: ['id'] },
+        { action: 'aggregate', table: 'orders' },
+        { action: 'create', table: 'orders', data: { nested: { id: 1 } } },
+    ])('rejects unsupported query shapes: %j', (request) => {
+        expect(query.queryEngineSchema.safeParse(request).success).toBe(false);
+    });
     it('does not retain legacy schema bridges in the applications', async () => {
         for (const path of [
             '../src/modules/menu/schema/menu.schema.ts',

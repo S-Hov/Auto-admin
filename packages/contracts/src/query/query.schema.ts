@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { UnifiedQuery, WhereClause } from "./query.types";
+import type { WhereClause } from "./query.types";
 
 export const MAX_QUERY_BATCH = 20;
 export const MAX_PIPELINE_STEPS = 20;
@@ -100,7 +100,7 @@ const scalarSchema = z.union([
 ]);
 const dataValueSchema = z.union([scalarSchema, z.null()]);
 
-const fieldConditionSchema = z
+export const fieldConditionSchema = z
     .strictObject({
         _eq: scalarSchema.optional(),
         _neq: scalarSchema.optional(),
@@ -157,7 +157,7 @@ const dataRowSchema = z
         "Data must contain at least one field",
     );
 
-const readQuerySchema = z
+export const readQuerySchema = z
     .strictObject({
         action: z.literal("read"),
         table: identifierSchema,
@@ -207,7 +207,7 @@ const readQuerySchema = z
         "OFFSET requires LIMIT",
     );
 
-const createQuerySchema = z.strictObject({
+export const createQuerySchema = z.strictObject({
     action: z.literal("create"),
     table: identifierSchema,
     data: z.union([
@@ -233,14 +233,14 @@ const createQuerySchema = z.strictObject({
     ]),
 });
 
-const updateQuerySchema = z.strictObject({
+export const updateQuerySchema = z.strictObject({
     action: z.literal("update"),
     table: identifierSchema,
     data: dataRowSchema,
     where: whereSchema,
 });
 
-const deleteQuerySchema = z.strictObject({
+export const deleteQuerySchema = z.strictObject({
     action: z.literal("delete"),
     table: identifierSchema,
     where: whereSchema,

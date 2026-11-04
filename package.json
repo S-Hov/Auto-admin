@@ -7,6 +7,6 @@
         "dev:contracts": "npm run dev --workspace=@auto-admin/contracts",
         "build": "npm run build --workspace=server && npm run build --workspace=client",
         "test": "npm run test --workspace=server && npm run test --workspace=client",
-        "typecheck": "npm run build:contracts && tsc --noEmit -p server && tsc -b client"
+        "typecheck": "npm run build:contracts && npm run typecheck --workspace=@auto-admin/contracts && tsc --noEmit -p server && tsc -b client"
     }
 }
