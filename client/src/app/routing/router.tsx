@@ -58,7 +58,7 @@ const router = createBrowserRouter([
                 path: 'pages',
                 children: [
                   {
-                    path: ':dataPageId',
+                    path: ':slug',
                     element: PageLoader(<DataPage />),
                   }
                 ]
