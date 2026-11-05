@@ -25,6 +25,7 @@ export const ruApi = {
         DISPLAY_INCOMPATIBLE: 'Способ отображения несовместим с типом поля',
         RECORD_KEY_NULLABLE: 'Поле ключа записи не должно допускать NULL',
         RECORD_KEY_INVALID: 'Ключ записи должен соответствовать полному уникальному индексу без префиксов и выражений',
+        NOT_CONFIGURED: "Страница не настроена",
     },
     COMMON: {
         BAD_REQUEST: "Неверный запрос",

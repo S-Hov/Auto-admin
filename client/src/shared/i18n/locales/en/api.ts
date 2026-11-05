@@ -24,6 +24,7 @@ export const enApi = {
         DISPLAY_INCOMPATIBLE: 'The display format is incompatible with the field type',
         RECORD_KEY_NULLABLE: 'A record key field must not allow NULL',
         RECORD_KEY_INVALID: 'The record key must match a complete unique index without prefixes or expressions',
+        NOT_CONFIGURED: "The page is not configured",
     },
     COMMON: {
         BAD_REQUEST: "Invalid request",

@@ -4,10 +4,14 @@ import { PageLoader } from "../../shared/ui/Loader";
 import { pages } from "../../shared/api/pages";
 import type { PageData } from "@auto-admin/contracts/pages";
 import { toast } from "sonner";
+import { ApiClientError } from "../../shared/api/ApiClientError";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
+import { apiMessage } from "../../shared/i18n/api-message";
 
 const DataPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState<PageData | null>(null);
+    const [isPageConfigured, setIsPageConfigured] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const { slug } = useParams<{ slug: string }>();
@@ -33,10 +37,16 @@ const DataPage = () => {
                 if (!controller.signal.aborted) {
                     setPage(response.data);
                 }
-            } catch {
+            } catch (error: unknown) {
                 if (!controller.signal.aborted) {
-                    toast.error("Не удалось загрузить страницу");
-                    setError("Не удалось загрузить страницу");
+                    if (error instanceof ApiClientError && error.code === ERROR_CODES.PAGE_NOT_CONFIGURED) {
+                        toast.info(apiMessage(error));
+                        setIsPageConfigured(false);
+                    }
+                    else {
+                        toast.info("Не удалось загрузить страницу");
+                        setError("Не удалось загрузить страницу");
+                    }
                 }
             } finally {
                 if (!controller.signal.aborted) {
@@ -60,9 +70,9 @@ const DataPage = () => {
                         <div className="alert alert-danger" role="alert">
                             {error}
                         </div>
-                    ) : (
-                        <div>
-                            <h1></h1>
+                    ) : isPageConfigured ? (<div><h1>{page?.name}</h1></div>) : (
+                        <div className="alert alert-warning" role="alert">
+                            Страница не настроена
                         </div>
                     )}
                 </div>

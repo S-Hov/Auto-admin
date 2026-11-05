@@ -89,7 +89,8 @@ export class PageService {
         // Menu owns the navigation slug and ancestor visibility; pages owns
         // loading the linked page document and checking page access.
         const item = (await this.navigation.getMenu(principal)).find((item) => item.slug === slug);
-        if (!item || item.pageId === null) throw notFound();
+        if (!item) throw notFound();
+        if (item.pageId === null) throw notFound(ERROR_CODES.PAGE_NOT_CONFIGURED);
         return this.get(item.pageId, principal);
     }
 
