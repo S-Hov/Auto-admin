@@ -79,9 +79,8 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
                         </div>
                     ) : isPageConfigured ? (<div><h1>{page?.name}</h1>{page?.description && <p>{page.description}</p>}<p>Страница настроена · колонок: {page?.config.list.columns.length}</p></div>) : (
                         <div className="data-page__empty">
-                            <span className="data-page__eyebrow">Новый раздел</span>
-                            <h1>Настройте страницу</h1>
-                            <p>Выберите таблицу и нужные колонки или подключите уже созданную страницу.</p>
+                            <h1>Здесь будет ваша страница</h1>
+                            <p>Подключите таблицу и выберите нужные колонки.</p>
                             <Button type="button" onClick={() => setConfiguratorOpen(true)}>Настроить страницу</Button>
                         </div>
                     )}
