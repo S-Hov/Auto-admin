@@ -12,6 +12,9 @@ import {
     forbidden,
     notFound,
 } from "../../shared/api/errors/error-helpers";
+import type { ConfigureMenuPageData } from '@auto-admin/contracts/pages';
+import { createMenuRepository } from '../menu/repository/repository.factory';
+import type { MenuRepository } from '../menu/repository/repository.interface';
 import type { PageData, PageListResult, PageRowsResult, PageUpdateResponse, PageListQuery, CreatePageData, UpdatePageData, PageRowsQuery } from "@auto-admin/contracts/pages";
 import { PageReferencedByMenuError } from "./page.errors";
 import { createPageRepository } from "./repository/repository.factory";
@@ -30,6 +33,7 @@ export class PageService {
             executor: DatabaseExecutor,
         ) => PageRepository,
         private readonly navigation: Pick<MenuService, 'getMenu'> = menuService,
+        private readonly configuredMenuRepository?: (executor: DatabaseExecutor) => MenuRepository,
     ) {}
     private database() {
         return this.configuredDatabaseProvider ?? databaseRuntime.getProvider();
@@ -64,23 +68,53 @@ export class PageService {
         return await this.database().transaction(async (executor) => {
             await this.checkSystemAdmin(executor, principal);
 
-            const repository = this.repository(executor);
+            return this.createInTransaction(executor, data, principal, requestId);
+        });
+    }
 
-            const pageId = await repository.create(data, principal.userId);
+    private async createInTransaction(executor: DatabaseExecutor, data: CreatePageData, principal: AccessPrincipal, requestId: string | null) {
+        const repository = this.repository(executor);
+        const pageId = await repository.create(data, principal.userId);
+        await repository.appendAudit(pageId, 'create', principal.userId, null, { ...data, pageId, revision: 1 }, requestId);
+        return { pageId, revision: 1 };
+    }
 
-            await repository.appendAudit(
-                pageId,
-                "create",
-                principal.userId,
-                null,
-                { ...data, pageId, revision: 1 },
-                requestId,
-            );
-
-            return {
-                pageId,
-                revision: 1,
-            };
+    async configureForMenu(slug: string, data: ConfigureMenuPageData, principal: AccessPrincipal, requestId: string | null = null) {
+        requireSystemAdmin(principal);
+        if (data.mode === 'create') {
+            validatePageConfigAgainstCatalog(data.page.config, await schemaCatalogService.getAuthorizationCatalog());
+        }
+        return this.database().transaction(async executor => {
+            await this.checkSystemAdmin(executor, principal);
+            const menuRepository = this.configuredMenuRepository?.(executor) ?? createMenuRepository(this.database().type, executor);
+            // Same lock order as menu.save/page.delete: page first, then menu rows.
+            let result: { pageId: number; revision: number };
+            if (data.mode === 'create') {
+                result = await this.createInTransaction(executor, data.page, principal, requestId);
+            } else {
+                if (!(await menuRepository.pageExistsForUpdate(data.pageId))) throw notFound();
+                const page = await this.repository(executor).get(data.pageId);
+                if (!page) throw notFound();
+                result = { pageId: page.pageId, revision: page.revision };
+            }
+            const rows = await menuRepository.readAll(true);
+            const item = rows.find(row => row.slug === slug);
+            if (!item) throw notFound();
+            const visited = new Set<number>();
+            let current: typeof item | undefined = item;
+            while (current) {
+                if (!current.isActive || visited.has(current.id)) throw notFound();
+                visited.add(current.id);
+                if (current.parentId === null) break;
+                current = rows.find(row => row.id === current!.parentId);
+                if (!current) throw notFound();
+            }
+            if (item.pageId !== null) throw conflict();
+            const { id, ...previous } = item;
+            const next = { ...previous, pageId: result.pageId };
+            await menuRepository.save(next, principal.userId, id);
+            await menuRepository.appendAudit(id, 'update', principal.userId, item, { id, ...next }, requestId);
+            return result;
         });
     }
 

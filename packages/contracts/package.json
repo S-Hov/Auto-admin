@@ -15,6 +15,10 @@
         "typescript": "^6.0.3"
     },
     "exports": {
+        "./schema-catalog": {
+            "types": "./dist/schema-catalog/index.d.ts",
+            "default": "./dist/schema-catalog/index.js"
+        },
         "./auth": {
             "types": "./dist/auth/index.d.ts",
             "default": "./dist/auth/index.js"

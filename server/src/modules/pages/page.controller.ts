@@ -5,6 +5,11 @@ import { pageService } from "./page.service";
 import { ok } from "../../shared/api/success";
 import type { PageResolveParams } from '@auto-admin/contracts/pages';
 
+export const configureMenuPageController = asyncHandler(async (req, res) => {
+    const { slug } = res.locals.validatedParams as PageResolveParams;
+    return ok(res, undefined, await pageService.configureForMenu(slug, req.body, req.auth!, req.requestId ?? null));
+});
+
 export const getPageBySlugController = asyncHandler(async (req, res) => {
     const { slug } = res.locals.validatedParams as PageResolveParams;
     return ok(res, undefined, await pageService.getBySlug(slug, req.auth!));

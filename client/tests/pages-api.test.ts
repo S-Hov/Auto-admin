@@ -72,6 +72,30 @@ describe('pages.getRows', () => {
     });
 });
 
+describe('page configuration API', () => {
+    it('sends a validated command to the atomic menu binding endpoint', async () => {
+        fetchMock.mockResolvedValue(success({ pageId: 42, revision: 1 }));
+        await pages.configureForMenu('orders', { mode: 'existing', pageId: 42 });
+        expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:5180/api/pages/for-menu/orders');
+        expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', credentials: 'include', body: JSON.stringify({ mode: 'existing', pageId: 42 }) });
+    });
+    it('does not send invalid slugs, page IDs or list pagination', async () => {
+        await expect(pages.configureForMenu('../other', { mode: 'existing', pageId: 42 })).rejects.toThrow();
+        await expect(pages.configureForMenu('orders', { mode: 'existing', pageId: 0 })).rejects.toThrow();
+        await expect(pages.list({ offset: -1 })).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+    it('encodes list search and forwards cancellation', async () => {
+        fetchMock.mockResolvedValue(success({ items: [], pagination: { limit: 25, offset: 25, hasMore: false } }));
+        const signal = new AbortController().signal;
+        await pages.list({ q: 'Заказы & оплата', offset: 25 }, { signal });
+        const url = new URL(String(fetchMock.mock.calls[0][0]));
+        expect(url.searchParams.get('q')).toBe('Заказы & оплата');
+        expect(url.searchParams.get('offset')).toBe('25');
+        expect(fetchMock.mock.calls[0][1]?.signal).toBe(signal);
+    });
+});
+
 describe('pages.getPage', () => {
     it('gets a page with session credentials and returns a validated envelope', async () => {
         fetchMock.mockResolvedValue(success());

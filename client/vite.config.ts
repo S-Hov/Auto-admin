@@ -8,6 +8,7 @@ export default defineConfig({
     // Linked workspace packages are served as source by default. Our contracts
     // are CommonJS, so convert every public entry point to ESM for the browser.
     include: [
+      '@auto-admin/contracts/schema-catalog',
       '@auto-admin/contracts/common',
       '@auto-admin/contracts/auth',
       '@auto-admin/contracts/bootstrap',

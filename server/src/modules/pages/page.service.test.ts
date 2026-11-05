@@ -7,6 +7,8 @@ import type { PageRepository } from './repository/repository.interface';
 import { PageReferencedByMenuError } from './page.errors';
 import { queryEngineService } from '../../core/query-engine';
 import type { MenuService } from '../menu/menu.service';
+import type { MenuRepository } from '../menu/repository/repository.interface';
+import type { MenuItem } from '../menu/menu.types';
 
 function harness() {
     const db = database();
@@ -29,7 +31,16 @@ function harness() {
         canView: true, canCreate: true, canUpdate: true, canDelete: true,
     }]);
     const service = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository, { getMenu });
-    return { ...db, access, createAccess, repo, createRepository, service, getMenu };
+    const menuItem: MenuItem = { id: 7, parentId: null, pageId: null, slug: 'orders', name: 'Orders', icon: null, iconType: 'icon', sortOrder: 0, isActive: true };
+    const menuRepo = {
+        readAll: vi.fn(async () => [menuItem]),
+        pageExistsForUpdate: vi.fn(async () => true),
+        save: vi.fn(async () => 7),
+        appendAudit: vi.fn(async () => {}),
+    };
+    const createMenu = vi.fn(() => menuRepo as unknown as MenuRepository);
+    const configuringService = new PageService(db.provider, { type: 'mysql', createRepository: createAccess }, createRepository, { getMenu }, createMenu);
+    return { ...db, access, createAccess, repo, createRepository, service, getMenu, configuringService, menuRepo, createMenu, menuItem };
 }
 
 beforeEach(() => vi.restoreAllMocks());
@@ -53,7 +64,7 @@ describe('PageService.getBySlug', () => {
         const h = harness();
         const rows = await h.getMenu(admin);
         h.getMenu.mockResolvedValue(kind === 'missing' ? [] : rows.map(row => ({ ...row, pageId: null })));
-        await expect(h.service.getBySlug('orders', admin)).rejects.toMatchObject({ status: 404, code: 'COMMON.NOT_FOUND' });
+        await expect(h.service.getBySlug('orders', admin)).rejects.toMatchObject({ status: 404, code: kind === 'unbound' ? 'PAGE.NOT_CONFIGURED' : 'COMMON.NOT_FOUND' });
         expect(h.repo.get).not.toHaveBeenCalled();
     });
     it('returns 404 when the linked page no longer exists', async () => {
@@ -67,6 +78,65 @@ describe('PageService.getBySlug', () => {
         if (source === 'menu') h.getMenu.mockRejectedValue(error);
         else h.repo.get.mockRejectedValue(error);
         await expect(h.service.getBySlug('orders', admin)).rejects.toBe(error);
+    });
+});
+
+describe('PageService.configureForMenu', () => {
+    it('creates and binds a page with both audits on the same transaction executor', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const h = harness();
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'create', page: pageData() }, admin, 'request-1')).resolves.toEqual({ pageId: 42, revision: 1 });
+        expect(h.transaction).toHaveBeenCalledOnce();
+        expect(h.createMenu).toHaveBeenCalledWith(h.executor);
+        expect(h.createRepository).toHaveBeenCalledWith(h.executor);
+        expect(h.menuRepo.readAll).toHaveBeenCalledWith(true);
+        expect(h.menuRepo.save).toHaveBeenCalledWith(expect.objectContaining({ pageId: 42, slug: 'orders' }), 1, 7);
+        expect(h.repo.appendAudit).toHaveBeenCalledWith(42, 'create', 1, null, expect.any(Object), 'request-1');
+        expect(h.menuRepo.appendAudit).toHaveBeenCalledWith(7, 'update', 1, h.menuItem, expect.objectContaining({ pageId: 42 }), 'request-1');
+    });
+    it('locks an existing page before menu rows without creating another page', async () => {
+        const h = harness();
+        await h.configuringService.configureForMenu('orders', { mode: 'existing', pageId: 42 }, admin);
+        expect(h.menuRepo.pageExistsForUpdate).toHaveBeenCalledWith(42);
+        expect(h.menuRepo.pageExistsForUpdate.mock.invocationCallOrder[0]).toBeLessThan(h.menuRepo.readAll.mock.invocationCallOrder[0]);
+        expect(h.repo.create).not.toHaveBeenCalled();
+    });
+    it('does not overwrite a destination configured by another request', async () => {
+        const h = harness();
+        h.menuRepo.readAll.mockResolvedValue([{ ...h.menuItem, pageId: 99 }]);
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'existing', pageId: 42 }, admin)).rejects.toMatchObject({ status: 409 });
+        expect(h.menuRepo.save).not.toHaveBeenCalled();
+    });
+    it.each(['missing', 'inactive', 'inactive-parent', 'missing-parent', 'cycle'])('rejects %s menu destinations', async kind => {
+        const h = harness();
+        const item = { ...h.menuItem };
+        if (kind === 'inactive') item.isActive = false;
+        if (kind === 'missing-parent' || kind === 'cycle' || kind === 'inactive-parent') Object.assign(item, { parentId: kind === 'cycle' ? 7 : 8 });
+        h.menuRepo.readAll.mockResolvedValue(kind === 'missing' ? [] : kind === 'inactive-parent' ? [item, { ...item, id: 8, parentId: null, slug: 'parent', isActive: false }] : [item]);
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'existing', pageId: 42 }, admin)).rejects.toMatchObject({ status: 404 });
+        expect(h.menuRepo.save).not.toHaveBeenCalled();
+    });
+    it('checks admin rights before reads and rechecks them inside the transaction', async () => {
+        const h = harness();
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'existing', pageId: 42 }, manager)).rejects.toMatchObject({ status: 403 });
+        expect(h.transaction).not.toHaveBeenCalled();
+        vi.mocked(h.access.isActiveSystemAdminForUpdate).mockResolvedValue(false);
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'existing', pageId: 42 }, admin)).rejects.toMatchObject({ status: 403 });
+        expect(h.menuRepo.save).not.toHaveBeenCalled();
+    });
+    it('rejects invalid source configs before creating a page', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const h = harness();
+        const page = pageData();
+        page.config.source.resourceId = 3;
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'create', page }, admin)).rejects.toMatchObject({ status: 400 });
+        expect(h.repo.create).not.toHaveBeenCalled();
+    });
+    it('propagates bind/audit failures out of the transaction instead of reporting success', async () => {
+        vi.spyOn(schemaCatalogService, 'getAuthorizationCatalog').mockResolvedValue(pageCatalog());
+        const h = harness();
+        h.menuRepo.appendAudit.mockRejectedValue(new Error('audit failed'));
+        await expect(h.configuringService.configureForMenu('orders', { mode: 'create', page: pageData() }, admin)).rejects.toThrow('audit failed');
     });
 });
 

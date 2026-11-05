@@ -7,14 +7,22 @@ import { toast } from "sonner";
 import { ApiClientError } from "../../shared/api/ApiClientError";
 import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { apiMessage } from "../../shared/i18n/api-message";
+import { Button } from '../../shared/ui/Button/Button';
+import { PageConfigurator } from '../../features/page-configurator/PageConfigurator';
+import './dataPage.css';
 
 const DataPage = () => {
+    const { slug } = useParams<{ slug: string }>();
+    return <DataPageContent key={slug} slug={slug} />;
+};
+
+const DataPageContent = ({ slug }: { slug?: string }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState<PageData | null>(null);
     const [isPageConfigured, setIsPageConfigured] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const { slug } = useParams<{ slug: string }>();
+    const [configuratorOpen, setConfiguratorOpen] = useState(false);
+    const [reload, setReload] = useState(0);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -23,10 +31,10 @@ const DataPage = () => {
             setIsLoading(true);
             setError(null);
             setPage(null);
+            setIsPageConfigured(true);
 
             try {
                 if (!slug) {
-                    toast.error("Не указан адрес страницы");
                     throw new Error("Не указан адрес страницы");
                 }
 
@@ -40,12 +48,11 @@ const DataPage = () => {
             } catch (error: unknown) {
                 if (!controller.signal.aborted) {
                     if (error instanceof ApiClientError && error.code === ERROR_CODES.PAGE_NOT_CONFIGURED) {
-                        toast.info(apiMessage(error));
                         setIsPageConfigured(false);
                     }
                     else {
                         toast.info("Не удалось загрузить страницу");
-                        setError("Не удалось загрузить страницу");
+                        setError(apiMessage(error));
                     }
                 }
             } finally {
@@ -58,7 +65,7 @@ const DataPage = () => {
         void loadPage();
 
         return () => controller.abort();
-    }, [slug]);
+    }, [slug, reload]);
 
     return (
         <div className="Page">
@@ -70,13 +77,21 @@ const DataPage = () => {
                         <div className="alert alert-danger" role="alert">
                             {error}
                         </div>
-                    ) : isPageConfigured ? (<div><h1>{page?.name}</h1></div>) : (
-                        <div className="alert alert-warning" role="alert">
-                            Страница не настроена
+                    ) : isPageConfigured ? (<div><h1>{page?.name}</h1>{page?.description && <p>{page.description}</p>}<p>Страница настроена · колонок: {page?.config.list.columns.length}</p></div>) : (
+                        <div className="data-page__empty">
+                            <span className="data-page__eyebrow">Новый раздел</span>
+                            <h1>Настройте страницу</h1>
+                            <p>Выберите таблицу и нужные колонки или подключите уже созданную страницу.</p>
+                            <Button type="button" onClick={() => setConfiguratorOpen(true)}>Настроить страницу</Button>
                         </div>
                     )}
                 </div>
             )}
+            {configuratorOpen && slug && <PageConfigurator slug={slug} onClose={() => setConfiguratorOpen(false)} onSaved={() => {
+                setConfiguratorOpen(false);
+                setReload(value => value + 1);
+                toast.success('Страница подключена');
+            }} />}
         </div>
     );
 };

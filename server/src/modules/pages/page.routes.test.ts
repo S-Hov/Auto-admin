@@ -40,6 +40,7 @@ beforeEach(() => {
     vi.restoreAllMocks();
     readAuthSession.mockReset().mockResolvedValue(session);
     vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'configureForMenu').mockResolvedValue({ pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'getBySlug').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
     vi.spyOn(pageService, 'getRows').mockResolvedValue({
@@ -50,6 +51,30 @@ beforeEach(() => {
     vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
     vi.spyOn(pageService, 'list').mockResolvedValue({
         items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+});
+
+describe('configure a menu destination', () => {
+    const configure = (body: unknown, slug = 'orders', authenticated = true) => fetch(`${url}/for-menu/${encodeURIComponent(slug)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(authenticated ? { Cookie: cookie } : {}) }, body: JSON.stringify(body),
+    });
+    it('passes validated create and existing-page commands to the service', async () => {
+        for (const body of [{ mode: 'create', page: pageData() }, { mode: 'existing', pageId: 42 }]) {
+            expect((await configure(body)).status).toBe(200);
+            expect(pageService.configureForMenu).toHaveBeenLastCalledWith('orders', body, session, expect.any(String));
+        }
+    });
+    it.each([{}, { mode: 'existing', pageId: 0 }, { mode: 'create', page: {} }, { mode: 'existing', pageId: 42, userId: 1 }])('rejects invalid body %j', async body => {
+        expect((await configure(body)).status).toBe(400);
+        expect(pageService.configureForMenu).not.toHaveBeenCalled();
+    });
+    it('requires auth/admin and a valid slug', async () => {
+        const body = { mode: 'existing', pageId: 42 };
+        expect((await configure(body, 'orders', false)).status).toBe(401);
+        expect((await configure(body, 'invalid.slug')).status).toBe(400);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await configure(body)).status).toBe(403);
+        expect(pageService.configureForMenu).not.toHaveBeenCalled();
     });
 });
 
