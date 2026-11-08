@@ -9,6 +9,7 @@ import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { apiMessage } from "../../shared/i18n/api-message";
 import { Button } from '../../shared/ui/Button/Button';
 import { PageConfigurator } from '../../features/page-configurator/PageConfigurator';
+import { PageTable } from '../../features/page-table/PageTable';
 import './dataPage.css';
 
 const DataPage = () => {
@@ -77,7 +78,17 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
                         <div className="alert alert-danger" role="alert">
                             {error}
                         </div>
-                    ) : isPageConfigured ? (<div><h1>{page?.name}</h1>{page?.description && <p>{page.description}</p>}<p>Страница настроена · колонок: {page?.config.list.columns.length}</p></div>) : (
+                    ) : page ? (
+                        <>
+                            <h1>{page.name}</h1>
+                            {page.description && <p>{page.description}</p>}
+                            <PageTable
+                                key={`${page.pageId}:${page.revision}`}
+                                page={page}
+                                onReloadPage={() => setReload(value => value + 1)}
+                            />
+                        </>
+                    ) : !isPageConfigured && (
                         <div className="data-page__empty">
                             <h1>Здесь будет ваша страница</h1>
                             <p>Подключите таблицу и выберите нужные колонки.</p>

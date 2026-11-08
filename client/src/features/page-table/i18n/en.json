@@ -1,0 +1,15 @@
+{
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading data…",
+    "empty": "There are no records in the table yet.",
+    "emptyPage": "There are no records on this page.",
+    "retry": "Retry",
+    "stale": "The table settings have changed.",
+    "reload": "Reload page",
+    "pageSize": "Rows per page",
+    "pagination": "Table pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageNumber": "Page {{number}}"
+}
