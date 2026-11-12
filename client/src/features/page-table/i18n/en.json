@@ -11,5 +11,6 @@
     "pagination": "Table pages",
     "previous": "Previous",
     "next": "Next",
-    "pageNumber": "Page {{number}}"
+    "pageNumber": "Page {{number}}",
+    "selectAll": "Select all records"
 }

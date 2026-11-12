@@ -11,5 +11,6 @@
     "pagination": "Страницы таблицы",
     "previous": "Назад",
     "next": "Вперёд",
-    "pageNumber": "Страница {{number}}"
+    "pageNumber": "Страница {{number}}",
+    "selectAll": "Выбрать все записи"
 }

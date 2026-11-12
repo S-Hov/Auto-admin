@@ -3,6 +3,8 @@
     --secondary-color: #1a1a1a;
     --background-color-light: #ececec;
     --border-lite: 1px solid var(--background-color-light);
+    --border-medium: 1px solid #ddd6cf;
+    --border-dark: 1px solid var(--secondary-color);
     --background-color-dark: #333;
     --accent-color: #00018b;
     --accent-color-2: #006f79;

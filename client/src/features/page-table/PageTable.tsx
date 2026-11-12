@@ -12,6 +12,8 @@ import { apiMessage } from '../../shared/i18n/api-message';
 import { Button } from '../../shared/ui/Button/Button';
 import { PageTableCell } from './PageTableCell';
 import './PageTable.css';
+import { Input } from '../../shared/ui/Input/Input';
+import { Icon } from '../../shared/ui/Icon';
 
 type RowsState =
     | { kind: 'ready'; data: PageRowsResult }
@@ -19,6 +21,35 @@ type RowsState =
     | { kind: 'stale' };
 
 type TableQuery = PageRowsQuery & { limit: number };
+
+export const pagePagination = (query: TableQuery, t: any, result: PageRowsResult | null, nextOffset: number, pagination: any, setQuery: React.Dispatch<React.SetStateAction<TableQuery>>) => {
+    return (
+        <>
+            <label className="page-table__size">
+                {t('pageSize')}
+                <select
+                    value={query.limit}
+                    onChange={event => setQuery({ ...query, limit: Number(event.target.value), offset: 0 })}
+                >
+                    {pagination.pageSizeOptions.map(size => <option key={size} value={size}>{size}</option>)}
+                </select>
+            </label>
+            <div className="page-table__navigation" role="group" aria-label={t('pagination')}>
+                <Button type="button" variant="secondary" disabled={query.offset === 0}
+                    onClick={() => setQuery({ ...query, offset: query.offset - query.limit })}>
+                    {t('previous')}
+                </Button>
+                <span role="status">{t('pageNumber', { number: query.offset / query.limit + 1 })}</span>
+                <Button type="button" variant="secondary"
+                    disabled={!result?.pagination.hasMore || nextOffset > PAGE_ROWS_QUERY_LIMITS.maxOffset}
+                    onClick={() => setQuery({ ...query, offset: nextOffset })}>
+                    {t('next')}
+                </Button>
+            </div>
+        </>
+    )
+
+}
 
 export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage: () => void }) {
     const { t } = useTranslation('pageTable');
@@ -63,10 +94,162 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
 
     return (
         <div className="page-table">
+            <div className="page-table__header">
+                <label className="page-table__search">
+                    <Icon icon="message-circle-search" />
+                    <Input 
+                        type="search"
+                        placeholder="Search..."
+                        id="page-table-search"
+                    />
+                </label>
+                <div className='resource-filters'>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам Ждём клиента</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе Ждём клиента</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента Ждём клиента Ждём клиентаЖдём клиента Ждём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто Ждём клиента</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто Ждём клиента Ждём клиента</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Статус</span>
+                        <select>
+                            <option value="">Все</option>
+                            <option value="new">Новое</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="waiting_customer">Ждём клиента</option>
+                            <option value="resolved">Закрыто</option>
+                            <option value="spam">Спам</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
             <div className="page-table__scroll" role="region" aria-label={page.name} tabIndex={0}>
                 <table aria-label={page.name}>
                     <thead>
                         <tr>
+                            <th className="data-table__selection">
+                                <Input
+                                    type="checkbox"
+                                    aria-label={t('selectAll')}
+                                    title={t('selectAll')}
+                                />
+                            </th>
                             {columns.map(field => {
                                 const direction = activeSort?.field === field.id ? activeSort.direction : undefined;
                                 return (
@@ -89,7 +272,11 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
                     <tbody aria-busy={isLoading}>
                         {result?.rows.map((row, index) => (
                             <tr key={result.pagination.offset + index}>
+                                <td className="data-table__selection">
+                                    <Input type="checkbox" />
+                                </td>
                                 {columns.map(field => (
+
                                     <td key={field.id}><PageTableCell field={field} value={row[field.id]} /></td>
                                 ))}
                             </tr>
