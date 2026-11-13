@@ -5,9 +5,7 @@ import {
     type PageField,
     type PageRowsQuery,
     type PageRowsResult,
-    type PageConfig,
 } from '@auto-admin/contracts/pages';
-import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { pages } from '../../shared/api/pages';
 import { apiMessage } from '../../shared/i18n/api-message';
@@ -24,34 +22,6 @@ type RowsState =
 
 type TableQuery = PageRowsQuery & { limit: number };
 
-export const pagePagination = (query: TableQuery, t: TFunction<'pageTable'>, result: PageRowsResult | null, nextOffset: number, pagination: PageConfig['list']['pagination'], setQuery: React.Dispatch<React.SetStateAction<TableQuery>>) => {
-    return (
-        <>
-            <label className="page-table__size">
-                {t('pageSize')}
-                <select
-                    value={query.limit}
-                    onChange={event => setQuery({ ...query, limit: Number(event.target.value), offset: 0 })}
-                >
-                    {pagination.pageSizeOptions.map(size => <option key={size} value={size}>{size}</option>)}
-                </select>
-            </label>
-            <div className="page-table__navigation" role="group" aria-label={t('pagination')}>
-                <Button type="button" variant="secondary" disabled={query.offset === 0}
-                    onClick={() => setQuery({ ...query, offset: query.offset - query.limit })}>
-                    {t('previous')}
-                </Button>
-                <span role="status">{t('pageNumber', { number: query.offset / query.limit + 1 })}</span>
-                <Button type="button" variant="secondary"
-                    disabled={!result?.pagination.hasMore || nextOffset > PAGE_ROWS_QUERY_LIMITS.maxOffset}
-                    onClick={() => setQuery({ ...query, offset: nextOffset })}>
-                    {t('next')}
-                </Button>
-            </div>
-        </>
-    )
-
-}
 
 export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage: () => void }) {
     const { t } = useTranslation('pageTable');
@@ -92,6 +62,37 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
     function sortBy(field: PageField) {
         const direction = activeSort?.field === field.id && activeSort.direction === 'asc' ? 'desc' : 'asc';
         setQuery({ ...query, offset: 0, sort: { field: field.id, direction } });
+    }
+
+    const PagePagination = () => {
+        return (
+            <nav aria-label={t('pagination')} className="page-table__pagination">
+                <span className="page-table__pagination-range">1–15 из 20</span>
+                <div className='page-table__controls'>
+                    <label className="page-table__size">
+                        <span>{t('pageSize')}</span>
+                        <select
+                            value={query.limit}
+                            onChange={event => setQuery({ ...query, limit: Number(event.target.value), offset: 0 })}
+                        >
+                            {pagination.pageSizeOptions.map(size => <option key={size} value={size}>{size}</option>)}
+                        </select>
+                    </label>
+                    <div className="page-table__navigation" role="group" aria-label={t('pagination')}>
+                        <Button type="button" variant="secondary" disabled={query.offset === 0}
+                            onClick={() => setQuery({ ...query, offset: query.offset - query.limit })}>
+                            {t('previous')}
+                        </Button>
+                        <strong role="status">{query.offset / query.limit + 1 }</strong>
+                        <Button type="button" variant="secondary"
+                            disabled={!result?.pagination.hasMore || nextOffset > PAGE_ROWS_QUERY_LIMITS.maxOffset}
+                            onClick={() => setQuery({ ...query, offset: nextOffset })}>
+                            {t('next')}
+                        </Button>
+                    </div>
+                </div>
+            </nav>
+        )
     }
 
     return (
@@ -241,6 +242,8 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
                 </div>
             </div>
 
+            <PagePagination />
+
             <div className="page-table__scroll" role="region" aria-label={page.name} tabIndex={0}>
                 <table aria-label={page.name}>
                     <thead>
@@ -303,29 +306,7 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
                     <Button type="button" variant="secondary" onClick={onReloadPage}>{t('reload')}</Button>
                 </div>
             ) : (
-                <div className="page-table__footer">
-                    <label className="page-table__size">
-                        {t('pageSize')}
-                        <select
-                            value={query.limit}
-                            onChange={event => setQuery({ ...query, limit: Number(event.target.value), offset: 0 })}
-                        >
-                            {pagination.pageSizeOptions.map(size => <option key={size} value={size}>{size}</option>)}
-                        </select>
-                    </label>
-                    <div className="page-table__navigation" role="group" aria-label={t('pagination')}>
-                        <Button type="button" variant="secondary" disabled={query.offset === 0}
-                            onClick={() => setQuery({ ...query, offset: query.offset - query.limit })}>
-                            {t('previous')}
-                        </Button>
-                        <span role="status">{t('pageNumber', { number: query.offset / query.limit + 1 })}</span>
-                        <Button type="button" variant="secondary"
-                            disabled={!result?.pagination.hasMore || nextOffset > PAGE_ROWS_QUERY_LIMITS.maxOffset}
-                            onClick={() => setQuery({ ...query, offset: nextOffset })}>
-                            {t('next')}
-                        </Button>
-                    </div>
-                </div>
+                <PagePagination />
             )}
         </div>
     );

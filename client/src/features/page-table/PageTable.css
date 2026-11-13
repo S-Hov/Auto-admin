@@ -1,3 +1,9 @@
+:root {
+    --table-border-color: #eee9e3;
+}
+
+
+
 .page-table {
     margin-block: var(--gap-lg);
     color: var(--text-color-dark);
@@ -19,7 +25,8 @@
         border: 1px solid #ddd6cf;
         border-radius: 10px;
         padding: 0 13px;
-        color: #a19388;
+        color: var(--text-color-muted);
+        background: var(--primary-color);
 
         & input {
             width: 100%;
@@ -67,7 +74,15 @@
 
 .page-table__scroll {
     overflow-x: auto;
-    border-radius: var(--radius-card-3) var(--radius-card-3) 0 0;
+    border-radius: var(--radius-card-3);
+    background: var(--primary-color);
+}
+
+.data-table__selection {
+    text-align: center !important;
+    width: 25px;
+    min-width: 20px !important;
+    border-right: 1px solid var(--table-border-color);
 }
 
 .page-table table {
@@ -83,15 +98,16 @@
 }
 
 .page-table th {
-    background: var(--surface-board);
+    background: color-mix(in srgb, var(--secondary-color) 15%, var(--table-border-color));
     white-space: nowrap;
 }
 
 .page-table td {
-    min-width: 80px;
-    max-width: 320px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    height: 72px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--table-border-color);
+    color: var(--text-color-dark);
+    font-size: .82rem;
     vertical-align: middle;
 }
 
@@ -120,35 +136,52 @@
 }
 
 .page-table__message,
-.page-table__footer {
+.page-table__pagination {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: var(--gap-sm);
     padding: 12px 14px;
 }
 
-.page-table__footer {
+.page-table__pagination {
     justify-content: space-between;
-}
+    padding: 15px 2px;
+    color: var(--text-color-muted);
+    font-size: .7rem;
 
-.page-table__navigation,
-.page-table__size {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
+    & .page-table__navigation,
+    & .page-table__size {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-sm);
+    }
+
+    & .page-table__size {
+        font-size: .75rem;
+    }
+
+    &>div {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-lg);
+    }
+
+    & select {
+        font: inherit;
+    }
+
+    & strong {
+        color: var(--text-color-dark);
+        min-width: 58px;
+        text-align: center;
+        font-size: 12px;
+    }
 }
 
 .page-table__size select,
 .page-table .button {
     padding: 8px 12px;
+    color: var(--text-color-dark);
     border-radius: var(--radius-card-4);
-}
-
-.page-table__size select {
-    border: 1px solid var(--border-color);
-    background: var(--surface-raised);
-    color: inherit;
-    font: inherit;
 }
