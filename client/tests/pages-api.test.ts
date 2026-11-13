@@ -35,6 +35,30 @@ afterEach(() => {
     vi.unstubAllEnvs();
 });
 
+describe('pages.update', () => {
+    const payload = () => { const data = page(); return { name: data.name, description: data.description, config: data.config, revision: data.revision }; };
+    it('sends the revision with the draft to the update endpoint', async () => {
+        fetchMock.mockResolvedValue(success({ pageId: 42, revision: 4 }));
+        await pages.update(42, payload());
+        expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:5180/api/pages/42');
+        expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', credentials: 'include' });
+        expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual(payload());
+    });
+    it('rejects invalid drafts before sending a request', async () => {
+        await expect(pages.update(42, { ...payload(), name: '' })).rejects.toThrow();
+        await expect(pages.update(42, { ...payload(), revision: 0 })).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+    it('preserves revision conflict errors', async () => {
+        fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: false, code: 'COMMON.CONFLICT' }), { status: 409 }));
+        await expect(pages.update(42, payload())).rejects.toMatchObject({ status: 409 });
+    });
+    it.each([{ pageId: 43, revision: 4 }, { pageId: 42, revision: 3 }])('rejects a mismatched save response: %j', async result => {
+        fetchMock.mockResolvedValue(success(result));
+        await expect(pages.update(42, payload())).rejects.toBeInstanceOf(ApiContractError);
+    });
+});
+
 describe('pages.getRows', () => {
     function rows(overrides = {}) {
         return { pageId: 42, revision: 3, rows: [{ total: 0 }], pagination: { limit: 25, offset: 0, hasMore: false }, ...overrides };

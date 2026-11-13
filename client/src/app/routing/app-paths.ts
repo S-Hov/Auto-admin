@@ -9,4 +9,5 @@ export const appPaths = {
   registerAdmin: (locale: AppLocale) => `/${locale}/install/register`,
   users: (locale: AppLocale) => `/${locale}/users`,
   page: (locale: AppLocale, dataPageId: string) => `/${locale}/pages/${dataPageId}`,
+  pageEditor: (locale: AppLocale, slug: string) => `/${locale}/pages/${slug}/edit`,
 } as const;

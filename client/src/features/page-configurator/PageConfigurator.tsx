@@ -18,11 +18,11 @@ const displayLabels: Record<CatalogDisplayType, string> = {
     boolean: "Да / Нет", image: "Изображение", link: "Ссылка",
 };
 
-interface Props { slug: string; onClose: () => void; onSaved: () => void }
+interface Props { slug: string; onClose: () => void; onSaved: () => void; initialMode?: 'create' | 'existing' }
 
 // Mounted only while open: drafts and requests belong to this modal session.
-export function PageConfigurator({ slug, onClose, onSaved }: Props) {
-    const [mode, setMode] = useState<"create" | "existing">("create");
+export function PageConfigurator({ slug, onClose, onSaved, initialMode = 'create' }: Props) {
+    const [mode, setMode] = useState<"create" | "existing">(initialMode);
     const [resources, setResources] = useState<CatalogResource[]>([]);
     const [loading, setLoading] = useState(true);
     const [catalogError, setCatalogError] = useState("");
@@ -166,10 +166,10 @@ export function PageConfigurator({ slug, onClose, onSaved }: Props) {
 
     return <Modal open onClose={() => { if (!saving && !scanning) onClose(); }} title="Настройка страницы">
         <div className="page-configurator">
-            <div className="page-configurator__tabs" role="group" aria-label="Способ настройки">
+            {initialMode === 'create' && <div className="page-configurator__tabs" role="group" aria-label="Способ настройки">
                 <Button type="button" disabled={saving || scanning} variant={mode === "create" ? "primary" : "secondary"} onClick={() => { setMode("create"); setSaveError(""); }}>Новая страница</Button>
                 <Button type="button" disabled={saving || scanning} variant={mode === "existing" ? "primary" : "secondary"} onClick={() => { setMode("existing"); setSaveError(""); }}>Выбрать существующую</Button>
-            </div>
+            </div>}
             <form onSubmit={submit}>
                 <fieldset disabled={saving || scanning} className="page-configurator__fieldset">
                     {mode === "create" ? <>

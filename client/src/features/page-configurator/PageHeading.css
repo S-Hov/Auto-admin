@@ -1,0 +1,11 @@
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.page-heading__text { flex: 1; min-width: 0; }
+.page-heading__text h1 { overflow-wrap: anywhere; }
+.page-heading__text p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.page-heading__actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; }
+.page-heading__editable { all: unset; cursor: text; border-radius: 4px; white-space: inherit; }
+.page-heading__editable:hover { outline: 1px dashed var(--accent-color); outline-offset: 4px; }
+.page-heading__editable:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 4px; }
+.page-heading__text :is(input, textarea) { box-sizing: border-box; width: 100%; font: inherit; color: inherit; line-height: inherit; border: 0; border-bottom: 1px solid var(--accent-color); background: transparent; padding: 0; }
+.page-heading__text textarea { resize: vertical; }
+@media (max-width: 680px) { .page-heading { flex-direction: column; gap: 0; } .page-heading__text { width: 100%; } }

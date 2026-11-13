@@ -5,7 +5,9 @@ import {
     type PageField,
     type PageRowsQuery,
     type PageRowsResult,
+    type PageConfig,
 } from '@auto-admin/contracts/pages';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { pages } from '../../shared/api/pages';
 import { apiMessage } from '../../shared/i18n/api-message';
@@ -22,7 +24,7 @@ type RowsState =
 
 type TableQuery = PageRowsQuery & { limit: number };
 
-export const pagePagination = (query: TableQuery, t: any, result: PageRowsResult | null, nextOffset: number, pagination: any, setQuery: React.Dispatch<React.SetStateAction<TableQuery>>) => {
+export const pagePagination = (query: TableQuery, t: TFunction<'pageTable'>, result: PageRowsResult | null, nextOffset: number, pagination: PageConfig['list']['pagination'], setQuery: React.Dispatch<React.SetStateAction<TableQuery>>) => {
     return (
         <>
             <label className="page-table__size">

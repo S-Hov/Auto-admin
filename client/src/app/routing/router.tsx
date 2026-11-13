@@ -17,6 +17,7 @@ const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrat
 const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/MigrationRecoveryPage'));
 const MenuEditorPage = lazy(() => import('../../pages/menuEditor/menuEditorPage'));
 const DataPage = lazy(() => import('../../pages/dataPage/dataPage'));
+const PageEditorPage = lazy(() => import('../../pages/pageEditor/PageEditorPage'));
 
 const PageLoader = (component: React.ReactNode) => (
   <Suspense fallback={
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
               {
                 path: 'pages',
                 children: [
+                  {
+                    path: ':slug/edit',
+                    element: PageLoader(<PageEditorPage />),
+                  },
                   {
                     path: ':slug',
                     element: PageLoader(<DataPage />),

@@ -1,0 +1,13 @@
+.page-editor__body { border: 0; margin: 0; padding: 0; min-width: 0; }
+.page-editor__hint { color: var(--text-color-muted); font-size: .85rem; line-height: 1.6; }
+.page-editor__settings, .page-editor__table-tools { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-block: 24px; }
+.page-editor__table-tools { justify-content: space-between; }
+.page-editor label { display: grid; gap: 6px; font-size: .8rem; font-weight: normal; }
+.page-editor :is(select, .page-editor__column input, .page-editor__settings input) { box-sizing: border-box; width: 100%; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-raised); color: inherit; padding: 8px; font: inherit; }
+.page-editor__settings input { max-width: 140px; }
+.page-editor__column { display: grid; gap: 10px; min-width: 210px; max-width: 320px; white-space: normal; }
+.page-editor__column > input { font-weight: 600; }
+.page-editor__column small { color: var(--text-color-muted); font-weight: normal; }
+.page-editor__column-actions { display: flex; gap: 6px; }
+.page-editor__leave { position: sticky; bottom: 16px; padding: 20px; background: var(--surface-raised); border: 1px solid var(--accent-color); border-radius: 10px; box-shadow: var(--cart-shadow); z-index: 5; }
+.page-editor__leave .button { margin-inline-end: 8px; }

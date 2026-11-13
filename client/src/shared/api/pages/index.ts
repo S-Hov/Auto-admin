@@ -1,8 +1,16 @@
 import { pageDataSchema, pageResponseSchema, pageRowsQuerySchema, pageRowsResponseSchema, type PageRowsParams } from "@auto-admin/contracts/pages";
 import { apiClient, ApiContractError } from "../apiClient";
 import { configureMenuPageSchema, pageListQuerySchema, pageListResponseSchema, pageResolveParamsSchema, pageSaveResponseSchema, type ConfigureMenuPageData } from '@auto-admin/contracts/pages';
+import { updatePageSchema, type UpdatePageData } from '@auto-admin/contracts/pages';
 
 export const pages = {
+    async update(pageId: number, data: UpdatePageData) {
+        const id = pageDataSchema.shape.pageId.parse(pageId);
+        const payload = updatePageSchema.parse(data);
+        const response = await apiClient(`/pages/${id}`, pageSaveResponseSchema, { method: 'PUT', body: JSON.stringify(payload) });
+        if (response.data.pageId !== id || response.data.revision !== payload.revision + 1) throw new ApiContractError(200);
+        return response;
+    },
     async list(params: { q?: string; offset?: number } = {}, options?: { signal?: AbortSignal }) {
         const valid = pageListQuerySchema.parse({ q: params.q, offset: String(params.offset ?? 0) });
         const search = new URLSearchParams({ q: valid.q, limit: String(valid.limit), offset: String(valid.offset) });
