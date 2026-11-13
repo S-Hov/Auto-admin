@@ -6,9 +6,9 @@
     --border-medium: 1px solid #ddd6cf;
     --border-dark: 1px solid var(--secondary-color);
     --background-color-dark: #333;
-    --accent-color: #00018b;
+    --accent-color: #000000;
     --accent-color-2: #006f79;
-    --accent-color-hover: #2e21bc;
+    --accent-color-hover: #073134;
     --accent-color-on-dark: #a5b4fc;
     --text-color-on-accent: #ffffff;
     --text-color-dark: #333;
