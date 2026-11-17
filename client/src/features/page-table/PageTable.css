@@ -3,10 +3,40 @@
 }
 
 
-
 .page-table {
     margin-block: var(--gap-lg);
     color: var(--text-color-dark);
+}
+
+.page-table__summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+
+    &>div {
+        display: flex;
+        min-height: 84px;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid var(--table-border-color);
+        border-radius: 14px;
+        padding: 15px 18px;
+        background: var(--primary-color);
+    }
+
+    & span {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    & strong {
+        font-family: Georgia, serif;
+        font-size: 2rem;
+        font-weight: 400;
+    }
 }
 
 .page-table__header {

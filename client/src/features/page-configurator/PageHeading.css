@@ -3,6 +3,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
+    margin-bottom: 30px;
 }
 
 .page-heading__text {

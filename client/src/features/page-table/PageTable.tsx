@@ -97,6 +97,24 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
 
     return (
         <div className="page-table">
+            <div className="page-table__summary">
+                <div>
+                    <span>Всего</span>
+                    <strong>5</strong>
+                </div>
+                <div>
+                    <span>Всего</span>
+                    <strong>5</strong>
+                </div>
+                <div>
+                    <span>Всего</span>
+                    <strong>5</strong>
+                </div>
+                <div>
+                    <span>Всего</span>
+                    <strong>5</strong>
+                </div>
+            </div>
             <div className="page-table__header">
                 <label className="page-table__search">
                     <Icon icon="message-circle-search" />
@@ -116,39 +134,6 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
                             <option value="waiting_customer">Ждём клиента</option>
                             <option value="resolved">Закрыто</option>
                             <option value="spam">Спам Ждём клиента</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span>Статус</span>
-                        <select>
-                            <option value="">Все</option>
-                            <option value="new">Новое</option>
-                            <option value="in_progress">В работе Ждём клиента</option>
-                            <option value="waiting_customer">Ждём клиента</option>
-                            <option value="resolved">Закрыто</option>
-                            <option value="spam">Спам</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span>Статус</span>
-                        <select>
-                            <option value="">Все</option>
-                            <option value="new">Новое</option>
-                            <option value="in_progress">В работе</option>
-                            <option value="waiting_customer">Ждём клиента Ждём клиента Ждём клиентаЖдём клиента Ждём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиентаЖдём клиента</option>
-                            <option value="resolved">Закрыто</option>
-                            <option value="spam">Спам</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span>Статус</span>
-                        <select>
-                            <option value="">Все</option>
-                            <option value="new">Новое</option>
-                            <option value="in_progress">В работе</option>
-                            <option value="waiting_customer">Ждём клиента</option>
-                            <option value="resolved">Закрыто</option>
-                            <option value="spam">Спам</option>
                         </select>
                     </label>
                     <label>

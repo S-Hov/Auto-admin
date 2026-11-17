@@ -20,7 +20,6 @@ const displayLabels: Record<CatalogDisplayType, string> = {
 
 interface Props { slug: string; onClose: () => void; onSaved: () => void; initialMode?: 'create' | 'existing' }
 
-// Mounted only while open: drafts and requests belong to this modal session.
 export function PageConfigurator({ slug, onClose, onSaved, initialMode = 'create' }: Props) {
     const [mode, setMode] = useState<"create" | "existing">(initialMode);
     const [resources, setResources] = useState<CatalogResource[]>([]);
