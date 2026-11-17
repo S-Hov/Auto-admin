@@ -25,6 +25,7 @@ export const enApi = {
         RECORD_KEY_NULLABLE: 'A record key field must not allow NULL',
         RECORD_KEY_INVALID: 'The record key must match a complete unique index without prefixes or expressions',
         NOT_CONFIGURED: "The page is not configured",
+        SEARCH_INCOMPATIBLE: "The search mode is incompatible with the field type",
     },
     COMMON: {
         BAD_REQUEST: "Invalid request",

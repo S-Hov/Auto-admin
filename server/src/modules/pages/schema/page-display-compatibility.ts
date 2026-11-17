@@ -1,15 +1,7 @@
 import type { PageFieldDisplay } from '@auto-admin/contracts/pages';
 import type { DeepReadonly, StoredField } from '../../../core/schema-catalog';
+import { isNumericFieldType, isTextFieldType } from '../../../core/schema-catalog/types/field-type-category';
 
-const numericTypes = new Set([
-    'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint',
-    'decimal', 'numeric', 'float', 'double', 'double precision', 'real',
-    'int2', 'int4', 'int8',
-]);
-const stringTypes = new Set([
-    'char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext',
-    'character', 'character varying', 'enum', 'set', 'uuid',
-]);
 const datetimeTypes = new Set([
     'datetime', 'timestamp', 'timestamptz',
     'timestamp with time zone', 'timestamp without time zone',
@@ -30,13 +22,13 @@ export function isPageDisplayCompatible(
 
     switch (display.type) {
         case 'text':
-            return stringTypes.has(type) || numericTypes.has(type) || isBoolean ||
+            return isTextFieldType(field.dataType) || isNumericFieldType(field.dataType) || isBoolean ||
                 type === 'date' || datetimeTypes.has(type) || textOnlyTypes.has(type);
-        case 'number': return numericTypes.has(type);
+        case 'number': return isNumericFieldType(field.dataType);
         case 'boolean': return isBoolean;
         case 'date': return type === 'date' || datetimeTypes.has(type);
         case 'datetime': return datetimeTypes.has(type);
         case 'image':
-        case 'link': return stringTypes.has(type);
+        case 'link': return isTextFieldType(field.dataType);
     }
 }
