@@ -12,24 +12,26 @@ export const ERROR_CODES = {
     AUTH_SESSION_INVALID: 'AUTH.SESSION_INVALID',   // Неверная сессия
     AUTH_TOO_MANY_ATTEMPTS: 'AUTH.TOO_MANY_ATTEMPTS',   // Слишком много попыток
 
-    QUERY_INVALID: 'QUERY.INVALID',
-    QUERY_REFERENCE_INVALID: 'QUERY.REFERENCE_INVALID',
-    QUERY_RESULT_TOO_LARGE: 'QUERY.RESULT_TOO_LARGE',
+    QUERY_INVALID: 'QUERY.INVALID',  // Запрос имеет недопустимую структуру
+    QUERY_REFERENCE_INVALID: 'QUERY.REFERENCE_INVALID',  // Запрос содержит неизвестную или неоднозначную таблицу либо поле
+    QUERY_RESULT_TOO_LARGE: 'QUERY.RESULT_TOO_LARGE', // Результат слишком большой. Уменьшите число полей или строк
 
-    ACCESS_QUERY_DENIED: 'ACCESS.QUERY_DENIED',
-    ACCESS_ADMIN_REQUIRED: 'ACCESS.ADMIN_REQUIRED',
-    ACCESS_PERMISSION_TARGET_INVALID: 'ACCESS.PERMISSION_TARGET_INVALID',
+    ACCESS_QUERY_DENIED: 'ACCESS.QUERY_DENIED', // Недостаточно прав для выполнения запроса
+    ACCESS_ADMIN_REQUIRED: 'ACCESS.ADMIN_REQUIRED', // Недостаточно прав. Требуется роль администратора
+    ACCESS_PERMISSION_TARGET_INVALID: 'ACCESS.PERMISSION_TARGET_INVALID', // Недопустимый объект прав доступа. Должен быть ресурс, роль или пользователь
     
-    SCHEMA_CATALOG_REQUIRED: 'SCHEMA.CATALOG_REQUIRED',
+    SCHEMA_CATALOG_REQUIRED: 'SCHEMA.CATALOG_REQUIRED', // Не найден каталог схемы. Требуется предварительная инициализация модуля схемы
 
-    MENU_INVALID: 'MENU.INVALID',
+    MENU_INVALID: 'MENU.INVALID', // Недопустимая конфигурация меню. Проверьте, что все ресурсы и поля существуют и доступны
 
-    PAGE_RESOURCE_UNAVAILABLE: 'PAGE.RESOURCE_UNAVAILABLE',
-    PAGE_FIELD_UNAVAILABLE: 'PAGE.FIELD_UNAVAILABLE',
-    PAGE_FIELD_RESOURCE_MISMATCH: 'PAGE.FIELD_RESOURCE_MISMATCH',
-    PAGE_DISPLAY_INCOMPATIBLE: 'PAGE.DISPLAY_INCOMPATIBLE',
-    PAGE_RECORD_KEY_NULLABLE: 'PAGE.RECORD_KEY_NULLABLE',
-    PAGE_RECORD_KEY_INVALID: 'PAGE.RECORD_KEY_INVALID',
+    PAGE_RESOURCE_UNAVAILABLE: 'PAGE.RESOURCE_UNAVAILABLE', // Ресурс страницы недоступен
+    PAGE_FIELD_UNAVAILABLE: 'PAGE.FIELD_UNAVAILABLE', // Поле страницы недоступно
+    PAGE_FIELD_RESOURCE_MISMATCH: 'PAGE.FIELD_RESOURCE_MISMATCH', // Несоответствие ресурса поля страницы
+    PAGE_DISPLAY_INCOMPATIBLE: 'PAGE.DISPLAY_INCOMPATIBLE', // Несовместимость отображения страницы
+    PAGE_RECORD_KEY_NULLABLE: 'PAGE.RECORD_KEY_NULLABLE', // Ключ записи страницы может быть null
+    PAGE_RECORD_KEY_INVALID: 'PAGE.RECORD_KEY_INVALID', // Неверный ключ записи страницы
+    PAGE_NOT_CONFIGURED: 'PAGE.NOT_CONFIGURED', // Страница не настроена
+    PAGE_SEARCH_INCOMPATIBLE: 'PAGE.SEARCH_INCOMPATIBLE', // Режим поиска несовместим с типом поля
 
     INSTALL_INVALID_SETUP_TOKEN: 'INSTALL.INVALID_SETUP_TOKEN', // Неверный токен настройки
     INSTALL_DATABASE_CONNECTION_FAILED: 'INSTALL.DATABASE_CONNECTION_FAILED',   // Ошибка подключения к базе данных
@@ -57,7 +59,6 @@ export const ERROR_CODES = {
     UNSUPPORTED_DATABASE: 'UNSUPPORTED.DATABASE', // База данных не поддерживается
     UNSUPPORTED_DATABASE_SUBSYSTEM: 'UNSUPPORTED.DATABASE_SUBSYSTEM', // Подсистема базы данных не поддерживается
 
-    PAGE_NOT_CONFIGURED: 'PAGE.NOT_CONFIGURED', // Страница не настроена
 } as const;
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
