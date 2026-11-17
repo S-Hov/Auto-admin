@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { pageSearchSchema } from './page-search.schema';
 
 export const PAGE_CONFIG_LIMITS = {
     fields: 100,
@@ -71,6 +72,7 @@ export const pageConfigSchema = z.strictObject({
     fields: z.array(pageFieldSchema).min(1).max(PAGE_CONFIG_LIMITS.fields),
     list: pageListSchema,
     detail: pageDetailSchema.optional(),
+    search: pageSearchSchema.optional(),
 }).superRefine((config, ctx) => {
     const issue = (path: (string | number)[], message: string) => {
         ctx.addIssue({ code: 'custom', path, message });

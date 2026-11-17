@@ -10,11 +10,12 @@ export const pageSearchSchema = z.strictObject({
 }).superRefine((data, ctx) => {
     const fieldIds = new Set<number>();
     for (const field of data.fields) {
+        const index = data.fields.indexOf(field);
         if (fieldIds.has(field.fieldId)) {
             ctx.addIssue({
                 code: 'custom',
                 message: `Duplicate fieldId ${field.fieldId}`,
-                path: ['fields', data.fields.indexOf(field)],
+                path: ['fields', index, 'fieldId'],
             });
         }
         fieldIds.add(field.fieldId);
