@@ -1,6 +1,18 @@
 import type { QueryCompiler } from "../../contracts/query-compiler.interface";
 import type { CompiledQuery } from "../../types/compiled-query.types";
-import type { ComparisonOperator, CreateQuery, DeleteQuery, FieldCondition, JoinClause, LogicalOperators, ReadQuery, SortClause, UnifiedQuery, UpdateQuery, WhereClause } from "@auto-admin/contracts/query";
+import type {
+    ComparisonOperator,
+    CreateQuery,
+    DeleteQuery,
+    FieldCondition,
+    JoinClause,
+    LogicalOperators,
+    ReadQuery,
+    SortClause,
+    UnifiedQuery,
+    UpdateQuery,
+    WhereClause,
+} from "@auto-admin/contracts/query";
 
 export type LogicalKey = keyof LogicalOperators;
 
@@ -34,6 +46,11 @@ export class MySqlCompiler implements QueryCompiler {
             .split(".")
             .map((part) => `\`${part.replace(/`/g, "")}\``)
             .join(".");
+    }
+
+    // Экранируем значения для MySQL
+    static escapeLikeText(value: string): string {
+        return value.replace(/[!%_]/g, "!$&");
     }
 
     // Запрос на чтение
@@ -115,6 +132,8 @@ export class MySqlCompiler implements QueryCompiler {
             _nin: "NOT IN",
             _like: "LIKE",
             _ilike: "LIKE",
+            _contains: "LIKE",
+            _starts_with: "LIKE",
             _null: "IS NULL",
             _not_null: "IS NOT NULL",
         };
@@ -208,6 +227,24 @@ export class MySqlCompiler implements QueryCompiler {
                         clauses.push(`${field} IS NULL`);
                     } else if (op === "_not_null") {
                         clauses.push(`${field} IS NOT NULL`);
+                    } else if (op === "_contains") {
+                        if (typeof val !== "string") {
+                            throw new Error(
+                                `Оператор ${op} требует строковое значение`,
+                            );
+                        }
+                        const escapeVal = MySqlCompiler.escapeLikeText(val);
+                        clauses.push(`${field} LIKE ? ESCAPE '!'`);
+                        params.push(`%${escapeVal}%`);
+                    } else if (op === "_starts_with") {
+                        if (typeof val !== "string") {
+                            throw new Error(
+                                `Оператор ${op} требует строковое значение`,
+                            );
+                        }
+                        const escapeVal = MySqlCompiler.escapeLikeText(val);
+                        clauses.push(`${field} LIKE ? ESCAPE '!'`);
+                        params.push(`${escapeVal}%`);
                     } else {
                         // Все остальные операторы: = != > >= < <= LIKE ILIKE
                         clauses.push(
@@ -336,6 +373,7 @@ export class MySqlCompiler implements QueryCompiler {
         };
     }
 
+    // Удаление
     static compileDelete(query: DeleteQuery): CompiledQuery {
         let sql = "";
         const params: unknown[] = [];

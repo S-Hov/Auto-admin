@@ -112,6 +112,8 @@ export const fieldConditionSchema = z
         _nin: z.array(scalarSchema).min(1).max(MAX_ARRAY_ITEMS).optional(),
         _like: z.string().max(4_096).optional(),
         _ilike: z.string().max(4_096).optional(),
+        _contains: z.string().max(4_096).optional(),
+        _starts_with: z.string().max(4_096).optional(),
         _null: z.literal(true).optional(),
         _not_null: z.literal(true).optional(),
     })

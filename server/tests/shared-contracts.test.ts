@@ -10,6 +10,17 @@ import * as access from '@auto-admin/contracts/access-control';
 import * as query from '@auto-admin/contracts/query';
 
 describe('shared API contracts', () => {
+    it.each(['_contains', '_starts_with'] as const)('accepts literal text for %s and rejects invalid values', (operator) => {
+        const request = (value: unknown) => ({
+            action: 'read', table: 'orders', select: ['name'], where: { name: { [operator]: value } },
+        });
+
+        const valid = request('A%B_C!');
+        expect(query.queryEngineSchema.parse(valid)).toEqual(valid);
+        expect(query.queryEngineSchema.safeParse(request(42)).success).toBe(false);
+        expect(query.queryEngineSchema.safeParse(request('a'.repeat(4097))).success).toBe(false);
+    });
+
     it('accepts typed queries for every supported action', () => {
         const requests: query.UnifiedQuery[] = [
             {
