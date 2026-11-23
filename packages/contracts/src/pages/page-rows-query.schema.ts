@@ -1,7 +1,10 @@
 import z from "zod";
 import { PAGE_CONFIG_LIMITS } from "./page-config.schema";
 
-export const PAGE_ROWS_QUERY_LIMITS = { maxOffset: 100_000 } as const;
+export const PAGE_ROWS_QUERY_LIMITS = {
+    maxOffset: 100_000,
+    maxSearchLength: 200,
+} as const;
 
 export const pageRowsQuerySchema = z.strictObject({
     limit: z.number().int().min(1).max(PAGE_CONFIG_LIMITS.pageSize).optional(),
@@ -10,6 +13,7 @@ export const pageRowsQuerySchema = z.strictObject({
         field: z.string().min(1).max(64),
         direction: z.enum(['asc', 'desc']),
     }).optional(),
+    search: z.string().trim().max(PAGE_ROWS_QUERY_LIMITS.maxSearchLength).optional(),
 });
 
 export type PageRowsQuery = z.infer<typeof pageRowsQuerySchema>;

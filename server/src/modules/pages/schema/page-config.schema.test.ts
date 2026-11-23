@@ -19,6 +19,24 @@ function config(): PageConfig {
 }
 
 describe('pageConfigSchema', () => {
+    it('preserves search settings for a catalog field absent from displayed fields', () => {
+        const input = config();
+        input.search = { fields: [{ fieldId: 103, mode: 'exact' }] };
+        expect(pageConfigSchema.parse(input)).toEqual(input);
+    });
+
+    it('reports duplicate search fields at their nested config path', () => {
+        const input = config();
+        input.search = { fields: [{ fieldId: 103, mode: 'exact' }, { fieldId: 103, mode: 'contains' }] };
+        const result = pageConfigSchema.safeParse(input);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+            expect(result.error.issues).toEqual(expect.arrayContaining([
+                expect.objectContaining({ path: ['search', 'fields', 1, 'fieldId'] }),
+            ]));
+        }
+    });
+
     it('accepts the agreed first-version config without mutating it', () => {
         const input = config();
         const before = structuredClone(input);

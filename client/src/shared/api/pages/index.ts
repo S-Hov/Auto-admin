@@ -13,8 +13,8 @@ export const pages = {
     },
     async list(params: { q?: string; offset?: number } = {}, options?: { signal?: AbortSignal }) {
         const valid = pageListQuerySchema.parse({ q: params.q, offset: String(params.offset ?? 0) });
-        const search = new URLSearchParams({ q: valid.q, limit: String(valid.limit), offset: String(valid.offset) });
-        return apiClient(`/pages?${search}`, pageListResponseSchema, { method: 'GET', signal: options?.signal });
+        const searchParams = new URLSearchParams({ q: valid.q, limit: String(valid.limit), offset: String(valid.offset) });
+        return apiClient(`/pages?${searchParams}`, pageListResponseSchema, { method: 'GET', signal: options?.signal });
     },
     async configureForMenu(slug: string, data: ConfigureMenuPageData) {
         const valid = pageResolveParamsSchema.parse({ slug });
@@ -43,19 +43,22 @@ export const pages = {
     async getRows(pageId: number, params: PageRowsParams = {}, options?: { signal?: AbortSignal }) {
         const validId = pageDataSchema.shape.pageId.parse(pageId);
         const query = pageRowsQuerySchema.parse(params);
-        const search = new URLSearchParams({ offset: String(query.offset) });
-        if (query.limit !== undefined) search.set('limit', String(query.limit));
+        const searchParams = new URLSearchParams({ offset: String(query.offset) });
+        if (query.limit !== undefined) searchParams.set('limit', String(query.limit));
         if (query.sort) {
-            search.set('sortField', query.sort.field);
-            search.set('sortDirection', query.sort.direction);
+            searchParams.set('sortField', query.sort.field);
+            searchParams.set('sortDirection', query.sort.direction);
         }
-        const response = await apiClient(`/pages/${validId}/rows?${search}`, pageRowsResponseSchema, {
+        if (query.search) searchParams.set('search', query.search);
+
+        const response = await apiClient(`/pages/${validId}/rows?${searchParams}`, pageRowsResponseSchema, {
             method: 'GET', signal: options?.signal,
         });
         if (response.data.pageId !== validId || response.data.pagination.offset !== query.offset ||
             (query.limit !== undefined && response.data.pagination.limit !== query.limit)) {
             throw new ApiContractError(200);
         }
+        
         return response;
     },
 };

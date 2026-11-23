@@ -55,6 +55,79 @@ function fixture(): { config: PageConfig; catalog: SchemaCatalog } {
 // Ключ первой версии — полный PRIMARY/UNIQUE по обычным NOT NULL колонкам.
 // Порядок ID в recordKey не меняет уникальность набора; части ключа недостаточно.
 describe('validatePageConfigAgainstCatalog', () => {
+    describe('search settings', () => {
+        it('accepts a page without search settings', () => {
+            const { config, catalog } = fixture();
+            expect(config.search).toBeUndefined();
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
+        });
+
+        it.each(['exact', 'contains', 'startsWith'] as const)('accepts %s for a hidden text field', (mode) => {
+            const { config, catalog } = fixture();
+            catalog.fields[2].dataType = 'varchar';
+            config.search = { fields: [{ fieldId: 103, mode }] };
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
+        });
+
+        it.each(['int', 'bigint', 'decimal', 'double precision', ' NUMERIC ', 'INT8', 'tinyint'])('accepts exact for a hidden %s field', (dataType) => {
+            const { config, catalog } = fixture();
+            catalog.fields[2].dataType = dataType;
+            config.search = { fields: [{ fieldId: 103, mode: 'exact' }] };
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).not.toThrow();
+        });
+
+        it.each(['contains', 'startsWith'] as const)('rejects numeric %s even without a record key', (mode) => {
+            const { config, catalog } = fixture();
+            config.source.recordKey = null;
+            config.search = { fields: [{ fieldId: 103, mode }] };
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrowError(expect.objectContaining({
+                status: 400, code: 'COMMON.VALIDATION_FAILED',
+                details: [{ field: 'config.search.fields.0.mode', code: 'PAGE.SEARCH_INCOMPATIBLE' }],
+            }));
+        });
+
+        it.each(['date', 'datetime', 'boolean', 'bool', 'json', 'blob', 'unknown_type'])(
+            'rejects every search mode for %s', (dataType) => {
+                for (const mode of ['exact', 'contains', 'startsWith'] as const) {
+                    const { config, catalog } = fixture();
+                    catalog.fields[2].dataType = dataType;
+                    config.search = { fields: [{ fieldId: 103, mode }] };
+                    expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrowError(expect.objectContaining({
+                        status: 400, code: 'COMMON.VALIDATION_FAILED',
+                        details: [{ field: 'config.search.fields.0.mode', code: 'PAGE.SEARCH_INCOMPATIBLE' }],
+                    }));
+                }
+            },
+        );
+
+        it.each([
+            ['unknown', 'PAGE.FIELD_UNAVAILABLE'],
+            ['deleted', 'PAGE.FIELD_UNAVAILABLE'],
+            ['foreign', 'PAGE.FIELD_RESOURCE_MISMATCH'],
+        ])('rejects a %s search field at its actual index without a record key', (scenario, code) => {
+            const { config, catalog } = fixture();
+            config.source.recordKey = null;
+            config.search = { fields: [{ fieldId: 102, mode: 'exact' }, { fieldId: 103, mode: 'exact' }] };
+            if (scenario === 'unknown') config.search.fields[1].fieldId = 999;
+            if (scenario === 'deleted') catalog.fields[2].state = 'missing';
+            if (scenario === 'foreign') catalog.fields[2].resourceId = 99;
+            expect(() => validatePageConfigAgainstCatalog(config, catalog)).toThrowError(expect.objectContaining({
+                status: 400, code: 'COMMON.VALIDATION_FAILED',
+                details: [{ field: 'config.search.fields.1.fieldId', code }],
+            }));
+        });
+
+        it('does not mutate search settings or a readonly catalog', () => {
+            const { config, catalog } = fixture();
+            config.search = { fields: [{ fieldId: 103, mode: 'exact' }] };
+            const before = structuredClone(config);
+            const cached = createReadonlyCatalog(catalog);
+            validatePageConfigAgainstCatalog(config, cached);
+            expect(config).toEqual(before);
+            expect(cached).toEqual(catalog);
+        });
+    });
+
     it.each([
         ['number', 'decimal', 'decimal(12,2)'],
         ['number', 'BIGINT', 'bigint unsigned'],

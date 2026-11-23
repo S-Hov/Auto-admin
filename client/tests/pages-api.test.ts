@@ -63,6 +63,25 @@ describe('pages.getRows', () => {
     function rows(overrides = {}) {
         return { pageId: 42, revision: 3, rows: [{ total: 0 }], pagination: { limit: 25, offset: 0, hasMore: false }, ...overrides };
     }
+    it('encodes normalized search as a single URL parameter alongside pagination and sorting', async () => {
+        fetchMock.mockResolvedValue(success(rows()));
+        const text = 'Иван & статус=новый + 50%_ #?';
+        await pages.getRows(42, { search: `  ${text}  `, limit: 25, offset: 0, sort: { field: 'total', direction: 'asc' } });
+        const url = new URL(String(fetchMock.mock.calls[0][0]));
+        expect(Object.fromEntries(url.searchParams)).toEqual({
+            offset: '0', limit: '25', sortField: 'total', sortDirection: 'asc', search: text,
+        });
+        expect(url.hash).toBe('');
+    });
+    it.each(['', ' \t\n '])('omits blank search %j from the URL', async (search) => {
+        fetchMock.mockResolvedValue(success(rows()));
+        await pages.getRows(42, { search });
+        expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.has('search')).toBe(false);
+    });
+    it('rejects excessive normalized search before fetching', async () => {
+        await expect(pages.getRows(42, { search: 'я'.repeat(201) })).rejects.toThrow();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
     it('serializes numeric pagination and sorting using the shared contract', async () => {
         fetchMock.mockResolvedValue(success(rows({ pagination: { limit: 50, offset: 100, hasMore: true } })));
         const signal = new AbortController().signal;

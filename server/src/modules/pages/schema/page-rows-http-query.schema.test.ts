@@ -2,6 +2,27 @@ import { pageRowsHttpQuerySchema } from '@auto-admin/contracts/pages';
 import { describe, expect, it } from 'vitest';
 
 describe('pageRowsHttpQuerySchema', () => {
+    it('passes normalized search through the transform together with pagination and sorting', () => {
+        expect(pageRowsHttpQuerySchema.parse({
+            search: '  Иван & 50%_  ', limit: '25', offset: '50', sortField: 'total', sortDirection: 'desc',
+        })).toEqual({ search: 'Иван & 50%_', limit: 25, offset: 50, sort: { field: 'total', direction: 'desc' } });
+    });
+    it.each(['', ' \t\n '])('accepts blank search %j', (search) => {
+        expect(pageRowsHttpQuerySchema.parse({ search })).toEqual({ offset: 0, search: '' });
+    });
+    it('accepts 1000 raw characters when the trimmed search is within the limit', () => {
+        expect(pageRowsHttpQuerySchema.parse({ search: ' '.repeat(800) + 'я'.repeat(200) }))
+            .toEqual({ offset: 0, search: 'я'.repeat(200) });
+    });
+    it.each([' '.repeat(1001), ' '.repeat(1000) + 'я'])('rejects excessive raw length before trimming: case %#', (search) => {
+        expect(pageRowsHttpQuerySchema.safeParse({ search }).success).toBe(false);
+    });
+    it('applies the internal search length limit after the HTTP transform', () => {
+        expect(pageRowsHttpQuerySchema.safeParse({ search: 'я'.repeat(201) }).success).toBe(false);
+    });
+    it.each([123, null, ['Иван', 'Пётр'], { text: 'Иван' }])('rejects non-string HTTP search: %j', (search) => {
+        expect(pageRowsHttpQuerySchema.safeParse({ search }).success).toBe(false);
+    });
     it('keeps page-config defaults available when HTTP parameters are absent', () => {
         expect(pageRowsHttpQuerySchema.parse({})).toEqual({ offset: 0 });
     });
