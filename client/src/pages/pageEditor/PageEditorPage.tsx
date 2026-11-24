@@ -14,6 +14,7 @@ import { apiMessage } from '../../shared/i18n/api-message';
 import { Button } from '../../shared/ui/Button/Button';
 import { PageLoader } from '../../shared/ui/Loader';
 import { PageHeading } from '../../features/page-configurator/PageHeading';
+import { TableSourcePicker } from '../../features/page-configurator/TableSourcePicker';
 import { buildPageData, createFieldDrafts } from '../../features/page-configurator/model/build-page-config';
 import { addColumn, removeColumn } from '../../features/page-configurator/model/edit-page-config';
 import { PageTableCell } from '../../features/page-table/PageTableCell';
@@ -131,6 +132,7 @@ function PageEditorContent({ slug }: { slug: string }) {
     }, [saved, navigate, locale, slug]);
 
     function chooseResource(id: number) {
+        if (id === config?.source.resourceId) return;
         const next = resources.find(item => item.id === id && !item.isSystem);
         if (!next) return;
         let selected = 0;
@@ -202,15 +204,9 @@ function PageEditorContent({ slug }: { slug: string }) {
         <p className="page-editor__hint">Режим редактирования · Нажмите на название или описание, чтобы изменить их.</p>
         {saveError && <p className="alert alert-danger" role="alert">{saveError}</p>}
         <fieldset className="page-editor__body" disabled={saving || saved}>
+            {!original && <TableSourcePicker resources={resources} selectedId={resource?.id} onSelect={chooseResource} />}
             <div className="page-editor__settings">
-                <label>Таблица БД{original
-                    ? <span>{resource ? `${resource.schemaName}.${resource.tableName}` : 'Источник отсутствует в каталоге'}</span>
-                    : <select value={resource?.id ?? ''} onChange={event => chooseResource(Number(event.target.value))}>
-                        <option value="" disabled>Выберите таблицу</option>
-                        {resources.filter(item => !item.isSystem && item.fields.some(field => field.allowedDisplays.length)).map(item =>
-                            <option key={item.id} value={item.id}>{item.schemaName}.{item.tableName}</option>)}
-                    </select>}</label>
-                {!original && resources.every(item => item.isSystem || !item.fields.some(field => field.allowedDisplays.length)) && <p>В каталоге нет доступных таблиц с поддерживаемыми полями.</p>}
+                {original && <label>Таблица БД<span>{resource ? `${resource.schemaName}.${resource.tableName}` : 'Источник отсутствует в каталоге'}</span></label>}
                 {config && <>
                     <label>Строк на странице<input type="number" min={1} max={100} value={config.list.pagination.defaultPageSize}
                         onChange={event => {
