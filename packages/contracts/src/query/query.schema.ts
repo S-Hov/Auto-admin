@@ -176,6 +176,7 @@ export const readQuerySchema = z
             .min(1)
             .max(MAX_ARRAY_ITEMS),
         where: whereSchema.optional(),
+        qualifiedOutput: z.literal(true).optional(),
         joins: z
             .array(
                 z.strictObject({

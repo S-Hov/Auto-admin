@@ -4,6 +4,7 @@ import { ERROR_CODES, type ErrorCode, type FieldValidationError } from "@auto-ad
 import { isPageDisplayCompatible } from './page-display-compatibility';
 import type { PageConfig } from "@auto-admin/contracts/pages";
 import { isPageSearchCompatible } from "./page-search-compatibility";
+import { resolvePageSources } from '../model/resolve-page-sources';
 
 const invalidConfig = (field: string, code: ErrorCode): never => {
     const details: FieldValidationError[] = [{ field, code }];
@@ -15,26 +16,11 @@ export const validatePageConfigAgainstCatalog = (
     catalog: CachedSchemaCatalog,
 ): void => {
     const tableId = config.source.resourceId;
-    const table = catalog.resources.find((item) => item.id === tableId);
-    if (
-        !table ||
-        table.schemaName !== catalog.schemaName ||
-        table.isServiceTable ||
-        table.state !== "present"
-    ) {
-        invalidConfig('config.source.resourceId', ERROR_CODES.PAGE_RESOURCE_UNAVAILABLE);
-    }
-
-    const fields = new Map(catalog.fields.map((field) => [field.id, field]));
-    const requireField = (fieldId: number, path: string) => {
-        const field = fields.get(fieldId);
-        if (!field || field.state !== "present") return invalidConfig(path, ERROR_CODES.PAGE_FIELD_UNAVAILABLE);
-        if (field.resourceId !== tableId) return invalidConfig(path, ERROR_CODES.PAGE_FIELD_RESOURCE_MISMATCH);
-        return field;
-    };
+    const sources = resolvePageSources(config, catalog);
+    const requireField = (fieldId: number, path: string) => sources.requireField(fieldId, tableId, path);
 
     config.fields.forEach((pageField, index) => {
-        const field = requireField(pageField.fieldId, `config.fields.${index}.fieldId`);
+        const { field } = sources.resolveColumn(pageField, `config.fields.${index}.fieldId`);
         if (!isPageDisplayCompatible(pageField.display, field)) {
             invalidConfig(`config.fields.${index}.display.type`, ERROR_CODES.PAGE_DISPLAY_INCOMPATIBLE);
         }

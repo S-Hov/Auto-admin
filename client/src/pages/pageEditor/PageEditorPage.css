@@ -11,3 +11,12 @@
 .page-editor__column-actions { display: flex; gap: 6px; }
 .page-editor__leave { position: sticky; bottom: 16px; padding: 20px; background: var(--surface-raised); border: 1px solid var(--accent-color); border-radius: 10px; box-shadow: var(--cart-shadow); z-index: 5; }
 .page-editor__leave .button { margin-inline-end: 8px; }
+.page-editor__add-column { width: 1%; vertical-align: top; }
+.page-editor__add-column button { min-width: 38px; font-size: 1.1rem; }
+.page-column-modal { display: grid; gap: 16px; padding-bottom: 20px; }
+.page-column-modal .table-source-picker { margin: 0; }
+.page-column-modal__conditions { min-width: 0; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+.page-column-modal__pair { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.page-column-modal__pair label { flex: 1 1 150px; min-width: 0; }
+.page-column-modal__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.page-column-modal > label > input { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-raised); color: inherit; font: inherit; }

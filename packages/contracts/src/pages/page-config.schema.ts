@@ -13,6 +13,21 @@ export const PAGE_CONFIG_LIMITS = {
 const catalogIdSchema = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const elementIdSchema = z.string().min(1).max(64).regex(/^[a-zA-Z][a-zA-Z0-9_-]*$/);
 const labelSchema = z.string().trim().min(1).max(100);
+export const pageColumnReferenceSchema = z.string().regex(/^[^.`\x00*]{1,64}\.[^.`\x00*]{1,64}$/);
+
+export const PAGE_JOIN_TYPES = ['LEFT', 'INNER', 'RIGHT'] as const;
+export const PAGE_JOIN_LIMIT = 5;
+export const pageJoinSchema = z.strictObject({
+    alias: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/),
+    resourceId: catalogIdSchema,
+    from: z.string().min(1).max(64).optional(),
+    type: z.enum(PAGE_JOIN_TYPES),
+    on: z.array(z.strictObject({ leftFieldId: catalogIdSchema, rightFieldId: catalogIdSchema })).min(1).max(16),
+}).refine(join => new Set(join.on.map(pair => pair.leftFieldId)).size === join.on.length, {
+    path: ['on'], message: 'Each left field may occur only once',
+});
+
+export type PageJoin = z.infer<typeof pageJoinSchema>;
 
 export const pageFieldDisplaySchema = z.discriminatedUnion('type', [
     z.strictObject({ type: z.literal('text') }),
@@ -29,6 +44,8 @@ export const pageFieldSchema = z.strictObject({
     fieldId: catalogIdSchema,
     label: labelSchema,
     display: pageFieldDisplaySchema,
+    column: pageColumnReferenceSchema.optional(),
+    emptyText: z.string().max(100).optional(),
 });
 
 export const pageSourceSchema = z.strictObject({
@@ -73,6 +90,7 @@ export const pageConfigSchema = z.strictObject({
     list: pageListSchema,
     detail: pageDetailSchema.optional(),
     search: pageSearchSchema.optional(),
+    joins: z.array(pageJoinSchema).max(PAGE_JOIN_LIMIT).optional(),
 }).superRefine((config, ctx) => {
     const issue = (path: (string | number)[], message: string) => {
         ctx.addIssue({ code: 'custom', path, message });
@@ -85,6 +103,7 @@ export const pageConfigSchema = z.strictObject({
         });
     };
     const fieldIds = new Set(config.fields.map((field) => field.id));
+    unique(config.joins?.map(join => join.alias.toLowerCase()) ?? [], ['joins']);
     const references = (values: readonly string[], path: (string | number)[]) => {
         unique(values, path);
         values.forEach((id, index) => {

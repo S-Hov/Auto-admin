@@ -62,9 +62,11 @@ export class MySqlCompiler implements QueryCompiler {
         let select: string[] | "*" = [];
 
         if (Array.isArray(query.select) && query.select.length > 0) {
-            select = query.select.map((field) =>
-                MySqlCompiler.escapeIdentifier(field),
-            );
+            select = query.select.map((field) => {
+                const column = MySqlCompiler.escapeIdentifier(field);
+                if (!query.qualifiedOutput || field.endsWith('*')) return column;
+                return column + ' AS ' + '`' + field.replaceAll('`', '``') + '`';
+            });
         } else {
             select = "*";
         }

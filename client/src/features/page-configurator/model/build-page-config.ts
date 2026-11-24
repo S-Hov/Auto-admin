@@ -1,4 +1,4 @@
-import { createPageSchema, type CreatePageData } from '@auto-admin/contracts/pages';
+import { createPageSchema, pageColumnReferenceSchema, type CreatePageData } from '@auto-admin/contracts/pages';
 import type { CatalogDisplayType, CatalogResource } from '@auto-admin/contracts/schema-catalog';
 
 export interface FieldDraft {
@@ -27,7 +27,12 @@ export function buildPageData(input: {
     const fields = input.fields.filter(field => field.selected).map(field => {
         const source = resource.fields.find(item => item.id === field.fieldId);
         if (!source || !source.allowedDisplays.includes(field.display)) throw new Error('Недопустимый формат поля');
-        return { id: `field_${field.fieldId}`, fieldId: field.fieldId, label: field.label.trim() || source.name.slice(0, 100), display: { type: field.display } };
+        const column = pageColumnReferenceSchema.safeParse(`${resource.tableName}.${source.name}`);
+        return {
+            id: `field_${field.fieldId}`, fieldId: field.fieldId,
+            label: field.label.trim() || source.name.slice(0, 100), display: { type: field.display },
+            ...(column.success ? { column: column.data } : {}),
+        };
     });
     const key = resource.recordKeys.find(item => item.name === input.keyName);
     if (input.keyName && !key) throw new Error('Выбранный ключ записи отсутствует');

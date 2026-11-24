@@ -20,7 +20,8 @@ export function PageTableCell({ field, value }: { field: PageField; value: unkno
     const locale = i18n.resolvedLanguage;
     const { display } = field;
 
-    if (value == null || value === '') return '—';
+    if (value == null) return field.emptyText ?? '—';
+    if (value === '') return '—';
 
     const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
 

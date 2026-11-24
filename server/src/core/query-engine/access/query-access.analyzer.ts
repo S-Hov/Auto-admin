@@ -230,7 +230,7 @@ export function analyzeQueryAccess(
             );
         const uniqueProjections = [...new Set(projections)];
         const outputNames = uniqueProjections.map(
-            (reference) => reference.split(".").at(-1)!,
+            (reference) => query.qualifiedOutput ? reference : reference.split(".").at(-1)!,
         );
         // mysql2 returns rows as objects. Duplicate labels would silently overwrite another column.
         if (

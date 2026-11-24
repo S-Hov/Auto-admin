@@ -4,6 +4,9 @@ import { createReadonlyCatalog } from '../../../core/schema-catalog/cache/schema
 import type { PageConfig } from '@auto-admin/contracts/pages';
 import { parseUnifiedQuery } from '../../../core/query-engine/schema/query.schema';
 import { buildPageListQuery } from './build-page-list-query';
+import { analyzeQueryAccess } from '../../../core/query-engine/access/query-access.analyzer';
+import { MySqlCompiler } from '../../../core/query-engine/providers/mysql/mysql-query.compiler';
+import { mapPageListRows } from './map-page-list-rows';
 
 function fixture() {
     const catalog = makeCatalog();
@@ -37,6 +40,55 @@ function fixture() {
 }
 
 describe('buildPageListQuery', () => {
+    it('carries qualified columns through access analysis, SQL aliases and page rows', () => {
+        const { config, catalog } = fixture();
+        catalog.fields.push(field(201, 2, 'id'));
+        config.joins = [{ alias: 'users', resourceId: 2, type: 'LEFT', on: [{ leftFieldId: 102, rightFieldId: 201 }] }];
+        config.fields.push(
+            { id: 'order', column: 'orders.id', fieldId: 101, label: 'Order ID', display: { type: 'number' } },
+            { id: 'user', column: 'users.id', fieldId: 201, label: 'User ID', display: { type: 'number' } },
+        );
+        config.list.columns = ['order', 'user'];
+        const cached = createReadonlyCatalog(catalog);
+        const result = analyzeQueryAccess(parseUnifiedQuery(buildPageListQuery(config, cached, { offset: 0 })), cached);
+        const sql = new MySqlCompiler().compile(result.query).sql;
+        expect(sql).toContain('SELECT `orders`.`id` AS `orders.id`, `users`.`id` AS `users.id`');
+        expect(sql).toContain('LEFT JOIN `shop`.`users` AS `users` ON `orders`.`total_amount` = `users`.`id`');
+        expect(result.requirements.fields).toEqual(expect.arrayContaining([
+            expect.objectContaining({ fieldId: 102, usage: 'join' }),
+            expect.objectContaining({ fieldId: 201, usage: 'join' }),
+        ]));
+        expect(mapPageListRows(config, cached, [{ 'orders.id': 4, 'users.id': null }])).toEqual([{ order: 4, user: null }]);
+    });
+
+    it('rejects a field whose qualifier and catalog resource disagree', () => {
+        const { config, catalog } = fixture();
+        catalog.fields.push(field(201, 2, 'id'));
+        config.joins = [{ alias: 'users', resourceId: 2, type: 'INNER', on: [{ leftFieldId: 102, rightFieldId: 201 }] }];
+        config.fields[0].column = 'users.id';
+        expect(() => buildPageListQuery(config, createReadonlyCatalog(catalog), { offset: 0 })).toThrowError(expect.objectContaining({
+            details: [{ field: 'config.fields.0.fieldId', code: 'PAGE.FIELD_RESOURCE_MISMATCH' }],
+        }));
+    });
+
+    it('uses separate aliases when the same table is joined twice in a chain', () => {
+        const { config, catalog } = fixture();
+        catalog.fields.push(field(201, 2, 'id'), field(202, 2, 'manager_id'));
+        config.joins = [
+            { alias: 'author', resourceId: 2, type: 'LEFT', on: [{ leftFieldId: 102, rightFieldId: 201 }] },
+            { alias: 'manager', resourceId: 2, from: 'author', type: 'RIGHT', on: [{ leftFieldId: 202, rightFieldId: 201 }] },
+        ];
+        config.fields.push(
+            { id: 'authorId', column: 'author.id', fieldId: 201, label: 'Author', display: { type: 'number' } },
+            { id: 'managerId', column: 'manager.id', fieldId: 201, label: 'Manager', display: { type: 'number' } },
+        );
+        config.list.columns = ['authorId', 'managerId'];
+        const cached = createReadonlyCatalog(catalog);
+        const result = analyzeQueryAccess(parseUnifiedQuery(buildPageListQuery(config, cached, { offset: 0 })), cached);
+        const sql = new MySqlCompiler().compile(result.query).sql;
+        expect(sql).toContain('RIGHT JOIN `shop`.`users` AS `manager` ON `author`.`manager_id` = `manager`.`id`');
+        expect(mapPageListRows(config, cached, [{ 'author.id': null, 'manager.id': 7 }])).toEqual([{ authorId: null, managerId: 7 }]);
+    });
     it('selects only list columns in configured order and resolves all catalog identifiers', () => {
         const { config, catalog } = fixture();
         const query = buildPageListQuery(config, catalog, { offset: 0 });

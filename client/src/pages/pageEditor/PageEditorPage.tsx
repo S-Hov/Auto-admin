@@ -15,6 +15,7 @@ import { Button } from '../../shared/ui/Button/Button';
 import { PageLoader } from '../../shared/ui/Loader';
 import { PageHeading } from '../../features/page-configurator/PageHeading';
 import { TableSourcePicker } from '../../features/page-configurator/TableSourcePicker';
+import { AddPageColumnModal } from '../../features/page-configurator/AddPageColumnModal';
 import { buildPageData, createFieldDrafts } from '../../features/page-configurator/model/build-page-config';
 import { addColumn, removeColumn } from '../../features/page-configurator/model/edit-page-config';
 import { PageTableCell } from '../../features/page-table/PageTableCell';
@@ -54,6 +55,7 @@ function PageEditorContent({ slug }: { slug: string }) {
     const [previewError, setPreviewError] = useState('');
     const [previewLoading, setPreviewLoading] = useState(false);
     const [previewRetry, setPreviewRetry] = useState(0);
+    const [columnDialog, setColumnDialog] = useState<{ joinAlias?: string } | null>(null);
     const dirty = !saved && (original
         ? name !== original.name || description !== (original.description ?? '') || JSON.stringify(config) !== JSON.stringify(original.config)
         : config !== null || name !== '' || description !== '');
@@ -228,45 +230,57 @@ function PageEditorContent({ slug }: { slug: string }) {
                 </>}
             </div>
             {config && <div className="page-table">
-                <div className="page-editor__table-tools"><span>Колонки · {columns.length}</span>
-                    <label>Добавить колонку<select aria-label="Добавить колонку" value="" disabled={config.fields.length >= 100} onChange={event => {
-                        const source = resource?.fields.find(field => field.id === Number(event.target.value));
-                        if (!source) return;
-                        const existing = config.fields.find(field => field.fieldId === source.id && !config.list.columns.includes(field.id));
-                        let suffix = 0;
-                        let id = `field_${source.id}`;
-                        while (config.fields.some(field => field.id === id)) id = `field_${source.id}_${++suffix}`;
-                        setConfig(addColumn(config, existing ?? { id, fieldId: source.id, label: source.name.slice(0, 100), display: { type: source.allowedDisplays[0] } }));
-                    }}><option value="">Выберите поле</option>
-                        {resource?.fields.filter(field => field.allowedDisplays.length > 0 && !columns.some(column => column.fieldId === field.id)).map(field => <option key={field.id} value={field.id}>{field.name}</option>)}
-                    </select></label>
-                </div>
+                <div className="page-editor__table-tools"><span>Колонки · {columns.length}</span></div>
+                {columnDialog && resource && <AddPageColumnModal config={config} primary={resource} resources={resources}
+                    editingJoin={config.joins?.find(join => join.alias === columnDialog.joinAlias)}
+                    displayLabels={displayLabels} onClose={() => setColumnDialog(null)} onAdd={(field, join) => {
+                        const draft = join ? { ...config, joins: [...(config.joins ?? []), join] } : config;
+                        setConfig(addColumn(draft, field));
+                        setColumnDialog(null);
+                    }} onEditJoin={edited => {
+                        setConfig({ ...config, joins: config.joins?.map(join => join.alias === edited.alias ? edited : join) });
+                        setColumnDialog(null);
+                    }} />}
                 <div className="page-table__scroll" role="region" aria-label="Редактор таблицы" tabIndex={0}>
                     <table aria-label={name || 'Настройка колонок'}><thead><tr>{columns.map((field, index) => {
-                        const source = resource?.fields.find(item => item.id === field.fieldId);
+                        const qualifier = field.column?.split('.')[0] ?? resource?.tableName;
+                        const join = config.joins?.find(item => item.alias === qualifier);
+                        const columnResource = join ? resources.find(item => item.id === join.resourceId) : resource;
+                        const source = columnResource?.fields.find(item => item.id === field.fieldId);
                         return <th key={field.id} scope="col"><div className="page-editor__column">
                             <input aria-label={`Название колонки ${index + 1}`} maxLength={100} value={field.label} onChange={event => updateField(field.id, { label: event.target.value })} />
                             <label>Поле БД<select aria-label={`Поле БД колонки ${index + 1}`} value={field.fieldId} onChange={event => {
-                                const next = resource?.fields.find(item => item.id === Number(event.target.value));
-                                if (next) updateField(field.id, { fieldId: next.id, display: next.allowedDisplays.includes(field.display.type) ? field.display : { type: next.allowedDisplays[0] } });
+                                const next = columnResource?.fields.find(item => item.id === Number(event.target.value));
+                                if (next) updateField(field.id, { fieldId: next.id, column: qualifier ? `${qualifier}.${next.name}` : undefined,
+                                    display: next.allowedDisplays.includes(field.display.type) ? field.display : { type: next.allowedDisplays[0] } });
                             }}>
                                 {!source && <option value={field.fieldId}>Поле отсутствует · {field.fieldId}</option>}
-                                {resource?.fields.filter(item => item.allowedDisplays.length > 0).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                                {columnResource?.fields.filter(item => item.allowedDisplays.length > 0).map(item => <option key={item.id} value={item.id}>{qualifier}.{item.name}</option>)}
                             </select></label>
+                            <label>Текст при отсутствии значения<input value={field.emptyText ?? ''} placeholder="—" maxLength={100}
+                                onChange={event => updateField(field.id, { emptyText: event.target.value || undefined })} /></label>
                             <label>Формат<select aria-label={`Формат колонки ${index + 1}`} value={field.display.type} onChange={event => updateField(field.id, { display: { type: event.target.value as CatalogDisplayType } })}>
                                 {[...new Set([field.display.type, ...(source?.allowedDisplays ?? [])])].map(type => <option key={type} value={type}>{displayLabels[type]}</option>)}
                             </select></label>
                             <small>{source ? `${source.dataType}${source.nullable ? ' · NULL' : ''}` : 'Выберите доступное поле'}</small>
+                            {join && <Button type="button" variant="secondary" onClick={() => setColumnDialog({ joinAlias: join.alias })}>
+                                {join.type} JOIN · {join.alias}
+                            </Button>}
                             <div className="page-editor__column-actions">
                                 <Button variant="secondary" aria-label={`Переместить ${field.label} влево`} disabled={index === 0} onClick={() => moveColumn(index, -1)}>←</Button>
                                 <Button variant="secondary" aria-label={`Переместить ${field.label} вправо`} disabled={index === columns.length - 1} onClick={() => moveColumn(index, 1)}>→</Button>
                                 <Button variant="secondary" disabled={columns.length === 1} onClick={() => setConfig(removeColumn(config, field.id))}>Убрать</Button>
                             </div>
                         </div></th>;
-                    })}</tr></thead><tbody>{preview?.rows.slice(0, 5).map((row, index) => <tr key={index}>{columns.map(field => {
-                        const savedField = original?.config.fields.find(item => item.fieldId === field.fieldId);
+                    })}<th scope="col" className="page-editor__add-column">
+                        <Button type="button" variant="secondary" aria-label="Добавить колонку" title="Добавить колонку"
+                            disabled={!resource || config.fields.length >= 100} onClick={() => setColumnDialog({})}>+</Button>
+                    </th></tr></thead><tbody>{preview?.rows.slice(0, 5).map((row, index) => <tr key={index}>{columns.map(field => {
+                        const savedField = original?.config.fields.find(item => item.fieldId === field.fieldId
+                            && (item.column?.split('.')[0] ?? resource?.tableName) === (field.column?.split('.')[0] ?? resource?.tableName)
+                            && original.config.list.columns.includes(item.id));
                         return <td key={field.id}><PageTableCell field={field} value={savedField ? row[savedField.id] : undefined} /></td>;
-                    })}</tr>)}</tbody></table>
+                    })}<td /></tr>)}</tbody></table>
                 </div>
                 <p className="page-editor__hint">{previewLoading ? 'Загрузка предпросмотра…' : !original
                     ? 'Данные появятся после создания страницы.'

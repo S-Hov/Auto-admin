@@ -7,6 +7,8 @@ export default defineConfig({
   optimizeDeps: {
     // Linked workspace packages are served as source by default. Our contracts
     // are CommonJS, so convert every public entry point to ESM for the browser.
+    // predev rebuilds the contracts even when the lockfile is unchanged.
+    force: true,
     include: [
       '@auto-admin/contracts/schema-catalog',
       '@auto-admin/contracts/common',
