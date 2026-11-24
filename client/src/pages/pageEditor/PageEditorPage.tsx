@@ -200,9 +200,30 @@ function PageEditorContent({ slug }: { slug: string }) {
     </div></div>;
 
     return <div className="Page"><div className="container page-editor">
-        <PageHeading name={name} description={description} onNameChange={saving || saved ? undefined : setName} onDescriptionChange={saving || saved ? undefined : setDescription}
-            actions={<><Button variant="secondary" disabled={saving} onClick={() => navigate(appPaths.page(locale, slug))}>Отмена</Button>
-                <Button isLoading={saving} disabled={saved || !config || !dirty || !resource || resource.isSystem} onClick={save}>Сохранить</Button></>} />
+        <PageHeading
+            name={name}
+            description={description}
+            onNameChange={saving || saved ? undefined : setName}
+            onDescriptionChange={saving || saved ? undefined : setDescription}
+            actions={
+                <>
+                    <Button
+                        variant="secondary"
+                        disabled={saving}
+                        onClick={() => navigate(appPaths.page(locale, slug))}
+                    >
+                        Отмена
+                    </Button>
+                    <Button
+                        isLoading={saving}
+                        disabled={saved || !config || !dirty || !resource || resource.isSystem}
+                        onClick={save}
+                    >
+                        Сохранить
+                    </Button>
+                </>
+            }
+        />
         <p className="page-editor__hint">Режим редактирования · Нажмите на название или описание, чтобы изменить их.</p>
         {saveError && <p className="alert alert-danger" role="alert">{saveError}</p>}
         <fieldset className="page-editor__body" disabled={saving || saved}>
@@ -210,18 +231,29 @@ function PageEditorContent({ slug }: { slug: string }) {
             <div className="page-editor__settings">
                 {original && <label>Таблица БД<span>{resource ? `${resource.schemaName}.${resource.tableName}` : 'Источник отсутствует в каталоге'}</span></label>}
                 {config && <>
-                    <label>Строк на странице<input type="number" min={1} max={100} value={config.list.pagination.defaultPageSize}
-                        onChange={event => {
-                            const size = Number(event.target.value);
-                            setConfig({ ...config, list: { ...config.list, pagination: { defaultPageSize: size,
-                                pageSizeOptions: [...new Set([...config.list.pagination.pageSizeOptions.filter(value => value !== config.list.pagination.defaultPageSize), size])].sort((a, b) => a - b) } } });
+                    <label>Строк на странице
+                        <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={config.list.pagination.defaultPageSize}
+                            onChange={event => {
+                                const size = Number(event.target.value);
+                                setConfig({ ...config, list: { ...config.list, pagination: { defaultPageSize: size,
+                                    pageSizeOptions: [...new Set([...config.list.pagination.pageSizeOptions.filter(value => value !== config.list.pagination.defaultPageSize), size])].sort((a, b) => a - b) } } });
                         }} /></label>
-                    <label>Сортировка<select value={config.list.sorting.default[0]?.field ?? ''} onChange={event => setConfig({ ...config,
-                        list: { ...config.list, sorting: { ...config.list.sorting,
-                            default: event.target.value ? [{ field: event.target.value, direction: config.list.sorting.default[0]?.direction ?? 'asc' }] : [] } } })}>
-                        <option value="">Без сортировки</option>
-                        {config.fields.filter(field => config.list.sorting.allowed.includes(field.id)).map(field => <option key={field.id} value={field.id}>{field.label}</option>)}
-                    </select></label>
+                    <label>
+                        Сортировка
+                        <select
+                            value={config.list.sorting.default[0]?.field ?? ''}
+                            onChange={event => setConfig({ ...config,
+                            list: { ...config.list, sorting: { ...config.list.sorting,
+                                default: event.target.value ? [{ field: event.target.value, direction: config.list.sorting.default[0]?.direction ?? 'asc' }] : [] } } })}
+                        >
+                            <option value="">Без сортировки</option>
+                            {config.fields.filter(field => config.list.sorting.allowed.includes(field.id)).map(field => <option key={field.id} value={field.id}>{field.label}</option>)}
+                        </select>
+                    </label>
                     {config.list.sorting.default.length > 0 && <label>Направление<select value={config.list.sorting.default[0].direction}
                         onChange={event => setConfig({ ...config, list: { ...config.list, sorting: { ...config.list.sorting,
                             default: config.list.sorting.default.map((sort, index) => index === 0 ? { ...sort, direction: event.target.value as 'asc' | 'desc' } : sort) } } })}>
@@ -269,7 +301,9 @@ function PageEditorContent({ slug }: { slug: string }) {
                             <div className="page-editor__column-actions">
                                 <Button variant="secondary" aria-label={`Переместить ${field.label} влево`} disabled={index === 0} onClick={() => moveColumn(index, -1)}>←</Button>
                                 <Button variant="secondary" aria-label={`Переместить ${field.label} вправо`} disabled={index === columns.length - 1} onClick={() => moveColumn(index, 1)}>→</Button>
-                                <Button variant="secondary" disabled={columns.length === 1} onClick={() => setConfig(removeColumn(config, field.id))}>Убрать</Button>
+                                <div className="page-editor__column-actions-remove">
+                                    <Button variant="danger" disabled={columns.length === 1} onClick={() => setConfig(removeColumn(config, field.id))}>Убрать</Button>
+                                </div>
                             </div>
                         </div></th>;
                     })}<th scope="col" className="page-editor__add-column">

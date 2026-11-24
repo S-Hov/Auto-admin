@@ -23,8 +23,12 @@ export function TableSourcePicker({ resources, selectedId, onSelect }: Props) {
         <legend>Таблица БД</legend>
         <label className="table-source-picker__search">
             Поиск таблицы
-            <Input type="search" placeholder="Название таблицы, схемы или описание" value={query}
-                onChange={event => setQuery(event.target.value)} />
+            <Input
+                type="search"
+                placeholder="Название таблицы, схемы или описание"
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+            />
         </label>
         <div className="table-source-picker__status" role="status">
             <span>{search ? `Найдено: ${matches.length} из ${available.length}` : `Доступно таблиц: ${available.length}`}</span>
@@ -35,12 +39,19 @@ export function TableSourcePicker({ resources, selectedId, onSelect }: Props) {
                 : <ul className="table-source-picker__list" aria-label="Доступные таблицы">
                     {matches.map(resource => <li key={resource.id}>
                         <label className={`table-source-picker__option${resource.id === selectedId ? ' is-selected' : ''}`}>
-                            <input type="radio" name={groupName} value={resource.id} checked={resource.id === selectedId}
-                                onChange={() => onSelect(resource.id)} />
+                            <input
+                                type="radio"
+                                name={groupName}
+                                value={resource.id}
+                                checked={resource.id === selectedId}
+                                onChange={() => onSelect(resource.id)}
+                            />
                             <span className="table-source-picker__details">
                                 <strong>{resource.schemaName}.{resource.tableName}</strong>
                                 {resource.comment && <span>{resource.comment}</span>}
-                                <small>{resource.type === 'view' ? 'Представление' : 'Таблица'} · Полей: {resource.fields.length}</small>
+                                <small>
+                                    {resource.type === 'view' ? 'Представление' : 'Таблица'} · Полей: {resource.fields.length}
+                                </small>
                             </span>
                             {resource.id === selectedId && <span className="table-source-picker__selected">Выбрана</span>}
                         </label>
