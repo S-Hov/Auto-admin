@@ -8,6 +8,13 @@ export interface IconMeta {
 
 export const ICONS_CATALOG: IconMeta[] = [
     {
+        id: 'action-close',
+        name: 'Close',
+        category: 'navigation',
+        tags: ['close', 'cancel', 'cross', 'x', 'dismiss', 'крестик', 'закрыть', 'отмена'],
+        component: 'action-close.svg',
+    },
+    {
         id: 'menu-hamburger-classic',
         name: 'Classic Hamburger Menu',
         category: 'navigation',

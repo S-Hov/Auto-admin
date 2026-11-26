@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button } from "../Button/Button";
+import { Icon } from "../Icon";
 import "./Modal.css";
 
 interface ModalProps {
@@ -54,11 +55,11 @@ const Modal = ({ open, onClose, title, children, hideHeader = false }: ModalProp
             {!hideHeader && <header className="modal__header">
                 <h2 id={titleId} className="modal__title">{title}</h2>
                 <Button className="modal__close" variant="secondary" onClick={onClose} type="button" aria-label="Закрыть окно">
-                    <span aria-hidden="true">×</span>
+                    <Icon icon="action-close" />
                 </Button>
             </header>}
             {hideHeader && <Button className="modal__close modal__close--floating" variant="secondary" onClick={onClose} type="button" aria-label="Закрыть окно">
-                <span aria-hidden="true">×</span>
+                <Icon icon="action-close" />
             </Button>}
             <div className="modal__body">{children}</div>
         </dialog>
