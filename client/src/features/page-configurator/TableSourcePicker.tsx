@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import type { CatalogResource } from '@auto-admin/contracts/schema-catalog';
 import { Input } from '../../shared/ui/Input/Input';
+import { Raccoon } from '../../shared/ui/Raccoon/Raccoon';
 import './TableSourcePicker.css';
 
 interface Props {
@@ -34,9 +35,10 @@ export function TableSourcePicker({ resources, selectedId, onSelect }: Props) {
             <span>{search ? `Найдено: ${matches.length} из ${available.length}` : `Доступно таблиц: ${available.length}`}</span>
             {selected && <span>Выбрана: <strong>{selected.schemaName}.{selected.tableName}</strong></span>}
         </div>
-        {available.length === 0 ? <p className="table-source-picker__empty">В каталоге нет доступных таблиц с поддерживаемыми полями.</p>
-            : matches.length === 0 ? <p className="table-source-picker__empty">Таблицы не найдены. Измените поисковый запрос.</p>
-                : <ul className="table-source-picker__list" aria-label="Доступные таблицы">
+        {matches.length === 0 ? <div className="table-source-picker__empty" role="status">
+            <Raccoon variant={available.length === 0 ? 'playing' : 'confused'} className="raccoon--compact" />
+            <p>{available.length === 0 ? 'В каталоге нет доступных таблиц с поддерживаемыми полями.' : 'Таблицы не найдены. Измените поисковый запрос.'}</p>
+        </div> : <ul className="table-source-picker__list" aria-label="Доступные таблицы">
                     {matches.map(resource => <li key={resource.id}>
                         <label className={`table-source-picker__option${resource.id === selectedId ? ' is-selected' : ''}`}>
                             <input

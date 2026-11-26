@@ -1,10 +1,18 @@
-const notFoundPage = () => {
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { appPaths } from '../../app/routing/app-paths';
+import { useAppLocale } from '../../app/routing/locale/use-app-locale';
+import { StatusPanel } from '../../shared/ui/StatusPanel/StatusPanel';
+
+const NotFoundPage = () => {
+  const locale = useAppLocale();
+  const { t } = useTranslation('status');
+
   return (
-    <div>
-      <h1>404 - Page Not Found</h1>
-      <p>The page you are looking for does not exist.</p>
-    </div>
+    <StatusPanel variant="confused" title={t('notFound')} description={t('notFoundDescription')} fullscreen>
+      <Link to={appPaths.home(locale)}>{t('home')}</Link>
+    </StatusPanel>
   );
 };
 
-export default notFoundPage;
+export default NotFoundPage;

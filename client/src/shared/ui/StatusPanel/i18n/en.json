@@ -1,0 +1,15 @@
+{
+    "bootstrapError": "Could not check startup status",
+    "databaseUnavailable": "The database is unavailable",
+    "systemError": "A system error occurred",
+    "authError": "Could not check authentication status",
+    "retry": "Try again",
+    "notFound": "404 — Page not found",
+    "notFoundDescription": "Check the address or return to the home page.",
+    "forbidden": "Access denied",
+    "forbiddenDescription": "Your account does not have access to this section.",
+    "home": "Home",
+    "reload": "Reload page",
+    "welcome": "Welcome to Auto Admin",
+    "welcomeDescription": "Choose a section from the menu."
+}

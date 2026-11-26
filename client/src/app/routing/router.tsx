@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout';
 import AuthLayout from './layouts/AuthLayout';
 import InstallLayout from './layouts/InstallLayout';
 import { AppGate } from './guards/AppGate';
+import { RouteError } from './RouteError';
 import LocaleLayout from './layouts/LocaleLayout';
 import { RootLocaleRedirect } from './redirects/RootLocaleRedirect';
 import { PageLoader as PageLoadingIndicator } from '../../shared/ui/Loader';
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
   {
     path: '/:locale',
     element: <LocaleLayout />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <AppGate />,

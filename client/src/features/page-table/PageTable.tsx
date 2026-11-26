@@ -14,6 +14,8 @@ import { PageTableCell } from './PageTableCell';
 import './PageTable.css';
 import { Input } from '../../shared/ui/Input/Input';
 import { Icon } from '../../shared/ui/Icon';
+import { Raccoon } from '../../shared/ui/Raccoon/Raccoon';
+import { getErrorVariant } from '../../shared/ui/StatusPanel/get-error-variant';
 
 type RowsState =
     | { kind: 'ready'; data: PageRowsResult }
@@ -277,16 +279,21 @@ export function PageTable({ page, onReloadPage }: { page: PageData; onReloadPage
 
             {isLoading && <p className="page-table__message" role="status">{t('loading')}</p>}
             {result?.rows.length === 0 && (
-                <p className="page-table__message" role="status">{t(query.offset ? 'emptyPage' : 'empty')}</p>
+                <div className="page-table__message" role="status">
+                    <Raccoon variant="playing" className="raccoon--compact" />
+                    <p>{t(query.offset ? 'emptyPage' : 'empty')}</p>
+                </div>
             )}
             {state?.kind === 'error' && (
                 <div className="page-table__message">
+                    <Raccoon variant={getErrorVariant(state.error)} className="raccoon--compact" />
                     <p role="alert">{apiMessage(state.error)}</p>
                     <Button type="button" variant="secondary" onClick={() => setQuery({ ...query })}>{t('retry')}</Button>
                 </div>
             )}
             {state?.kind === 'stale' ? (
                 <div className="page-table__message">
+                    <Raccoon variant="confused" className="raccoon--compact" />
                     <p role="alert">{t('stale')}</p>
                     <Button type="button" variant="secondary" onClick={onReloadPage}>{t('reload')}</Button>
                 </div>

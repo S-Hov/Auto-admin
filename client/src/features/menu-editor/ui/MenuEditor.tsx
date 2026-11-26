@@ -8,6 +8,7 @@ import MenuItemPanel from "./MenuItemPanel";
 import "./MenuEditor.css";
 import { buildMenuMoveData } from "../model/build-menu-move-data";
 import { toast } from "sonner";
+import { Raccoon } from "../../../shared/ui/Raccoon/Raccoon";
 
 export function MenuEditor({
     items,
@@ -90,7 +91,10 @@ export function MenuEditor({
             >
                 <h2>Структура меню</h2>
                 {items.length === 0 && (
-                    <p>Меню пока не настроено. Нажмите «+» у корневого узла, чтобы добавить первый раздел.</p>
+                    <div>
+                        <Raccoon variant="repairing" className="raccoon--compact" />
+                        <p>Меню пока не настроено. Нажмите «+» у корневого узла, чтобы добавить первый раздел.</p>
+                    </div>
                 )}
                 <MenuEditorBoard
                     items={items}

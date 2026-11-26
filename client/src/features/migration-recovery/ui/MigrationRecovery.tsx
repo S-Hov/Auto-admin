@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import './MigrationRecovery.css';
 import { TextLoader } from '../../../shared/ui/Loader';
+import { Raccoon } from '../../../shared/ui/Raccoon/Raccoon';
 
 interface RecoveryInfoItem {
     name: string;
@@ -123,6 +124,7 @@ const MigrationRecovery = () => {
             className="recovery-form"
             onSubmit={handleSubmit(onSubmit)}
         >
+            <Raccoon variant="repairing" className="raccoon--compact" />
             {installToken ? (
                 <div className="recovery-info">
                     {recoveryInfoItems.map((item) => {

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { createPageSchema, type PageConfig, type PageData, type PageField, type PageRowsResult } from '@auto-admin/contracts/pages';
 import type { CatalogDisplayType, CatalogResource } from '@auto-admin/contracts/schema-catalog';
 import { ERROR_CODES } from '@auto-admin/contracts/common';
 import { useAuth } from '../../app/providers/auth/AuthContext';
+import { AccessDenied } from '../../app/routing/guards/AccessDenied';
 import { useAppLocale } from '../../app/routing/locale/use-app-locale';
 import { appPaths } from '../../app/routing/app-paths';
 import { pages } from '../../shared/api/pages';
@@ -13,6 +14,9 @@ import { ApiClientError } from '../../shared/api/ApiClientError';
 import { apiMessage } from '../../shared/i18n/api-message';
 import { Button } from '../../shared/ui/Button/Button';
 import { PageLoader } from '../../shared/ui/Loader';
+import { Raccoon, type RaccoonVariant } from '../../shared/ui/Raccoon/Raccoon';
+import { getErrorVariant } from '../../shared/ui/StatusPanel/get-error-variant';
+import { StatusPanel } from '../../shared/ui/StatusPanel/StatusPanel';
 import { PageHeading } from '../../features/page-configurator/PageHeading';
 import { TableSourcePicker } from '../../features/page-configurator/TableSourcePicker';
 import { AddPageColumnModal } from '../../features/page-configurator/AddPageColumnModal';
@@ -30,8 +34,7 @@ const displayLabels: Record<CatalogDisplayType, string> = {
 export default function PageEditorPage() {
     const { slug } = useParams<{ slug: string }>();
     const { user } = useAuth();
-    const locale = useAppLocale();
-    if (!user || user.roleKey !== 'admin' || user.rights !== 'full') return <Navigate to={appPaths.home(locale)} replace />;
+    if (!user || user.roleKey !== 'admin' || user.rights !== 'full') return <AccessDenied />;
     return <PageEditorContent key={slug} slug={slug!} />;
 }
 
@@ -44,7 +47,7 @@ function PageEditorContent({ slug }: { slug: string }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState('');
+    const [loadError, setLoadError] = useState<{ message: string; variant: RaccoonVariant } | null>(null);
     const [catalogMissing, setCatalogMissing] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [retry, setRetry] = useState(0);
@@ -67,7 +70,7 @@ function PageEditorContent({ slug }: { slug: string }) {
         const controller = new AbortController();
         async function load() {
             setLoading(true);
-            setLoadError('');
+            setLoadError(null);
             setCatalogMissing(false);
             try {
                 const [catalog, page] = await Promise.all([
@@ -85,7 +88,7 @@ function PageEditorContent({ slug }: { slug: string }) {
                 setDescription(page?.data.description ?? '');
             } catch (error) {
                 if (!controller.signal.aborted) {
-                    setLoadError(apiMessage(error));
+                    setLoadError({ message: apiMessage(error), variant: getErrorVariant(error) });
                     setCatalogMissing(error instanceof ApiClientError && error.code === ERROR_CODES.SCHEMA_CATALOG_REQUIRED);
                 }
             } finally {
@@ -186,18 +189,22 @@ function PageEditorContent({ slug }: { slug: string }) {
     }
 
     if (loading) return <div className="Page"><PageLoader /></div>;
-    if (loadError) return <div className="Page"><div className="container">
-        <p role="alert">{loadError}</p>{catalogMissing ? <>
-            <p>Сначала создайте каталог структуры базы данных.</p>
+    if (loadError) return <StatusPanel
+        variant={catalogMissing ? 'repairing' : loadError.variant}
+        title={loadError.message}
+        description={catalogMissing ? 'Сначала создайте каталог структуры базы данных.' : undefined}
+        role="alert"
+    >
+        {catalogMissing ?
             <Button isLoading={scanning} onClick={async () => {
                 setScanning(true);
                 try { await schemaCatalog.scan(); setRetry(value => value + 1); }
-                catch (error) { setLoadError(apiMessage(error)); }
+                catch (error) { setLoadError({ message: apiMessage(error), variant: getErrorVariant(error) }); }
                 finally { setScanning(false); }
             }}>Просканировать базу данных</Button>
-        </> : <Button onClick={() => setRetry(value => value + 1)}>Повторить</Button>}
+            : <Button onClick={() => setRetry(value => value + 1)}>Повторить</Button>}
         <Button variant="secondary" onClick={() => navigate(appPaths.page(locale, slug))}>Назад к странице</Button>
-    </div></div>;
+    </StatusPanel>;
 
     return <div className="Page"><div className="container page-editor">
         <PageHeading
@@ -319,8 +326,15 @@ function PageEditorContent({ slug }: { slug: string }) {
                 <p className="page-editor__hint">{previewLoading ? 'Загрузка предпросмотра…' : !original
                     ? 'Данные появятся после создания страницы.'
                     : 'Предпросмотр: до 5 строк сохранённой страницы. Данные новых полей и выбранная сортировка появятся после сохранения.'}</p>
-                {preview && preview.rows.length === 0 && <p>В таблице пока нет записей.</p>}
-                {previewError && <div role="alert"><p>{previewError}</p><Button variant="secondary" onClick={() => setPreviewRetry(value => value + 1)}>Повторить предпросмотр</Button></div>}
+                {preview && preview.rows.length === 0 && !previewError && <div>
+                    <Raccoon variant="playing" className="raccoon--compact" />
+                    <p>В таблице пока нет записей.</p>
+                </div>}
+                {previewError && <div role="alert">
+                    <Raccoon variant="sad" className="raccoon--compact" />
+                    <p>{previewError}</p>
+                    <Button variant="secondary" onClick={() => setPreviewRetry(value => value + 1)}>Повторить предпросмотр</Button>
+                </div>}
             </div>}
         </fieldset>
         {blocker.state === 'blocked' && <div className="page-editor__leave" role="alert">

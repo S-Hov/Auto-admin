@@ -1,0 +1,10 @@
+.raccoon {
+    display: block;
+    width: min(100%, var(--raccoon-size, 220px));
+    height: auto;
+    margin-inline: auto;
+}
+
+.raccoon--compact {
+    --raccoon-size: 112px;
+}

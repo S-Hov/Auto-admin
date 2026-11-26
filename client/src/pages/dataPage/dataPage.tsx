@@ -14,6 +14,9 @@ import { apiMessage } from "../../shared/i18n/api-message";
 import { Button } from '../../shared/ui/Button/Button';
 import { PageConfigurator } from '../../features/page-configurator/PageConfigurator';
 import { PageTable } from '../../features/page-table/PageTable';
+import { Raccoon, type RaccoonVariant } from '../../shared/ui/Raccoon/Raccoon';
+import { getErrorVariant } from '../../shared/ui/StatusPanel/get-error-variant';
+import { StatusPanel } from '../../shared/ui/StatusPanel/StatusPanel';
 import './dataPage.css';
 
 const DataPage = () => {
@@ -29,7 +32,7 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState<PageData | null>(null);
     const [isPageConfigured, setIsPageConfigured] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<{ message: string; variant: RaccoonVariant } | null>(null);
     const [configuratorOpen, setConfiguratorOpen] = useState(false);
     const [reload, setReload] = useState(0);
 
@@ -61,7 +64,7 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
                     }
                     else {
                         toast.info("Не удалось загрузить страницу");
-                        setError(apiMessage(error));
+                        setError({ message: apiMessage(error), variant: getErrorVariant(error) });
                     }
                 }
             } finally {
@@ -83,9 +86,7 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
             ) : (
                 <div className="container">
                     {error ? (
-                        <div className="alert alert-danger" role="alert">
-                            {error}
-                        </div>
+                        <StatusPanel variant={error.variant} title={error.message} role="alert" />
                     ) : page ? (
                         <>
                             <PageHeading name={page.name} description={page.description} actions={canEdit && slug
@@ -98,6 +99,7 @@ const DataPageContent = ({ slug }: { slug?: string }) => {
                         </>
                     ) : !isPageConfigured && (
                         <div className="data-page__empty">
+                            <Raccoon variant={canEdit ? 'repairing' : 'playing'} />
                             <h1>Здесь будет ваша страница</h1>
                             <p>Подключите таблицу и выберите нужные колонки.</p>
                             {canEdit && slug && <>
