@@ -290,8 +290,8 @@ server/src/modules/auth/
 Позже:
 
 ```text
-repository/postgresql/postgresql-auth.repository.ts
-repository/sqlite/sqlite-auth.repository.ts
+repository/postgresql/postgresql.repository.ts
+repository/sqlite/sqlite.repository.ts
 ```
 
 Та же структура применяется к:

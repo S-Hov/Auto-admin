@@ -4,12 +4,10 @@ import type { AccessControlProvider } from "./contracts/access-control-provider.
 import type { AccessPrincipal } from "./contracts/access-control.types";
 import { getActiveAccessControlProvider } from "./runtime/access-control.runtime";
 import { requireSystemAdmin } from "./policy/require-system-admin";
-import {
-    parsePermissionChange,
-    permissionSubjectSchema,
-} from "./schema/permission.schema";
+import { parsePermissionChange } from "./schema/permission.schema";
+import { permissionSubjectSchema } from "@auto-admin/contracts/access-control";
 import { badRequest, forbidden } from "../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export class PermissionManagementService {
     constructor(

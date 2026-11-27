@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout';
 import AuthLayout from './layouts/AuthLayout';
 import InstallLayout from './layouts/InstallLayout';
 import { AppGate } from './guards/AppGate';
+import { RouteError } from './RouteError';
 import LocaleLayout from './layouts/LocaleLayout';
 import { RootLocaleRedirect } from './redirects/RootLocaleRedirect';
 import { PageLoader as PageLoadingIndicator } from '../../shared/ui/Loader';
@@ -16,6 +17,8 @@ const LoginPage = lazy(() => import('../../pages/login/loginPage'));
 const RunMigrationsPage = lazy(() => import('../../pages/runMigrations/runMigrationsPage'));
 const MigrationRecoveryPage = lazy(() => import('../../pages/migrationRecovery/MigrationRecoveryPage'));
 const MenuEditorPage = lazy(() => import('../../pages/menuEditor/menuEditorPage'));
+const DataPage = lazy(() => import('../../pages/dataPage/dataPage'));
+const PageEditorPage = lazy(() => import('../../pages/pageEditor/PageEditorPage'));
 
 const PageLoader = (component: React.ReactNode) => (
   <Suspense fallback={
@@ -33,6 +36,7 @@ const router = createBrowserRouter([
   {
     path: '/:locale',
     element: <LocaleLayout />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <AppGate />,
@@ -50,6 +54,19 @@ const router = createBrowserRouter([
                   {
                     path: 'menu',
                     element: PageLoader(<MenuEditorPage />),
+                  }
+                ]
+              },
+              {
+                path: 'pages',
+                children: [
+                  {
+                    path: ':slug/edit',
+                    element: PageLoader(<PageEditorPage />),
+                  },
+                  {
+                    path: ':slug',
+                    element: PageLoader(<DataPage />),
                   }
                 ]
               }

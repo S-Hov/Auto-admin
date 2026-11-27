@@ -6,15 +6,15 @@ import type { AccessPrincipal } from "../../core/access-control";
 import { isSystemAdmin } from "../../core/access-control";
 import { requireSystemAdmin } from "../../core/access-control/policy/require-system-admin";
 import { getActiveAccessControlProvider } from "../../core/access-control/runtime/access-control.runtime";
-import { createMenuRepository } from "./repository/menu-repository.factory";
-import type { MenuRepository } from "./repository/menu-repository.interface";
+import { createMenuRepository } from "./repository/repository.factory";
+import type { MenuRepository } from "./repository/repository.interface";
 import type { MenuVisibilityRow } from "./menu.types";
-import type { MenuSaveData, MenuPermissionData } from "./schema/menu.schema";
+import type { MenuSaveData, MenuPermissionData } from "@auto-admin/contracts/menu";
 import {
     badRequest,
     forbidden,
 } from "../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 export class MenuService {
     constructor(
@@ -96,6 +96,12 @@ export class MenuService {
     ) {
         const { id, ...data } = input;
         return this.manage(principal, async (repository) => {
+            // Как и удаление страницы, блокируем страницу до пунктов меню.
+            // Блокировка не даёт удалить выбранную страницу до сохранения ссылки.
+            if (data.pageId !== undefined && data.pageId !== null &&
+                !(await repository.pageExistsForUpdate(data.pageId))) {
+                throw badRequest(ERROR_CODES.MENU_INVALID);
+            }
             const rows = await repository.readAll(true);
             if (rows.length >= 500 && id === undefined)
                 throw badRequest(ERROR_CODES.MENU_INVALID);
@@ -115,13 +121,17 @@ export class MenuService {
                 if (!parent) throw badRequest(ERROR_CODES.MENU_INVALID);
                 parentId = parent.parentId;
             }
-            const menuId = await repository.save(data, principal.userId, id);
+            const savedData = {
+                ...data,
+                pageId: data.pageId === undefined ? previous?.pageId ?? null : data.pageId,
+            };
+            const menuId = await repository.save(savedData, principal.userId, id);
             await repository.appendAudit(
                 menuId,
                 id === undefined ? "create" : "update",
                 principal.userId,
                 previous ?? null,
-                { id: menuId, ...data },
+                { id: menuId, ...savedData },
                 requestId,
             );
             return { id: menuId };

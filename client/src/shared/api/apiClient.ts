@@ -1,7 +1,7 @@
 import type { z } from 'zod';
-import { apiErrorSchema, apiSuccessSchema } from './schema';
 import { ApiClientError } from "./ApiClientError";
 import type { ApiErrorPayload, ApiSuccessPayload } from "./types";
+import { apiErrorSchema, apiSuccessSchema } from '@auto-admin/contracts/common';
 
 export const isApiErrorPayload = (value: unknown): value is ApiErrorPayload => apiErrorSchema.safeParse(value).success;
 

@@ -1,4 +1,4 @@
-import type { ManageableMenuItemDto } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 import type { EditableMenuItemDto, EditableVirtualMenuItem } from "./menu-editor-tree.types";
 
 export const buildEditorTree = (items: readonly ManageableMenuItemDto[]): EditableVirtualMenuItem => {

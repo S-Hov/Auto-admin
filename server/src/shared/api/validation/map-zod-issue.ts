@@ -1,6 +1,5 @@
 import type { ZodIssue } from "zod";
-import type { FieldValidationError } from "./validation.types";
-import { ERROR_CODES } from "../codes/error-codes";
+import { type FieldValidationError, ERROR_CODES } from "@auto-admin/contracts/common";
 
 const hasPath = (input: unknown, path: PropertyKey[]): boolean => {
     let current = input;

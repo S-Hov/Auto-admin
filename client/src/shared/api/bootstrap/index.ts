@@ -1,5 +1,5 @@
 import { apiClient } from "../apiClient"
-import { bootstrapResponseSchema } from "./bootstrap.schema"
+import { bootstrapResponseSchema } from "@auto-admin/contracts/bootstrap";
 
 export const bootstrap = {
     getStatus() {

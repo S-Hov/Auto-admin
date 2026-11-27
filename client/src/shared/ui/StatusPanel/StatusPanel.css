@@ -1,0 +1,42 @@
+.status-panel {
+    display: grid;
+    justify-items: center;
+    padding: clamp(16px, 4vw, 40px);
+}
+
+.status-panel--fullscreen {
+    min-height: 100svh;
+    align-items: center;
+}
+
+.status-panel__card {
+    display: grid;
+    gap: 16px;
+    width: min(100%, 480px);
+    padding: clamp(20px, 4vw, 36px);
+    border-radius: var(--radius-card-1);
+    box-shadow: var(--cart-shadow);
+    background: var(--surface-raised);
+    color: var(--text-color-dark);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.status-panel__card h1 {
+    font-size: clamp(22px, 4vw, 30px);
+    line-height: 1.25;
+}
+
+.status-panel__card p {
+    margin-top: 8px;
+    color: var(--text-color-subtle);
+    line-height: 1.5;
+}
+
+.status-panel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}

@@ -6,7 +6,7 @@ import type {
     DatabaseConnection,
     DatabaseExecutor,
 } from "./executor.interface";
-import type { DatabaseDescriptor, DatabaseType } from "./database.types";
+import type { DatabaseDescriptor, DatabaseType } from "@auto-admin/contracts/database";
 
 export interface DatabaseProvider<
     TDatabaseType extends DatabaseType = DatabaseType,

@@ -1,7 +1,4 @@
-import type {
-    ManageableMenuItemDto,
-    MenuSaveData,
-} from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { getMenuSubtreeIds } from "./get-menu-subtree-ids";
 
 export const buildMenuMoveData = (

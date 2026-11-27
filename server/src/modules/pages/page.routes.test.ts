@@ -1,0 +1,403 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import { once } from 'node:events';
+import type { Server } from 'node:http';
+import { admin, manager } from '../../../tests/fixtures/access.fixture';
+import { pageData } from '../../../tests/fixtures/page.fixture';
+
+const { readAuthSession } = vi.hoisted(() => ({ readAuthSession: vi.fn() }));
+vi.mock('../auth', () => ({ readAuthSession }));
+vi.mock('../../shared/logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
+import pageRouter from './page.routes';
+import { pageService } from './page.service';
+import { errorHandler } from '../../shared/middleware/errorHandler';
+import { httpLogger } from '../../shared/middleware/logger';
+import { COOKIE_NAMES } from '../../constants/cookies';
+import { conflict, notFound } from '../../shared/api/errors/error-helpers';
+import { validatePageConfigAgainstCatalog } from './schema/validate-page-config-against-catalog';
+import { pageCatalog } from '../../../tests/fixtures/page.fixture';
+import { pageResponseSchema } from '@auto-admin/contracts/pages';
+
+let server: Server;
+let url: string;
+const cookie = `${COOKIE_NAMES.AUTH_SESSION}=${'a'.repeat(64)}`;
+const session = { ...admin, username: 'admin', expiresAt: new Date(Date.now() + 60_000) };
+
+beforeAll(async () => {
+    const app = express();
+    app.use(httpLogger, express.json(), cookieParser());
+    app.use('/api/pages', pageRouter);
+    app.use(errorHandler);
+    server = app.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const address = server.address();
+    if (!address || typeof address === 'string') throw new Error('Missing test address');
+    url = `http://127.0.0.1:${address.port}/api/pages`;
+});
+
+beforeEach(() => {
+    vi.restoreAllMocks();
+    readAuthSession.mockReset().mockResolvedValue(session);
+    vi.spyOn(pageService, 'create').mockResolvedValue({ pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'configureForMenu').mockResolvedValue({ pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'get').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'getBySlug').mockResolvedValue({ ...pageData(), pageId: 42, revision: 1 });
+    vi.spyOn(pageService, 'getRows').mockResolvedValue({
+        pageId: 42, revision: 1, rows: [{ total: 100 }],
+        pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+    vi.spyOn(pageService, 'update').mockResolvedValue({ pageId: 42, revision: 4 });
+    vi.spyOn(pageService, 'delete').mockResolvedValue({ deleted: true });
+    vi.spyOn(pageService, 'list').mockResolvedValue({
+        items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false },
+    });
+});
+
+describe('configure a menu destination', () => {
+    const configure = (body: unknown, slug = 'orders', authenticated = true) => fetch(`${url}/for-menu/${encodeURIComponent(slug)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(authenticated ? { Cookie: cookie } : {}) }, body: JSON.stringify(body),
+    });
+    it('passes validated create and existing-page commands to the service', async () => {
+        for (const body of [{ mode: 'create', page: pageData() }, { mode: 'existing', pageId: 42 }]) {
+            expect((await configure(body)).status).toBe(200);
+            expect(pageService.configureForMenu).toHaveBeenLastCalledWith('orders', body, session, expect.any(String));
+        }
+    });
+    it.each([{}, { mode: 'existing', pageId: 0 }, { mode: 'create', page: {} }, { mode: 'existing', pageId: 42, userId: 1 }])('rejects invalid body %j', async body => {
+        expect((await configure(body)).status).toBe(400);
+        expect(pageService.configureForMenu).not.toHaveBeenCalled();
+    });
+    it('requires auth/admin and a valid slug', async () => {
+        const body = { mode: 'existing', pageId: 42 };
+        expect((await configure(body, 'orders', false)).status).toBe(401);
+        expect((await configure(body, 'invalid.slug')).status).toBe(400);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await configure(body)).status).toBe(403);
+        expect(pageService.configureForMenu).not.toHaveBeenCalled();
+    });
+});
+
+describe('page lookup by slug', () => {
+    const resolve = (slug: string, authenticated = true) => fetch(`${url}/resolve/${encodeURIComponent(slug)}`, {
+        headers: authenticated ? { Cookie: cookie } : {},
+    });
+    it('returns the same complete page response as the ID endpoint', async () => {
+        const bySlug = await resolve('orders');
+        const byId = await fetch(`${url}/42`, { headers: { Cookie: cookie } });
+        expect(bySlug.status).toBe(200);
+        const body = pageResponseSchema.parse(await bySlug.json());
+        expect(body.data).toEqual({ ...pageData(), pageId: 42, revision: 1 });
+        expect(await byId.json()).toEqual(body);
+        expect(pageService.getBySlug).toHaveBeenCalledWith('orders', session);
+    });
+    it('requires the same authentication and administrator access as lookup by ID', async () => {
+        expect((await resolve('orders', false)).status).toBe(401);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await resolve('orders')).status).toBe(403);
+        expect(pageService.getBySlug).not.toHaveBeenCalled();
+    });
+    it.each(['Orders', '-orders', 'orders.test', 'sales/orders', ' ', 'a'.repeat(151)])('rejects invalid slug %s', async (slug) => {
+        expect((await resolve(slug)).status).toBe(400);
+        expect(pageService.getBySlug).not.toHaveBeenCalled();
+    });
+    it('preserves a missing destination error', async () => {
+        vi.mocked(pageService.getBySlug).mockRejectedValue(notFound());
+        const response = await resolve('missing');
+        expect(response.status).toBe(404);
+        expect(await response.json()).toMatchObject({ success: false, code: 'COMMON.NOT_FOUND' });
+    });
+});
+
+describe('page rows HTTP boundary', () => {
+    function rows(query = '', id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}/rows${query}`, { headers: authenticated ? { Cookie: cookie } : {} });
+    }
+    it('requires authentication and administrator access', async () => {
+        expect((await rows('', '42', false)).status).toBe(401);
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await rows()).status).toBe(403);
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it('passes validated defaults and returns the normal API envelope', async () => {
+        const response = await rows();
+        expect(response.status).toBe(200);
+        expect(pageService.getRows).toHaveBeenCalledWith(42, { offset: 0 }, session);
+        expect(await response.json()).toMatchObject({ success: true, code: 'COMMON.OK', data: {
+            pageId: 42, revision: 1, rows: [{ total: 100 }], pagination: { limit: 25, offset: 0, hasMore: false },
+        } });
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+    it('passes numeric pagination and the selected sort object to the service', async () => {
+        expect((await rows('?limit=50&offset=150&sortField=total&sortDirection=desc')).status).toBe(200);
+        expect(pageService.getRows).toHaveBeenCalledWith(42, { limit: 50, offset: 150, sort: { field: 'total', direction: 'desc' } }, session);
+    });
+    it.each(['0', '-1', '1.5', 'invalid', '9007199254740992'])('rejects invalid page ID %s', async (id) => {
+        expect((await rows('', id)).status).toBe(400);
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it.each([
+        '?limit=0', '?limit=101', '?limit=1e2', '?limit=1.5', '?offset=-1', '?offset=100001',
+        '?limit=10&limit=25', '?offset=0&offset=25', '?sortField=total', '?sortDirection=asc',
+        '?sortField=total&sortDirection=up', '?sortField=total&sortField=id&sortDirection=asc', '?unknown=1',
+    ])('rejects invalid query %s before calling the service', async (query) => {
+        const response = await rows(query);
+        expect(response.status).toBe(400);
+        expect(await response.json()).toMatchObject({ code: 'COMMON.VALIDATION_FAILED' });
+        expect(pageService.getRows).not.toHaveBeenCalled();
+    });
+    it('preserves service errors instead of returning an empty page', async () => {
+        vi.mocked(pageService.getRows).mockRejectedValueOnce(notFound());
+        expect((await rows()).status).toBe(404);
+        vi.mocked(pageService.getRows).mockRejectedValueOnce(new Error('Database failure'));
+        const response = await rows();
+        expect(response.status).toBe(500);
+        expect(await response.json()).toMatchObject({ code: 'COMMON.INTERNAL_ERROR' });
+    });
+});
+
+describe('page selector HTTP boundary', () => {
+    it('preserves catalog validation codes and paths in the standard HTTP error envelope', async () => {
+        const data = pageData();
+        data.config.fields[0].display = { type: 'datetime' };
+        let validationError: unknown;
+        try {
+            validatePageConfigAgainstCatalog(data.config, pageCatalog());
+        } catch (error) {
+            validationError = error;
+        }
+        expect(validationError).toBeDefined();
+        vi.mocked(pageService.create).mockRejectedValueOnce(validationError);
+        const response = await fetch(url, {
+            method: 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+        });
+        expect(response.status).toBe(400);
+        expect(await response.json()).toMatchObject({
+            success: false,
+            code: 'COMMON.VALIDATION_FAILED',
+            details: [{ field: 'config.fields.0.display.type', code: 'PAGE.DISPLAY_INCOMPATIBLE' }],
+        });
+    });
+
+    function list(query = '', authenticated = true) {
+        return fetch(`${url}${query}`, { headers: authenticated ? { Cookie: cookie } : {} });
+    }
+
+    it('requires a session', async () => {
+        expect((await list('', false)).status).toBe(401);
+        expect(pageService.list).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await list()).status).toBe(403);
+        expect(pageService.list).not.toHaveBeenCalled();
+    });
+
+    it('uses validated defaults and the standard envelope', async () => {
+        const response = await list();
+        expect(response.status).toBe(200);
+        expect(pageService.list).toHaveBeenCalledWith({ q: '', limit: 25, offset: 0 }, session);
+        expect(await response.json()).toMatchObject({
+            data: { items: [{ pageId: 42, name: 'Заказы' }], pagination: { limit: 25, offset: 0, hasMore: false } },
+        });
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('normalizes search and pagination without overwriting Express query properties', async () => {
+        expect((await list(`?q=${encodeURIComponent(' Заказы ')}&limit=10&offset=20`)).status).toBe(200);
+        expect(pageService.list).toHaveBeenCalledWith({ q: 'Заказы', limit: 10, offset: 20 }, session);
+    });
+
+    it.each(['?limit=0', '?limit=101', '?limit=1e2', '?offset=-1', '?offset=100001', '?limit=10&limit=20', '?q=a&q=b', '?unknown=1'])(
+        'rejects invalid query %s before the service', async (query) => {
+            const response = await list(query);
+            expect(response.status).toBe(400);
+            expect(await response.json()).toMatchObject({ code: 'COMMON.VALIDATION_FAILED' });
+            expect(pageService.list).not.toHaveBeenCalled();
+        },
+    );
+
+    it('does not hide a database failure as an empty list', async () => {
+        vi.mocked(pageService.list).mockRejectedValue(new Error('Database unavailable'));
+        expect((await list()).status).toBe(500);
+    });
+});
+
+describe('page deletion HTTP boundary', () => {
+    function remove(id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+            headers: { 'x-request-id': 'page-delete-request', ...(authenticated ? { Cookie: cookie } : {}) },
+        });
+    }
+
+    it('requires a session', async () => {
+        expect((await remove('42', false)).status).toBe(401);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await remove()).status).toBe(403);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it.each(['0', '-1', '1.5', '1e2', '0x10', '01', 'abc', '9007199254740992'])('rejects invalid ID %s before the service', async (id) => {
+        expect((await remove(id)).status).toBe(400);
+        expect(pageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('passes ID, principal and request ID and returns the deletion result', async () => {
+        const response = await remove();
+        expect(response.status).toBe(200);
+        expect(pageService.delete).toHaveBeenCalledWith(42, session, 'page-delete-request');
+        expect(await response.json()).toMatchObject({ data: { deleted: true } });
+    });
+
+    it('returns 404 for a missing page', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(notFound());
+        expect((await remove()).status).toBe(404);
+    });
+
+    it('returns 409 for a page referenced by menu', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(conflict());
+        expect((await remove()).status).toBe(409);
+    });
+
+    it('does not return success on a transaction failure', async () => {
+        vi.mocked(pageService.delete).mockRejectedValue(new Error('Audit failed'));
+        expect((await remove()).status).toBe(500);
+    });
+});
+
+describe('page update HTTP boundary', () => {
+    function update(body: unknown = { ...pageData(), revision: 3 }, id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json', 'x-request-id': 'page-update-request',
+                ...(authenticated ? { Cookie: cookie } : {}),
+            },
+            body: JSON.stringify(body),
+        });
+    }
+
+    it('passes the numeric URL ID, validated body, principal and request ID', async () => {
+        const data = { ...pageData(), revision: 3 };
+        const response = await update({ ...data, name: ' Заказы ' });
+        expect(response.status).toBe(200);
+        expect(pageService.update).toHaveBeenCalledWith(42, data, session, 'page-update-request');
+        expect(await response.json()).toMatchObject({ data: { pageId: 42, revision: 4 } });
+    });
+
+    it('requires a session', async () => {
+        expect((await update(undefined, '42', false)).status).toBe(401);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('requires a system administrator', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await update()).status).toBe(403);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('validates both URL params and the body before invoking the service', async () => {
+        expect((await update({ ...pageData(), revision: 3 }, '1e2')).status).toBe(400);
+        expect((await update(pageData())).status).toBe(400);
+        expect(pageService.update).not.toHaveBeenCalled();
+    });
+
+    it('preserves a revision conflict from the service', async () => {
+        vi.mocked(pageService.update).mockRejectedValue(conflict());
+        expect((await update()).status).toBe(409);
+    });
+
+    it('preserves a missing-page response from the service', async () => {
+        vi.mocked(pageService.update).mockRejectedValue(notFound());
+        expect((await update()).status).toBe(404);
+    });
+});
+
+describe('page reading HTTP boundary', () => {
+    function read(id = '42', authenticated = true) {
+        return fetch(`${url}/${encodeURIComponent(id)}`, {
+            headers: authenticated ? { Cookie: cookie } : {},
+        });
+    }
+
+    it('requires a session before reading', async () => {
+        expect((await read('42', false)).status).toBe(401);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-admins before reading', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await read()).status).toBe(403);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it.each(['0', '-1', '1.5', '1e2', '0x10', '01', '9007199254740992'])('rejects invalid ID %s before the service', async (id) => {
+        expect((await read(id)).status).toBe(400);
+        expect(pageService.get).not.toHaveBeenCalled();
+    });
+
+    it('passes a numeric ID and the session principal and returns the page', async () => {
+        const response = await read();
+        expect(response.status).toBe(200);
+        expect(pageService.get).toHaveBeenCalledWith(42, session);
+        expect(await response.json()).toMatchObject({ data: { ...pageData(), pageId: 42, revision: 1 } });
+    });
+
+    it('preserves a not-found service response', async () => {
+        vi.mocked(pageService.get).mockRejectedValue(notFound());
+        expect((await read()).status).toBe(404);
+    });
+});
+
+afterAll(async () => {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+});
+
+function request(body: unknown = pageData(), authenticated = true) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json', 'x-request-id': 'page-test-request',
+            ...(authenticated ? { Cookie: cookie } : {}),
+        },
+        body: JSON.stringify(body),
+    });
+}
+
+describe('page creation HTTP boundary', () => {
+    it('requires a session', async () => {
+        expect((await request(pageData(), false)).status).toBe(401);
+        expect(pageService.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-admin before executing the service', async () => {
+        readAuthSession.mockResolvedValue({ ...session, ...manager });
+        expect((await request()).status).toBe(403);
+        expect(pageService.create).not.toHaveBeenCalled();
+    });
+
+    it.each([{}, { ...pageData(), revision: 5 }, { ...pageData(), name: ' ' }])('rejects invalid input: %j', async (body) => {
+        expect((await request(body)).status).toBe(400);
+        expect(pageService.create).not.toHaveBeenCalled();
+    });
+
+    it('passes normalized input, the authenticated principal and request ID to the service', async () => {
+        const data = pageData();
+        const response = await request({ ...data, name: ' Заказы ' });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('x-request-id')).toBe('page-test-request');
+        expect(pageService.create).toHaveBeenCalledWith(data, session, 'page-test-request');
+        expect(await response.json()).toMatchObject({ data: { pageId: 42, revision: 1 } });
+    });
+
+    it('does not return success when the service fails', async () => {
+        vi.mocked(pageService.create).mockRejectedValue(new Error('Insert failed'));
+        expect((await request()).status).toBe(500);
+    });
+});

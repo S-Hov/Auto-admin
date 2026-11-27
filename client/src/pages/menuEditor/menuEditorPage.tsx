@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
-import type {
-    ManageableMenuItemDto,
-    MenuSaveData,
-} from "../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { menu } from "../../shared/api/menu";
 import { toast } from "sonner";
 import { apiMessage } from "../../shared/i18n/api-message";
 import { useAuth } from "../../app/providers/auth/AuthContext";
-import { Navigate } from "react-router-dom";
-import { appPaths } from "../../app/routing/app-paths";
-import { useAppLocale } from "../../app/routing/locale/use-app-locale";
+import { AccessDenied } from "../../app/routing/guards/AccessDenied";
 import { Button } from "../../shared/ui/Button/Button";
 import { PageLoader } from "../../shared/ui/Loader";
 import { MenuEditor } from "../../features/menu-editor/ui/MenuEditor";
 import { buildEditorTree } from "../../features/menu-editor/model/build-editor-tree";
 import { useMenuRefresh } from "../../app/providers/menu/MenuRefreshContext";
 import { upsertSavedMenuItem } from "../../features/menu-editor/model/build-menu-save-data";
+import { StatusPanel } from '../../shared/ui/StatusPanel/StatusPanel';
+import { getErrorVariant } from '../../shared/ui/StatusPanel/get-error-variant';
+import type { RaccoonVariant } from '../../shared/ui/Raccoon/Raccoon';
 
 interface StatusLoading {
     status: "loading";
@@ -24,6 +22,7 @@ interface StatusLoading {
 interface StatusError {
     status: "error";
     message: string;
+    variant: RaccoonVariant;
 }
 
 interface StatusReady {
@@ -35,9 +34,8 @@ type LoadingStatus = StatusLoading | StatusError | StatusReady;
 
 const MenuEditorPage = () => {
     const { user } = useAuth();
-    const locale = useAppLocale();
     if (!user || user.roleKey !== "admin" || user.rights !== "full") {
-        return <Navigate to={appPaths.home(locale)} replace />;
+        return <AccessDenied />;
     }
 
     return <MenuEditorContent key={user.userId} />;
@@ -66,7 +64,7 @@ const MenuEditorContent = () => {
                 if (!active) return;
                 const message = apiMessage(error);
                 toast.error(message);
-                setStatus({ status: "error", message });
+                setStatus({ status: "error", message, variant: getErrorVariant(error) });
             }
         };
 
@@ -129,10 +127,9 @@ const MenuEditorContent = () => {
                 <PageLoader label="Загрузка меню" />
             )}
             {status.status === "error" && (
-                <div>
-                    <p role="alert">{status.message}</p>
+                <StatusPanel variant={status.variant} title={status.message} role="alert">
                     <Button onClick={retryMenu}>Повторить</Button>
-                </div>
+                </StatusPanel>
             )}
             {status.status === "ready" && (
                 <MenuEditor items={status.items} onSave={saveItem} onDelete={deleteItem} />

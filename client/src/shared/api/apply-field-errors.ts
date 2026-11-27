@@ -2,7 +2,7 @@ import { ApiClientError } from "./ApiClientError";
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 import { apiMessage } from "../i18n/api-message";
 import { z } from "zod";
-import { fieldErrorSchema } from "./schema";
+import { fieldErrorSchema } from "@auto-admin/contracts/common";
 
 export const applyFieldErrors = <TFieldValues extends FieldValues>(
     error: unknown,

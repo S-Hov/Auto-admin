@@ -1,5 +1,5 @@
 import type { DatabaseConnectionConfig } from "../../../db/contracts/connection.types";
-import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { DatabaseConnection, DatabaseExecutor } from "../../../db/contracts/executor.interface";
 import type { DBSnapshot } from "../types/schema-catalog.types";
 import type { SchemaCatalogRepository } from "./schema-catalog-repository.interface";

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { menu } from '../src/shared/api/menu';
 import { mockMenuItems } from '../src/shared/api/menu/menu.mock';
-import { visibleMenuResponseSchema as menuResponseSchema } from '../src/shared/api/menu/menu.schema';
+import { visibleMenuResponseSchema as menuResponseSchema } from "@auto-admin/contracts/menu";
 import { ApiContractError } from '../src/shared/api/apiClient';
 
 const getMenu = () => menu.getMenu();
@@ -20,7 +20,14 @@ it('validates the server envelope and returns independent menu items', async () 
     expect((await getMenu()).data[0].name).toBe(mockMenuItems[0].name);
 });
 
-it.each([{ id: '1' }, { parentId: false }, { iconType: 'unknown' }, { canView: 1 }, { icon: {} }, { sortOrder: 1.5 }])('rejects a malformed menu item %j', (patch) => {
+it.each([42, null])('reads and preserves a page binding in a visible menu: %s', (pageId) => {
+    const response = menuResponseSchema.parse({
+        success: true, code: 'COMMON.OK', data: [{ ...mockMenuItems[0], pageId }],
+    });
+    expect(response.data[0].pageId).toBe(pageId);
+});
+
+it.each([{ id: '1' }, { parentId: false }, { pageId: '42' }, { pageId: 0 }, { iconType: 'unknown' }, { canView: 1 }, { icon: {} }, { sortOrder: 1.5 }])('rejects a malformed menu item %j', (patch) => {
     expect(menuResponseSchema.safeParse({ success: true, code: 'COMMON.OK', data: [{ ...mockMenuItems[0], ...patch }] }).success).toBe(false);
 });
 

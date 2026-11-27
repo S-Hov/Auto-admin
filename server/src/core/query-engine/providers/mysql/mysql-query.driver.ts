@@ -1,7 +1,7 @@
 import type { DatabaseDriver } from "../../contracts/database-driver.interface";
 import type { DatabaseExecutor } from "../../../../db/contracts/executor.interface";
 import type { CompiledQuery } from "../../types/compiled-query.types";
-import type { QueryResult } from "../../types/query-result.types";
+import type { QueryResult } from "@auto-admin/contracts/query";
 
 export class MySqlDriver implements DatabaseDriver {
     constructor(private readonly executor: DatabaseExecutor) {}

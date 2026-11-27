@@ -1,12 +1,5 @@
-import type {
-    DBTable,
-    SchemaCatalog,
-    SchemaScanChangeCounts,
-    StoredConstraint,
-    StoredField,
-    StoredIndex,
-    StoredResource,
-} from "../types/schema-catalog.types";
+import type { DBTable, SchemaCatalog, StoredConstraint, StoredField, StoredIndex, StoredResource } from "../types/schema-catalog.types";
+import type { SchemaScanChangeCounts } from "@auto-admin/contracts/access-control";
 import type {
     ConstraintFieldWriteItem,
     ConstraintWriteItem,

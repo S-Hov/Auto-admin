@@ -122,3 +122,7 @@ body,
     width: 0;
     height: 0;
 }
+
+.Page {
+    position: relative;
+}

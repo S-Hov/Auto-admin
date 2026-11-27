@@ -1,4 +1,4 @@
-import type { VisibleMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { VisibleMenuItemDto } from "@auto-admin/contracts/menu";
 import type { MenuNode } from './admin-shell.types';
 
 export function buildMenuTree(items: readonly VisibleMenuItemDto[]): MenuNode[] {

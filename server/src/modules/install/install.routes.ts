@@ -9,19 +9,16 @@ import {
     retryMigrationController,
     systemConfigurationController,
 } from "./install.controller";
-import registerRouter from "./registerNewAdmin/register.routes";
+import registerRouter from "./register-admin/register.routes";
 import { statusMigrated } from "../../shared/middleware/checkInstallationStatus";
 import { validate } from "../../shared/middleware/validate";
-import { applyNextMigrationSchema } from "./schema/applyNextMigration.schema";
+import { applyNextMigrationRequestSchema as applyNextMigrationSchema, checkConnectionSchema, recoverySchema, checkDatabaseTypeSchema } from "@auto-admin/contracts/install";
 import { requirePendingMigrations } from "../../shared/middleware/requirePendingMigrations";
 import { canConfigureDatabase } from "../../shared/middleware/canConfigureDatabase";
 import { requireInstallToken } from "../../shared/middleware/requireInstallToken";
-import { checkConnectionSchema } from "./schema/checkConnection.schema";
-import { recoverySchema } from "./schema/recovery.schema";
 import { createRateLimiter } from "../../shared/middleware/rateLimiter";
 import { envConfig } from "../../config/env";
 import { requireMigrationRecovery } from "../../shared/middleware/requireMigrationRecovery";
-import { checkDatabaseTypeSchema } from "./schema/checkDatabaseType.schema";
 
 const installRouter = express.Router();
 const installRateLimiter = createRateLimiter({

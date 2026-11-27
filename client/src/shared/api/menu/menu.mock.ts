@@ -1,4 +1,4 @@
-import type { VisibleMenuItemDto } from "./menu.types";
+import type { VisibleMenuItemDto } from "@auto-admin/contracts/menu";
 
 function mockItem(id: number, parentId: number | null, name: string, slug: string, icon: string, sortOrder: number): VisibleMenuItemDto {
     return { id, parentId, name, slug, icon, sortOrder, iconType: 'icon', isActive: true, canView: true, canCreate: true, canUpdate: true, canDelete: true };

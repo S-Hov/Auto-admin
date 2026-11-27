@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { apiClient, ApiContractError, getBaseUrl } from '../src/shared/api/apiClient';
 import { ApiClientError } from '../src/shared/api/ApiClientError';
-import { apiResponseSchema } from '../src/shared/api/schema';
+import { apiResponseSchema } from '@auto-admin/contracts/common';
 
 const schema = apiResponseSchema(z.looseObject({ id: z.number() }));
 const respond = (body: unknown, status = 200) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue(

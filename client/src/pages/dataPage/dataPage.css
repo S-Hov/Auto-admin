@@ -1,0 +1,48 @@
+.Page {
+    padding: clamp(28px, 6vw, 76px);
+    &:has(.data-page__empty) {
+        min-height: calc(100svh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.data-page__empty {
+    padding: clamp(24px, 4vw, 48px);
+    border-radius: var(--radius-card-1);
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: var(--cart-shadow);
+    background-color: var(--primary-color);
+    text-align: center;
+
+    & h1 {
+        font-size: clamp(24px, 3vw, 34px);
+        margin: 12px 0;
+        color: var(--text-color);
+    }
+    
+    & p {
+        color: var(--text-color-subtle);
+        line-height: 1.7;
+        margin-bottom: 24px;
+    }
+
+    & button {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
+
+.data-page__eyebrow {
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+input, select, textarea {
+    background-color: var(--primary-color);
+}

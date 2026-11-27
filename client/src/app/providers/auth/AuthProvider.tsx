@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import type { AuthUser } from '../../../shared/api/auth/auth.types';
+import type { AuthUser } from "@auto-admin/contracts/auth";
 import { AuthContext, type AuthStatus } from './AuthContext';
 import { auth } from '../../../shared/api/auth';
 import { useBootstrap } from '../bootstrap/BootstrapContext';

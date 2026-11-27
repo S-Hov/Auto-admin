@@ -15,17 +15,8 @@ import type {
     StoredIndexRow,
     StoredResourceRow,
 } from "./mysql-schema-catalog-row.types";
-import type {
-    DBTable,
-    SchemaCatalog,
-    SchemaScanChangeCounts,
-    StoredConstraint,
-    StoredConstraintField,
-    StoredField,
-    StoredIndex,
-    StoredIndexPart,
-    StoredResource,
-} from "../../types/schema-catalog.types";
+import type { DBTable, SchemaCatalog, StoredConstraint, StoredConstraintField, StoredField, StoredIndex, StoredIndexPart, StoredResource } from "../../types/schema-catalog.types";
+import type { SchemaScanChangeCounts } from "@auto-admin/contracts/access-control";
 
 interface SuccessfulScanRow {
     snapshot_fingerprint: string;

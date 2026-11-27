@@ -1,7 +1,4 @@
-import type {
-    DatabaseSubsystem,
-    DatabaseType,
-} from "../contracts/database.types";
+import type { DatabaseSubsystem, DatabaseType } from "@auto-admin/contracts/database";
 
 export class UnsupportedDatabaseError extends Error {
     constructor(public readonly databaseType: DatabaseType) {

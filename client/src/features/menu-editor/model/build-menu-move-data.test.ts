@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ManageableMenuItemDto } from '../../../shared/api/menu/menu.types';
-import { menuSaveDataSchema } from '../../../shared/api/menu/menu.schema';
+import { type ManageableMenuItemDto, menuSaveDataSchema } from "@auto-admin/contracts/menu";
 import { buildMenuMoveData } from './build-menu-move-data';
 import { buildEditorTree } from './build-editor-tree';
 

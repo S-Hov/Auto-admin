@@ -1,6 +1,5 @@
 import { apiClient } from '../apiClient';
-import type { LoginRequest } from './auth.types';
-import { authUserResponseSchema, loginResponseSchema, logoutResponseSchema } from './auth.schema';
+import { type LoginRequest, authUserResponseSchema, loginResponseSchema, logoutResponseSchema } from "@auto-admin/contracts/auth";
 
 export const auth = {
     login(data: LoginRequest) {

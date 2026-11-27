@@ -1,4 +1,4 @@
-import type { DatabaseType } from "./database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 
 export interface NetworkDatabaseConnectionConfig {
     host: string;

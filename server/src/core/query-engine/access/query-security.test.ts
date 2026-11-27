@@ -10,13 +10,13 @@ import {
 import { AccessControlService } from "../../access-control";
 import { QueryAuthorizer } from "./query-authorizer";
 import { analyzeQueryAccess } from "./query-access.analyzer";
-import { parseUnifiedQuery, queryEngineSchema } from "../schema/query.schema";
+import { parseUnifiedQuery } from "../schema/query.schema";
+import { queryEngineSchema, type PipelineDefinition } from "@auto-admin/contracts/query";
 import { QueryEngineService } from "../query-engine.service";
 import { PipelineExecutor } from "../pipeline/pipeline.executor";
 import { MySqlCompiler } from "../providers/mysql/mysql-query.compiler";
 import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
 import type { PermissionRuleSet } from "../../access-control/contracts/access-control-repository.types";
-import type { PipelineDefinition } from "../pipeline/pipeline.types";
 import type { AccessPrincipal } from "../../access-control";
 
 const read = { action: "read" as const, table: "orders", select: ["total"] };

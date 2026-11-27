@@ -1,5 +1,5 @@
 import { assertDatabaseSubsystemSupported } from "../../../db/catalog/database.catalog";
-import type { DatabaseType } from "../../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { SchemaCatalogProvider } from "../contracts/schema-catalog-provider.interface";
 import { mysqlSchemaCatalogProvider } from "./mysql/mysql-schema-catalog.provider";
 import { SchemaCatalogProviderNotFoundError } from "./schema-catalog-provider.errors";

@@ -1,4 +1,4 @@
-.topbar-layout { min-height: 100dvh; background: var(--primary-color); color: var(--text-color-dark); }
+.topbar-layout { min-height: 100dvh; color: var(--text-color-dark); }
 .topbar-header { position: sticky; top: 0; z-index: 30; padding: 0 28px; background: var(--secondary-color); color: var(--text-color-light); border-bottom: 1px solid var(--background-color-dark); }
 .topbar-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; border-bottom: 1px solid var(--background-color-dark); }
 .topbar-brand { display: flex; align-items: center; gap: 12px; color: var(--text-color-light); font-size: 17px; font-weight: 700; text-decoration: none; }

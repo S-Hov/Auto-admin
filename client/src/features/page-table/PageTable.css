@@ -1,0 +1,217 @@
+:root {
+    --table-border-color: #eee9e3;
+}
+
+
+.page-table {
+    margin-block: var(--gap-lg);
+    color: var(--text-color-dark);
+}
+
+.page-table__summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+
+    &>div {
+        display: flex;
+        min-height: 84px;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid var(--table-border-color);
+        border-radius: 14px;
+        padding: 15px 18px;
+        background: var(--primary-color);
+    }
+
+    & span {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    & strong {
+        font-family: Georgia, serif;
+        font-size: 2rem;
+        font-weight: 400;
+    }
+}
+
+.page-table__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--gap-sm);
+    gap: var(--gap-md);
+
+    & .page-table__search {
+        display: flex;
+        width: min(440px, 100%);
+        height: 43px;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #ddd6cf;
+        border-radius: 10px;
+        padding: 0 13px;
+        color: var(--text-color-muted);
+        background: var(--primary-color);
+
+        & input {
+            width: 100%;
+            border: 0;
+            background: 0 0;
+            ;
+            font: inherit;
+            font-size: .78rem;
+            outline: 0;
+            box-shadow: none;
+            padding: 5px;
+        }
+    }
+
+    & .resource-filters {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: var(--gap-sm);
+        flex-wrap: wrap;
+
+        & label {
+            display: grid;
+            gap: 5px;
+
+            &>span {
+                color: var(--text-color-muted);
+                font-size: .6rem;
+                font-weight: 700;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+            }
+
+            & select {
+                height: 43px;
+                border: var(--border-medium);
+                border-radius: 10px;
+                padding: 0 34px 0 12px;
+                font: inherit;
+                font-size: .75rem;
+            }
+        }
+    }
+}
+
+.page-table__scroll {
+    overflow-x: auto;
+    border-radius: var(--radius-card-3);
+    background: var(--primary-color);
+}
+
+.data-table__selection {
+    text-align: center !important;
+    width: 25px;
+    min-width: 20px !important;
+    border-right: 1px solid var(--table-border-color);
+}
+
+.page-table table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: start;
+}
+
+.page-table :is(th, td) {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: start;
+}
+
+.page-table th {
+    background: color-mix(in srgb, var(--secondary-color) 15%, var(--table-border-color));
+    white-space: nowrap;
+}
+
+.page-table td {
+    height: 72px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--table-border-color);
+    color: var(--text-color-dark);
+    font-size: .82rem;
+    vertical-align: middle;
+}
+
+.page-table td img {
+    display: block;
+    max-width: 96px;
+    max-height: 64px;
+    object-fit: contain;
+}
+
+.page-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.page-table__sort:hover,
+.page-table th[aria-sort] .page-table__sort,
+.page-table td a {
+    color: var(--accent-color);
+}
+
+.page-table__message,
+.page-table__pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap-sm);
+    padding: 12px 14px;
+}
+
+.page-table__pagination {
+    justify-content: space-between;
+    padding: 15px 2px;
+    color: var(--text-color-muted);
+    font-size: .7rem;
+
+    & .page-table__navigation,
+    & .page-table__size {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-sm);
+    }
+
+    & .page-table__size {
+        font-size: .75rem;
+    }
+
+    &>div {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-lg);
+    }
+
+    & select {
+        font: inherit;
+    }
+
+    & strong {
+        color: var(--text-color-dark);
+        min-width: 58px;
+        text-align: center;
+        font-size: 12px;
+    }
+}
+
+.page-table__size select,
+.page-table .button {
+    padding: 8px 12px;
+    color: var(--text-color-dark);
+    border-radius: var(--radius-card-4);
+}

@@ -1,4 +1,4 @@
-import type { ManageableMenuItemDto, MenuSaveData } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import type { MenuItemPanelFormValues } from './MenuItemPanel.schema';
 
 export interface NewMenuItemContext {
@@ -29,7 +29,8 @@ export function buildNewMenuSaveData(context: NewMenuItemContext, values: MenuIt
 }
 
 export function upsertSavedMenuItem(items: readonly ManageableMenuItemDto[], data: MenuSaveData, id: number): ManageableMenuItemDto[] {
-    const saved = { ...data, id };
+    const { pageId, ...properties } = data;
+    const saved = pageId === undefined ? { ...properties, id } : { ...properties, pageId, id };
     return items.some((item) => item.id === id)
         ? items.map((item) => item.id === id ? { ...item, ...saved } : item)
         : [...items, saved];

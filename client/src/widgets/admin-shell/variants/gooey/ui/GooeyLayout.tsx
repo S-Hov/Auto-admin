@@ -117,7 +117,7 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                 openAt({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
             }}><Icon icon="menu-hamburger-classic" /><span>Меню</span><kbd>Ctrl Alt M</kbd></button>
 
-            <dialog ref={dialog} id={menuId} className={`gooey-dialog${position.compact ? ' is-compact' : ''}`} aria-labelledby={`${menuId}-title`} style={{ left: position.left, top: position.top, width: position.width, height: position.height }} onCancel={close} onClose={close} onClick={(event) => {
+            <dialog ref={dialog} id={menuId} className={`gooey-dialog${position.compact ? ' is-compact' : ''}`} aria-label="Меню" style={{ left: position.left, top: position.top, width: position.width, height: position.height }} onCancel={close} onClose={close} onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close();
             }} onKeyDown={(event) => {
@@ -129,10 +129,6 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                 event.preventDefault();
                 controls[next]?.focus();
             }}>
-                {/* <div className="gooey-heading">
-                    <div><p>НАВИГАЦИЯ</p><h2 id={`${menuId}-title`}>{breadcrumbs.at(-1)?.name ?? 'Рабочее пространство'}</h2></div>
-                    <button type="button" className="gooey-close" aria-label="Закрыть меню" onClick={close}>×</button>
-                </div> */}
                 <nav className="gooey-breadcrumbs" aria-label="Путь в меню">
                     <button type="button" onClick={() => { setTrail([]); setPage(0); focusCenter(); }}>Главное меню</button>
                     {breadcrumbs.map((node, index) => <span key={node.id}><span aria-hidden="true"> / </span><button type="button" onClick={() => { setTrail(trail.slice(0, index + 1)); setPage(0); focusCenter(); }}>{node.name}</button></span>)}
@@ -149,7 +145,10 @@ export default function GooeyLayout({ children, menuState, onRetryMenu }: AdminS
                             return <span key={item.id} className="gooey-blob gooey-satellite" style={{ '--dx': `${point.x}px`, '--dy': `${point.y}px`, '--delay': `${index * 35}ms` } as CSSProperties} />;
                         })}
                     </div>
-                    <button type="button" className="gooey-center" data-menu-focus aria-label={trail.length ? 'Назад на уровень выше' : 'Закрыть меню'} title={trail.length ? 'Назад' : 'Закрыть'} onClick={() => { if (trail.length) { back(); requestAnimationFrame(focusCenter); } else close(); }}><span aria-hidden="true">{trail.length ? '←' : '×'}</span><span>{trail.length ? 'Назад' : 'Закрыть'}</span></button>
+                    <button type="button" className="gooey-center" data-menu-focus aria-label={trail.length ? 'Назад на уровень выше' : 'Закрыть меню'} title={trail.length ? 'Назад' : 'Закрыть'} onClick={() => { if (trail.length) { back(); requestAnimationFrame(focusCenter); } else close(); }}>
+                        {trail.length ? <span className="gooey-center__back" aria-hidden="true">←</span> : <Icon icon="action-close" />}
+                        <span>{trail.length ? 'Назад' : 'Закрыть'}</span>
+                    </button>
                     <nav className="gooey-items" aria-label="Разделы">
                         {visible.map((item, index) => {
                             const point = getOrbitPoint(index, visible.length, position.radius);

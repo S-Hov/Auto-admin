@@ -1,7 +1,3 @@
-export interface LoginData {
-    userName: string;
-    password: string;
-}
 
 export interface LoginUserRow {
     id: number;
@@ -46,13 +42,7 @@ export interface LoginServiceResult {
     redirectedTo: string;
 }
 
-export interface LoginResponse {
-    redirectedTo: string;
-}
 
-export interface LogoutResponse {
-    redirectedTo: string;
-}
 
 export type GetMeServiceResult =
     Pick<ActiveSessionRow, 'userId'

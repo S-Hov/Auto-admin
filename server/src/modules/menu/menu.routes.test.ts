@@ -57,6 +57,15 @@ function request(method: string, path = '', body?: unknown, authenticated = true
 }
 
 describe('menu HTTP validation and access boundaries', () => {
+    it.each([42, null])('accepts a page binding or explicit unlink: %s', async (pageId) => {
+        expect((await request('POST', '', { ...validItem, pageId })).status).toBe(200);
+        expect(menuService.save).toHaveBeenCalledWith({ ...validItem, pageId }, session, null);
+    });
+
+    it.each([0, -1, 1.5, '42', true, Number.MAX_SAFE_INTEGER + 1])('rejects invalid pageId %s before invoking the service', async (pageId) => {
+        expect((await request('POST', '', { ...validItem, pageId })).status).toBe(400);
+        expect(menuService.save).not.toHaveBeenCalled();
+    });
     it.each([['GET', ''], ['GET', '/manage'], ['POST', ''], ['DELETE', '/1'], ['PUT', '/permissions']])('%s %s requires a session before invoking a service', async (method, path) => {
         expect((await request(method, path, undefined, false)).status).toBe(401);
         expect(readAuthSession).not.toHaveBeenCalled();

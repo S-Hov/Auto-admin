@@ -1,8 +1,5 @@
 import type { Response } from 'express';
-import type { ErrorCode } from './codes/error-codes';
-import type { TranslationParams } from './errors/ApiError';
-import type { ApiErrorResponse, ApiSuccessResponse } from './response.types';
-import { SuccessCode } from './codes/success-codes';
+import { type ErrorCode, type TranslationParams, type ApiErrorResponse, type ApiSuccessResponse, SuccessCode } from "@auto-admin/contracts/common";
 
 export const successResponse = <TData = unknown>(res: Response, status: number, code: SuccessCode, data?: TData) => {
     const body: ApiSuccessResponse<TData> = {

@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import CardForm from '../../../shared/form/CardForm/CardForm';
 import { ControlledInput } from '../../../shared/form/ControlledInput/ControlledInput';
 import { Button } from '../../../shared/ui/Button/Button';
-import { CreateAdminSchema, type CreateAdminFormValues } from '../model/CreateAdmin.schema';
+import { registerSchema as CreateAdminSchema, type RegisterData as CreateAdminFormValues } from "@auto-admin/contracts/install";
 import { auth } from '../../../shared/api/database/auth';
 import { toast } from 'sonner';
 import { useBootstrap } from '../../../app/providers/bootstrap/BootstrapContext';

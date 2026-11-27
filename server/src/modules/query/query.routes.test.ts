@@ -25,7 +25,7 @@ import { accessControlService } from "../../core/access-control";
 import { permissionManagementService } from "../../core/access-control/permission-management.service";
 import { menuService } from "../menu/menu.service";
 import { forbidden } from "../../shared/api/errors/error-helpers";
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 
 let server: Server;
 let url: string;

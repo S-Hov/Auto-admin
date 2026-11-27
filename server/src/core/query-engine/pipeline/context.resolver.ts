@@ -1,4 +1,4 @@
-import type { UnifiedQuery } from "../types/query.types";
+import type { UnifiedQuery } from "@auto-admin/contracts/query";
 import type { PipelineExecutionContext } from "./pipeline.types";
 import { parseContextReference } from "./pipeline.references";
 import { invalidQuery } from "../query-engine.errors";

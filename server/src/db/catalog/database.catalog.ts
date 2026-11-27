@@ -2,11 +2,7 @@ import {
     UnsupportedDatabaseError,
     UnsupportedDatabaseSubsystemError,
 } from "../errors/database.errors";
-import type {
-    DatabaseDescriptor,
-    DatabaseSubsystem,
-    DatabaseType,
-} from "../contracts/database.types";
+import type { DatabaseDescriptor, DatabaseSubsystem, DatabaseType } from "@auto-admin/contracts/database";
 
 export const DATABASE_CATALOG = {
     'mysql': {

@@ -348,7 +348,7 @@ server/src/shared/middleware/requireInstallToken.ts
 server/src/shared/middleware/requirePendingMigrations.ts
 server/src/modules/auth/auth.service.ts
 server/src/modules/install/install.service.ts
-server/src/modules/install/registerNewAdmin/register.service.ts
+server/src/modules/install/register-admin/register.service.ts
 ```
 
 ### Важный пример для безопасности
@@ -826,7 +826,7 @@ created(res, successCode, data)
 server/src/modules/auth/auth.controller.ts
 server/src/modules/bootstrap/bootstrap.controller.ts
 server/src/modules/install/install.controller.ts
-server/src/modules/install/registerNewAdmin/register.controller.ts
+server/src/modules/install/register-admin/register.controller.ts
 ```
 
 На клиенте добавить соответствующие переводы в `ru/api.ts` и `en/api.ts`.

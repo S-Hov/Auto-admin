@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { successResponse } from './response';
-import { SUCCESS_CODES, type SuccessCode } from './codes/success-codes';
+import { SUCCESS_CODES, type SuccessCode } from "@auto-admin/contracts/common";
 
 export const ok = <TData>(
     res: Response,

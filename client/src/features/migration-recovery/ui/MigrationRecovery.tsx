@@ -4,7 +4,7 @@ import { Button } from "../../../shared/ui/Button/Button";
 import { installDatabase } from "../../../shared/api/database/install";
 import { toast } from "sonner";
 import { apiMessage } from "../../../shared/i18n/api-message";
-import type { RecoveryMigrationResponse } from "../../../shared/api/database/install/install.types";
+import type { RecoveryMigrationResponse } from "@auto-admin/contracts/install";
 import { useBootstrap } from "../../../app/providers/bootstrap/BootstrapContext";
 import { STORAGE_KEYS } from "../../../constants/storage";
 import { ControlledInput } from "../../../shared/form/ControlledInput/ControlledInput";
@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import './MigrationRecovery.css';
 import { TextLoader } from '../../../shared/ui/Loader';
+import { Raccoon } from '../../../shared/ui/Raccoon/Raccoon';
 
 interface RecoveryInfoItem {
     name: string;
@@ -123,6 +124,7 @@ const MigrationRecovery = () => {
             className="recovery-form"
             onSubmit={handleSubmit(onSubmit)}
         >
+            <Raccoon variant="repairing" className="raccoon--compact" />
             {installToken ? (
                 <div className="recovery-info">
                     {recoveryInfoItems.map((item) => {

@@ -4,6 +4,18 @@ import { menuItemPanelSchema } from './MenuItemPanel.schema';
 import { mockMenuItems } from '../../../shared/api/menu/menu.mock';
 
 describe('menu item form payload', () => {
+    it('preserves a page binding locally when a legacy save omits pageId or sets it to undefined', () => {
+        const item = { ...mockMenuItems[0], pageId: 42 };
+        const data = { id: item.id, parentId: item.parentId, name: 'Renamed', slug: item.slug, icon: item.icon, iconType: item.iconType, sortOrder: item.sortOrder, isActive: item.isActive };
+        expect(upsertSavedMenuItem([item], data, item.id)[0].pageId).toBe(42);
+        expect(upsertSavedMenuItem([item], { ...data, pageId: undefined }, item.id)[0].pageId).toBe(42);
+    });
+
+    it.each([43, null])('updates the local binding when explicitly supplied: %s', (pageId) => {
+        const item = { ...mockMenuItems[0], pageId: 42 };
+        const data = { id: item.id, parentId: item.parentId, name: item.name, slug: item.slug, icon: item.icon, iconType: item.iconType, sortOrder: item.sortOrder, isActive: item.isActive, pageId };
+        expect(upsertSavedMenuItem([item], data, item.id)[0].pageId).toBe(pageId);
+    });
     it('creates a root item without a fake database ID', () => {
         const context = buildNewMenuItemContext([], null);
         const payload = buildNewMenuSaveData(context, { name: 'Orders', slug: 'orders', icon: null, sortOrder: context.sortOrder, isActive: true });

@@ -1,5 +1,5 @@
 import { assertDatabaseSubsystemSupported } from "../../db/catalog/database.catalog";
-import type { DatabaseType } from "../../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 import type { MigrationProvider } from "../contracts/migration-provider.interface";
 import { MigrationProviderNotFoundError } from "../migration.errors";
 import { mysqlMigrationProvider } from "./mysql/mysql-migration.provider";

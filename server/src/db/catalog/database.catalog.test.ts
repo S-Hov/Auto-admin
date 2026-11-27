@@ -9,7 +9,7 @@ import {
     UnsupportedDatabaseError,
     UnsupportedDatabaseSubsystemError,
 } from '../errors/database.errors';
-import type { DatabaseSubsystem, DatabaseType } from '../contracts/database.types';
+import type { DatabaseSubsystem, DatabaseType } from "@auto-admin/contracts/database";
 
 describe('Database Catalog', () => {
     describe('getDatabaseDescriptor', () => {

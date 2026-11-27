@@ -11,9 +11,8 @@ import type {
     FieldPermissionAction,
     ResourcePermissionAction,
 } from "../../access-control/contracts/permission.types";
-import type { UnifiedQuery, WhereClause } from "../types/query.types";
+import { type UnifiedQuery, type UpdateQuery, type WhereClause, DEFAULT_READ_ROWS } from "@auto-admin/contracts/query";
 import { invalidQueryReference } from "../query-engine.errors";
-import { DEFAULT_READ_ROWS } from "../schema/query.schema";
 
 type Binding = { resource: Readonly<StoredResource>; qualifier: string };
 
@@ -231,7 +230,7 @@ export function analyzeQueryAccess(
             );
         const uniqueProjections = [...new Set(projections)];
         const outputNames = uniqueProjections.map(
-            (reference) => reference.split(".").at(-1)!,
+            (reference) => query.qualifiedOutput ? reference : reference.split(".").at(-1)!,
         );
         // mysql2 returns rows as objects. Duplicate labels would silently overwrite another column.
         if (
@@ -261,8 +260,8 @@ export function analyzeQueryAccess(
             limit: query.limit ?? DEFAULT_READ_ROWS,
         };
     } else if (query.action === "create" || query.action === "update") {
-        const normalizeRow = (row: Record<string, unknown>) => {
-            const result: Record<string, unknown> = Object.create(null);
+        const normalizeRow = (row: UpdateQuery['data']): UpdateQuery['data'] => {
+            const result: UpdateQuery['data'] = Object.create(null);
             for (const [name, value] of Object.entries(row)) {
                 const resolved = resolveField(name);
                 if (resolved.field.generated.isGenerated)

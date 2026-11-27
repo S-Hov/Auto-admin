@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { badRequest } from "../../shared/api/errors/error-helpers";
 
 export function invalidQuery(message: string, cause?: unknown) {

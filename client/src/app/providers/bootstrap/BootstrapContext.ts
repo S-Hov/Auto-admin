@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { BootstrapStage } from "../../../shared/api/bootstrap/bootstrap.types";
+import type { BootstrapStage } from "@auto-admin/contracts/bootstrap";
 
 export type BootstrapState =
     | {

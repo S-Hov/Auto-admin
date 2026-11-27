@@ -1,0 +1,60 @@
+{
+    "name": "@auto-admin/contracts",
+    "version": "0.1.0",
+    "private": true,
+    "type": "commonjs",
+    "dependencies": {
+        "zod": "^4.4.3"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.type-tests.json",
+        "dev": "tsc -p tsconfig.json --watch"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    },
+    "exports": {
+        "./schema-catalog": {
+            "types": "./dist/schema-catalog/index.d.ts",
+            "default": "./dist/schema-catalog/index.js"
+        },
+        "./auth": {
+            "types": "./dist/auth/index.d.ts",
+            "default": "./dist/auth/index.js"
+        },
+        "./install": {
+            "types": "./dist/install/index.d.ts",
+            "default": "./dist/install/index.js"
+        },
+        "./bootstrap": {
+            "types": "./dist/bootstrap/index.d.ts",
+            "default": "./dist/bootstrap/index.js"
+        },
+        "./database": {
+            "types": "./dist/database/index.d.ts",
+            "default": "./dist/database/index.js"
+        },
+        "./menu": {
+            "types": "./dist/menu/index.d.ts",
+            "default": "./dist/menu/index.js"
+        },
+        "./access-control": {
+            "types": "./dist/access-control/index.d.ts",
+            "default": "./dist/access-control/index.js"
+        },
+        "./query": {
+            "types": "./dist/query/index.d.ts",
+            "default": "./dist/query/index.js"
+        },
+        "./pages": {
+            "types": "./dist/pages/index.d.ts",
+            "default": "./dist/pages/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "default": "./dist/common/index.js"
+        }
+    },
+    "files": ["dist"]
+}

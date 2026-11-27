@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type { VisibleMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { VisibleMenuItemDto } from "@auto-admin/contracts/menu";
 
 export type AdminShellVariantId = 'sidebar' | 'gooey' | 'topbar';
 

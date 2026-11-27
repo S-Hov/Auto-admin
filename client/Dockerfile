@@ -1,21 +1,12 @@
-FROM node:20-alpine
-
+FROM node:22-alpine
 WORKDIR /app
-
-# Сначала копируем только манифесты зависимостей (для эффективного кэширования слоёв Docker)
-COPY package*.json ./
-
-# В проде и CI всегда используют npm ci вместо npm install (гарантирует установку точных версий)
-RUN npm install
-
-# Копируем остальной исходный код
+COPY package.json package-lock.json ./
+COPY client/package.json ./client/package.json
+COPY server/package.json ./server/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
+RUN npm ci --no-audit --no-fund
 COPY . .
-
-# Даем права пользователю node
-RUN chown -R node:node /app
-
+RUN npm run build:contracts && chown -R node:node /app
 USER node
-
 EXPOSE 5173
-
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--workspace=client"]

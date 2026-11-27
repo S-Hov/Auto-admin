@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Button } from '../../../shared/ui/Button/Button';
 import Modal from '../../../shared/ui/Modal/Modal';
 import { apiMessage } from '../../../shared/i18n/api-message';
-import type { ManageableMenuItemDto } from '../../../shared/api/menu/menu.types';
+import type { ManageableMenuItemDto } from "@auto-admin/contracts/menu";
 
 interface DeleteMenuItemButtonProps {
     item: ManageableMenuItemDto;

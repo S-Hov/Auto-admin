@@ -1,10 +1,6 @@
 import type { SnapshotConstraint } from "./synchronizer.types";
-import type {
-    DBSnapshot,
-    SchemaScanChangeCounts,
-    StoredField,
-    StoredResource,
-} from "../types/schema-catalog.types";
+import type { DBSnapshot, StoredField, StoredResource } from "../types/schema-catalog.types";
+import type { SchemaScanChangeCounts } from "@auto-admin/contracts/access-control";
 import type {
     ConstraintFieldWriteItem,
     ConstraintWriteItem,

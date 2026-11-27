@@ -1,7 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler";
 import { ok } from "../../shared/api/success";
 import { menuService } from "./menu.service";
-import type { MenuSaveData, MenuPermissionData, MenuDeleteParams } from './schema/menu.schema';
+import type { MenuSaveData, MenuPermissionData, MenuDeleteParams } from "@auto-admin/contracts/menu";
 
 export const getMenuController = asyncHandler(async (req, res) => {
     return ok(res, undefined, await menuService.getMenu(req.auth!));

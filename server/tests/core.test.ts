@@ -4,7 +4,7 @@ import { buildMigrationPlan } from '../src/migrations/migration.plan';
 import { MigrationRecoveryRequiredError } from '../src/migrations/migration.errors';
 import type { MigrationDescriptor, MigrationHistoryRecord } from '../src/migrations/migration.types';
 import { mapZodIssue } from '../src/shared/api/validation/map-zod-issue';
-import { ERROR_CODES } from '../src/shared/api/codes/error-codes';
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { AsyncMutex } from '../src/shared/concurrency/AsyncMutex';
 import { mysqlMigrationProvider } from '../src/migrations/providers/mysql/mysql-migration.provider';
 import { verifyMigrationApplied } from '../src/migrations/providers/mysql/migration.verification';

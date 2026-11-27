@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ContextResolver } from './context.resolver';
 import type { PipelineExecutionContext } from './pipeline.types';
-import type { ReadQuery } from '../types/query.types';
+import type { ReadQuery } from "@auto-admin/contracts/query";
 
 describe('ContextResolver', () => {
     it('должен возвращать примитивные значения без изменений', () => {

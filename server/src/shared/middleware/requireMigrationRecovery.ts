@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { MigrationRecoveryRequiredError } from '../../migrations/migration.errors';
 import { getCurrentMigrationPlan } from '../../migrations/migration.runner';
-import { ERROR_CODES } from '../api/codes/error-codes';
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { conflict } from '../api/errors/error-helpers';
 
 export const requireMigrationRecovery = async (_req: Request, _res: Response, next: NextFunction): Promise<void> => {

@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { forbidden } from "../../shared/api/errors/error-helpers";
 import type { AccessDecision } from "./contracts/access-control.types";
 

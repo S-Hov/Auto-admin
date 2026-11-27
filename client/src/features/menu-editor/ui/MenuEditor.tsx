@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import type { ManageableMenuItemDto, MenuSaveData } from "../../../shared/api/menu/menu.types";
+import type { ManageableMenuItemDto, MenuSaveData } from "@auto-admin/contracts/menu";
 import { buildEditorTree } from "../model/build-editor-tree";
 import type { MenuEditorSelection } from "../model/menu-editor-tree.types";
 import { MenuEditorBoard } from "./MenuEditorBoard";
@@ -8,6 +8,7 @@ import MenuItemPanel from "./MenuItemPanel";
 import "./MenuEditor.css";
 import { buildMenuMoveData } from "../model/build-menu-move-data";
 import { toast } from "sonner";
+import { Raccoon } from "../../../shared/ui/Raccoon/Raccoon";
 
 export function MenuEditor({
     items,
@@ -90,7 +91,10 @@ export function MenuEditor({
             >
                 <h2>Структура меню</h2>
                 {items.length === 0 && (
-                    <p>Меню пока не настроено. Нажмите «+» у корневого узла, чтобы добавить первый раздел.</p>
+                    <div>
+                        <Raccoon variant="repairing" className="raccoon--compact" />
+                        <p>Меню пока не настроено. Нажмите «+» у корневого узла, чтобы добавить первый раздел.</p>
+                    </div>
                 )}
                 <MenuEditorBoard
                     items={items}

@@ -2,7 +2,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { queryEngineService } from "../../core/query-engine";
 import { ok } from "../../shared/api/success";
 import { unauthorized } from "../../shared/api/errors/error-helpers";
-import { parseExecuteRequest, parsePipelineRequest } from "./query.schema";
+import { parseExecuteRequest, parsePipelineRequest } from "./schema/query.schema";
 
 export const executeQueryController = asyncHandler(async (req, res) => {
     if (!req.auth) throw unauthorized();

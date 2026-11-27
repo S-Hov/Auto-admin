@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireAdmin, requireAuth } from "../../shared/middleware/auth.middleware";
 import { validate } from '../../shared/middleware/validate';
-import { menuSaveSchema, menuPermissionSchema, menuDeleteParamsSchema } from './schema/menu.schema';
+import { menuSaveSchema, menuPermissionSchema, menuDeleteParamsSchema } from "@auto-admin/contracts/menu";
 import { createRateLimiter } from "../../shared/middleware/rateLimiter";
 import { deleteMenuController, getManageableMenuController, getMenuController, menuPermissionsController, saveMenuController } from "./menu.controller";
 

@@ -1,6 +1,6 @@
 import type { AccessPrincipal } from "../contracts/access-control.types";
 import { isSystemAdmin } from "./permission.evaluator";
-import { ERROR_CODES } from "../../../shared/api/codes/error-codes";
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import {
     forbidden,
     unauthorized,

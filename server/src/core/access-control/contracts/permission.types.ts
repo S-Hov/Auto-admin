@@ -1,10 +1,4 @@
-import type {
-    FIELD_PERMISSION_ACTIONS,
-    PERMISSION_EFFECTS,
-    PERMISSION_SUBJECT_TYPES,
-    PERMISSION_TARGET_TYPES,
-    RESOURCE_PERMISSION_ACTIONS,
-} from "./permission.constants";
+import type { FIELD_PERMISSION_ACTIONS, PERMISSION_EFFECTS, PERMISSION_SUBJECT_TYPES, PERMISSION_TARGET_TYPES, RESOURCE_PERMISSION_ACTIONS } from "@auto-admin/contracts/access-control";
 
 export type ResourcePermissionAction =
     (typeof RESOURCE_PERMISSION_ACTIONS)[number];

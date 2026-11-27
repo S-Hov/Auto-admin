@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { ApiError } from '../api/errors/ApiError';
 import { errorResponse } from '../api/response';
-import { ERROR_CODES } from '../api/codes/error-codes';
+import { ERROR_CODES } from "@auto-admin/contracts/common";
 import { logger } from '../logger';
 
 export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {

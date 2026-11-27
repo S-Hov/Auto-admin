@@ -1,10 +1,10 @@
-const homePage = () => {
-  return (
-    <div>
-      <h1>Welcome to the Home Page</h1>
-      <p>This is the main landing page of our application.</p>
-    </div>
-  );
+import { useTranslation } from 'react-i18next';
+import { StatusPanel } from '../../shared/ui/StatusPanel/StatusPanel';
+
+const HomePage = () => {
+  const { t } = useTranslation('status');
+
+  return <StatusPanel variant="waving" title={t('welcome')} description={t('welcomeDescription')} />;
 };
 
-export default homePage;
+export default HomePage;

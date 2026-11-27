@@ -1,13 +1,16 @@
 import { Outlet, useLocation, Navigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useBootstrap } from "../../providers/bootstrap/BootstrapContext";
 import { Button } from "../../../shared/ui/Button/Button";
 import { useAuth } from "../../providers/auth/AuthContext";
 import { useAppLocale } from "../locale/use-app-locale";
 import { appPaths } from "../app-paths";
 import { PageLoader } from '../../../shared/ui/Loader';
+import { StatusPanel } from '../../../shared/ui/StatusPanel/StatusPanel';
 
 
 export const AppGate = () => {
+    const { t } = useTranslation('status');
     const locale = useAppLocale();
     const paths = {
         home: appPaths.home(locale),
@@ -30,16 +33,20 @@ export const AppGate = () => {
     }
 
     if (state.status === 'error') {
+        const btnStyle = {
+            flex: 1
+        }
+        
         return (
-            <>
-                <div>Ошибка при проверке статуса bootstrap</div>
+            <StatusPanel variant="sad" title={t('bootstrapError')} fullscreen role="alert">
                 <Button
                     variant="primary"
                     onClick={refreshBootstrap}
+                    style={btnStyle}
                 >
-                    Проверить повторно
+                    {t('retry')}
                 </Button>
-            </>
+            </StatusPanel>
         );
     }
 
@@ -79,29 +86,27 @@ export const AppGate = () => {
 
     if (state.stage === 'database_unavailable') {
         return (
-            <div>
-                База данных недоступна.
+            <StatusPanel variant="repairing" title={t('databaseUnavailable')} fullscreen role="alert">
                 <Button
                     variant="primary"
                     onClick={refreshBootstrap}
                 >
-                    Проверить повторно
+                    {t('retry')}
                 </Button>
-            </div>
+            </StatusPanel>
         );
     }
 
     else if (state.stage === 'system_error') {
         return (
-            <div>
-                Произошла системная ошибка.
+            <StatusPanel variant="sad" title={t('systemError')} fullscreen role="alert">
                 <Button
                     variant="primary"
                     onClick={refreshBootstrap}
                 >
-                    Проверить повторно
+                    {t('retry')}
                 </Button>
-            </div>
+            </StatusPanel>
         );
     }
 
@@ -111,15 +116,14 @@ export const AppGate = () => {
 
     else if (status === 'error') {
         return (
-            <div>
-                Произошла ошибка при проверке авторизации.
+            <StatusPanel variant="confused" title={t('authError')} fullscreen role="alert">
                 <Button
                     variant="primary"
                     onClick={refreshAuth}
                 >
-                    Проверить повторно
+                    {t('retry')}
                 </Button>
-            </div>
+            </StatusPanel>
         );
     }
 

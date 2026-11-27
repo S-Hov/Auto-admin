@@ -6,7 +6,7 @@ import {
 } from "../../access-control";
 import { analyzeQueryAccess } from "./query-access.analyzer";
 import { parseUnifiedQuery } from "../schema/query.schema";
-import type { UnifiedQuery } from "../types/query.types";
+import type { UnifiedQuery } from "@auto-admin/contracts/query";
 import { invalidQuery } from "../query-engine.errors";
 import type { QueryEngineProvider } from "../contracts/query-engine-provider.interface";
 

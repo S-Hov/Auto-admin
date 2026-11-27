@@ -17,21 +17,3 @@ export interface QueryAccessRequirements {
         usage: FieldUsage;
     }>[];
 }
-
-export interface AccessibleCatalog {
-    schemaName: string;
-    fingerprint: string;
-    resources: Array<{
-        id: number;
-        tableName: string;
-        type: "table" | "view";
-        actions: ResourcePermissionAction[];
-        fields: Array<{
-            id: number;
-            name: string;
-            dataType: string;
-            nullable: boolean;
-            actions: FieldPermissionAction[];
-        }>;
-    }>;
-}

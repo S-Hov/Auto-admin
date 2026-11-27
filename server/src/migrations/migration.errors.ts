@@ -1,4 +1,4 @@
-import type { DatabaseType } from "../db/contracts/database.types";
+import type { DatabaseType } from "@auto-admin/contracts/database";
 
 export class MigrationProviderNotFoundError extends Error {
     constructor(public readonly databaseType: DatabaseType) {

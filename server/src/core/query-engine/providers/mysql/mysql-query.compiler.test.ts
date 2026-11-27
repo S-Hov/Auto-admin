@@ -1,11 +1,36 @@
 import { describe, it, expect } from 'vitest';
 import { MySqlCompiler } from './mysql-query.compiler';
-import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from '../../types/query.types';
+import type { ReadQuery, CreateQuery, UpdateQuery, DeleteQuery } from "@auto-admin/contracts/query";
 
 describe('MySqlCompiler', () => {
     const compiler = new MySqlCompiler();
 
     describe('compileRead', () => {
+        it.each([
+            ['_contains', '%A!%B!_C!!%'],
+            ['_starts_with', 'A!%B!_C!!%'],
+        ] as const)('uses a literal LIKE pattern for %s', (operator, pattern) => {
+            const result = compiler.compile({
+                action: 'read',
+                table: 'users',
+                where: { name: { [operator]: 'A%B_C!' } },
+            });
+
+            expect(result.sql).toContain("WHERE `name` LIKE ? ESCAPE '!'");
+            expect(result.params).toEqual([pattern]);
+        });
+
+        it('keeps apostrophes and backslashes as data in a bound search pattern', () => {
+            const result = compiler.compile({
+                action: 'read',
+                table: 'users',
+                where: { name: { _contains: "O'Neil\\A" } },
+            });
+
+            expect(result.sql).toContain("WHERE `name` LIKE ? ESCAPE '!'");
+            expect(result.params).toEqual(["%O'Neil\\A%"]);
+        });
+
         it('должен скомпилировать простой запрос SELECT * без условий', () => {
             const query: ReadQuery = {
                 action: 'read',

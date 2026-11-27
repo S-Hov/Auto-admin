@@ -1,6 +1,5 @@
 import { apiClient, ApiContractError } from '../apiClient';
-import { visibleMenuResponseSchema, manageableMenuResponseSchema, menuSaveDataSchema, menuSaveResponseSchema, menuDeleteIdSchema, menuDeleteResponseSchema } from './menu.schema';
-import type { MenuSaveData } from './menu.types';
+import { visibleMenuResponseSchema, manageableMenuResponseSchema, menuSaveDataSchema, menuSaveResponseSchema, menuDeleteIdSchema, menuDeleteResponseSchema, type MenuSaveData } from "@auto-admin/contracts/menu";
 
 async function saveMenu(data: MenuSaveData) {
     const payload = menuSaveDataSchema.parse(data);
